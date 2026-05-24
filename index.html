@@ -3,30 +3,37 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0F1419" />
+<meta name="theme-color" content="#060708" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="FITNESS" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon.svg" />
 <title>FITNESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #0F1419;
-    --bg-elev: #1A1F26;
-    --bg-elev-2: #232932;
-    --line: #2A313B;
-    --text: #E8EAED;
-    --muted: #8B92A0;
-    --accent: #22C55E;
-    --accent-dim: #15803D;
-    --success: #00D9A3;
-    --warn: #FFB347;
-    --shadow: 0 8px 24px rgba(0,0,0,.35);
-    --r-sm: 10px;
-    --r-md: 14px;
-    --r-lg: 20px;
-    --nav-h: 72px;
+    --bg: #060708;
+    --bg-elev: #0E1012;
+    --bg-elev-2: #15181C;
+    --line: #212529;
+    --text: #F3F5F4;
+    --muted: #737A82;
+    --accent: #35F58B;
+    --accent-dim: #0F5132;
+    --accent-bright: #6BFFB6;
+    --success: #4FE0A6;
+    --warn: #D9A53A;
+    --shadow: 0 12px 40px -16px rgba(0,0,0,.7);
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+    --nav-h: 74px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -58,7 +65,7 @@
   .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
   .plan-card { background: linear-gradient(135deg, #1F2530 0%, #1A1F26 100%); border: 1px solid var(--line); position: relative; overflow: hidden; }
-  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,94,.18), transparent 70%); }
+  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(53,245,139,.18), transparent 70%); }
   .plan-card.rest::before { background: radial-gradient(circle, rgba(139,146,160,.18), transparent 70%); }
   .plan-card h2 { font-size: 24px; }
   .plan-card .muscles { color: var(--muted); margin-top: 4px; font-size: 14px; }
@@ -71,7 +78,7 @@
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
     color: #fff; font-weight: 700; font-size: 17px; letter-spacing: .3px;
     border-radius: var(--r-md);
-    box-shadow: 0 10px 24px rgba(34,197,94,.35);
+    box-shadow: 0 10px 24px rgba(53,245,139,.35);
     transition: transform .12s ease;
   }
   .cta:active { transform: scale(.98); }
@@ -127,11 +134,11 @@
   .routine-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 8px; }
   .routine-item .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--bg-elev-2); color: var(--muted); white-space: nowrap; }
   .routine-item .tag.push,
-  .routine-item .tag.full-body-a { background: rgba(34,197,94,.15); color: var(--accent); }
+  .routine-item .tag.full-body-a { background: rgba(53,245,139,.15); color: var(--accent); }
   .routine-item .tag.pull,
-  .routine-item .tag.full-body-b { background: rgba(0,217,163,.15); color: var(--success); }
+  .routine-item .tag.full-body-b { background: rgba(79,224,166,.15); color: var(--success); }
   .routine-item .tag.legs,
-  .routine-item .tag.outdoor { background: rgba(255,179,71,.15); color: var(--warn); }
+  .routine-item .tag.outdoor { background: rgba(217,165,58,.15); color: var(--warn); }
 
   /* Objetivos */
   .goals-card { padding: 16px; }
@@ -145,7 +152,7 @@
 
   /* Plan macro (timeline de bloques) */
   .block-item { display: flex; gap: 10px; padding: 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 6px; align-items: flex-start; }
-  .block-item.current { border-color: var(--accent); background: linear-gradient(135deg, rgba(34,197,94,.08), transparent); }
+  .block-item.current { border-color: var(--accent); background: linear-gradient(135deg, rgba(53,245,139,.08), transparent); }
   .block-item.done { opacity: .55; }
   .block-item .b-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-elev-2); display: grid; place-items: center; font-weight: 700; font-size: 12px; color: var(--muted); flex-shrink: 0; }
   .block-item.current .b-num { background: var(--accent); color: #fff; }
@@ -163,7 +170,7 @@
   .optional-card .opt-head .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
   .optional-card h3 { margin: 4px 0 0; font-size: 16px; font-weight: 700; }
   .optional-card .opt-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .optional-card .opt-done { font-size: 10px; color: var(--success); white-space: nowrap; background: rgba(0,217,163,.12); padding: 3px 8px; border-radius: 999px; letter-spacing: .4px; }
+  .optional-card .opt-done { font-size: 10px; color: var(--success); white-space: nowrap; background: rgba(79,224,166,.12); padding: 3px 8px; border-radius: 999px; letter-spacing: .4px; }
   .optional-card .opt-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; padding: 12px; background: var(--bg-elev-2); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-md); font-weight: 600; font-size: 14px; }
   .optional-card .opt-cta svg { width: 16px; height: 16px; }
   .optional-card .opt-cta:active { background: var(--line); }
@@ -174,8 +181,8 @@
   /* Vista de la semana (lista vertical por días) */
   .day-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .day-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); }
-  .day-row.today { border-color: var(--accent); background: linear-gradient(135deg, rgba(34,197,94,.08), transparent); }
-  .day-row.done { background: rgba(0,217,163,.05); border-color: rgba(0,217,163,.3); }
+  .day-row.today { border-color: var(--accent); background: linear-gradient(135deg, rgba(53,245,139,.08), transparent); }
+  .day-row.done { background: rgba(79,224,166,.05); border-color: rgba(79,224,166,.3); }
   .day-row.rest-day { opacity: .55; }
   .day-row .day-info { width: 48px; flex-shrink: 0; }
   .day-row .day-info .dn { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
@@ -186,10 +193,10 @@
   .day-row .day-routine b { font-size: 14px; display: block; font-weight: 600; }
   .day-row .day-routine span { font-size: 11px; color: var(--muted); }
   .day-row .day-badge { font-size: 10px; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .4px; font-weight: 600; white-space: nowrap; }
-  .day-row .day-badge.done { background: rgba(0,217,163,.15); color: var(--success); }
-  .day-row .day-badge.today { background: rgba(34,197,94,.15); color: var(--accent); }
+  .day-row .day-badge.done { background: rgba(79,224,166,.15); color: var(--success); }
+  .day-row .day-badge.today { background: rgba(53,245,139,.15); color: var(--accent); }
   .day-row .day-badge.rest { background: var(--bg-elev-2); color: var(--muted); }
-  .day-row .day-badge.optional { background: rgba(255,179,71,.15); color: var(--warn); }
+  .day-row .day-badge.optional { background: rgba(217,165,58,.15); color: var(--warn); }
   .day-row .edit-day-btn { background: none; border: none; color: var(--muted); padding: 8px; border-radius: 8px; flex-shrink: 0; }
   .day-row .edit-day-btn:active { background: var(--bg-elev-2); }
   .day-row .edit-day-btn svg { width: 16px; height: 16px; display: block; }
@@ -202,7 +209,7 @@
   .check-week .wk-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
   .check-week .wk-val { font-size: 18px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .check-week .wk-sub { font-size: 9px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
-  .check-week.met { background: rgba(0,217,163,.10); border-color: rgba(0,217,163,.35); }
+  .check-week.met { background: rgba(79,224,166,.10); border-color: rgba(79,224,166,.35); }
   .check-week.met .wk-val { color: var(--success); }
   .check-week.partial .wk-val { color: var(--warn); }
   .check-week.empty .wk-val { color: var(--muted); }
@@ -224,7 +231,7 @@
   .import-actions { display: flex; gap: 8px; margin-top: 10px; }
   .import-actions button { flex: 1; padding: 12px; border-radius: var(--r-md); font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: var(--bg-elev-2); color: var(--text); }
   .import-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .import-actions button.danger { background: rgba(34,197,94,.08); color: var(--accent); }
+  .import-actions button.danger { background: rgba(53,245,139,.08); color: var(--accent); }
 
   /* Sheet para editar día */
   .sheet-option { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--bg-elev-2); margin-bottom: 6px; width: 100%; text-align: left; }
@@ -307,7 +314,7 @@
     background: linear-gradient(135deg, var(--accent), var(--accent-dim));
     color: #fff; border-radius: var(--r-md); padding: 14px 18px;
     display: none; align-items: center; justify-content: space-between;
-    box-shadow: 0 12px 28px rgba(34,197,94,.4);
+    box-shadow: 0 12px 28px rgba(53,245,139,.4);
     z-index: 110;
   }
   .rest-timer.show { display: flex; }
@@ -319,7 +326,7 @@
     position: fixed; left: 18px; right: 18px; bottom: 24px;
     background: var(--success); color: #0F1419;
     border-radius: var(--r-md); padding: 16px; font-weight: 700; font-size: 16px;
-    box-shadow: 0 12px 28px rgba(0,217,163,.35);
+    box-shadow: 0 12px 28px rgba(79,224,166,.35);
     z-index: 105;
     display: none;
   }
@@ -357,6 +364,45 @@
 
   .muted { color: var(--muted); }
   .center { text-align: center; }
+
+  /* ===== Minimal Luxe overrides ===== */
+  body { font-family: var(--font-ui); }
+  h1, h2, h3,
+  .card h2, .plan-card h2, .stat-card .v, .check-week .wk-val,
+  .day .n, .day-row .day-info .dd, .block-item .b-name,
+  .exercise-card h3, .rest-timer .t, .pr-item .val,
+  .optional-card h3, .tracker-header .title, .placeholder h2,
+  .goals-card h3, .sheet-head h3 { font-family: var(--font-display); letter-spacing: -.01em; }
+  .topbar h1 { font-weight: 300; font-size: 26px; }
+  .section-title, .card .label, .stat-card .lbl, .topbar .greet { letter-spacing: .22em; }
+
+  .avatar { background: var(--accent); color: #04140C; font-family: var(--font-display); }
+  .plan-card { background: var(--bg-elev); }
+  .plan-card::before { display: none; }
+
+  .cta { background: var(--accent); color: #04140C; border-radius: var(--r-pill); box-shadow: 0 10px 34px -12px rgba(53,245,139,.65); font-family: var(--font-display); }
+  .cta.disabled { background: var(--bg-elev); color: var(--muted); box-shadow: none; }
+
+  .day.today, .day.today .d, .day.today .n { color: #04140C; }
+  .day.today .pill { background: rgba(0,0,0,.18); color: #04140C; }
+
+  .block-item.current { background: var(--bg-elev); }
+  .block-item.current .b-num { color: #04140C; }
+  .day-row.today, .day-row.done { background: var(--bg-elev); }
+
+  .bar { background: var(--accent); }
+
+  .data-btn.primary, .import-actions button.primary, .sheet-tabs button.active { color: #04140C; }
+  table.sets td.done button.checked { color: #04140C; }
+  table.sets td.done button.checked svg { stroke: #04140C; }
+
+  .rest-timer { background: var(--accent); color: #04140C; border-radius: var(--r-md); box-shadow: 0 12px 30px -12px rgba(53,245,139,.6); }
+  .rest-timer .lbl { color: #04140C; opacity: .75; }
+  .rest-timer button { background: rgba(0,0,0,.2); color: #04140C; }
+
+  .finish-btn { color: #04140C; box-shadow: 0 12px 30px -12px rgba(79,224,166,.5); }
+
+  nav.bottom { background: rgba(6,7,8,.92); }
 </style>
 </head>
 <body>
@@ -573,7 +619,7 @@
       </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Zona peligro</div>
-        <button class="danger" id="resetAll" style="width:100%;padding:10px;border-radius:var(--r-md);border:1px solid rgba(34,197,94,.3);background:transparent;color:var(--accent);font-size:13px">
+        <button class="danger" id="resetAll" style="width:100%;padding:10px;border-radius:var(--r-md);border:1px solid rgba(53,245,139,.3);background:transparent;color:var(--accent);font-size:13px">
           Borrar todo el historial local
         </button>
       </div>
