@@ -1,4 +1,4 @@
-const CACHE = 'fitness-v8';
+const CACHE = 'fitness-v9';
 const SHELL = [
   './',
   './index.html',
@@ -19,27 +19,31 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Network-first para /data/* (rutinas y ejercicios cambian a menudo)
-// Cache-first para el resto (shell de la app)
+// Network-first para navegaciones, HTML y /data/* (para ver siempre lo último online).
+// Cache-first para el resto del shell (manifest, icono).
+// Si no hay red, se sirve desde caché (offline).
 self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
+  const req = e.request;
+  const url = new URL(req.url);
+  const isNavigation = req.mode === 'navigate';
+  const isHTML = url.pathname.endsWith('/') || url.pathname.endsWith('.html');
   const isData = url.pathname.includes('/data/');
 
-  if (isData) {
+  if (isNavigation || isHTML || isData) {
     e.respondWith(
-      fetch(e.request).then(res => {
+      fetch(req).then(res => {
         const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
+        caches.open(CACHE).then(c => c.put(req, copy));
         return res;
-      }).catch(() => caches.match(e.request))
+      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
     );
   } else {
     e.respondWith(
-      caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      caches.match(req).then(r => r || fetch(req).then(res => {
         const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
+        caches.open(CACHE).then(c => c.put(req, copy));
         return res;
-      }).catch(() => caches.match('./index.html')))
+      }))
     );
   }
 });

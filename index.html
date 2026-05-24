@@ -1200,17 +1200,64 @@
   document.getElementById('finishBtn').addEventListener('click', () => {
     persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-    alert('¡Entreno guardado! 💪\n\nRecuerda: al llegar a casa, pulsa "Exportar" en Home y pega el resultado en el chat de Claude.');
+    alert('¡Entreno guardado! 💪\n\nSe sincroniza solo en la nube.');
     closeTracker();
     renderHome();
     renderTrainer();
     renderStats();
   });
 
+  // ============ Sincronización en la nube (Supabase) ============
+  // La clave anon es PÚBLICA por diseño (va en el cliente). No es la service_role.
+  const SUPABASE_URL = 'https://rffzgrpoffosqfkqutqq.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZnpncnBvZmZvc3Fma3F1dHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NDQ3MzQsImV4cCI6MjA5NTIyMDczNH0.0D2o7BEP27BKvrBUSlE4De9lQDeXP3XQA_TConS39_8';
+  const SB_SESSIONS = SUPABASE_URL + '/rest/v1/sessions';
+  const DEVICE_KEY = 'fitness_device_id';
+  function getDeviceId() {
+    let d = localStorage.getItem(DEVICE_KEY);
+    if (!d) {
+      d = (crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      localStorage.setItem(DEVICE_KEY, d);
+    }
+    return d;
+  }
+  const OUTBOX_KEY = 'fitness_sync_outbox_v1';
+  function loadOutbox() { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } }
+  function saveOutbox(o) { localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); }
+  async function postSession(row) {
+    const res = await fetch(SB_SESSIONS, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(row)
+    });
+    if (!res.ok) throw new Error('Supabase ' + res.status);
+  }
+  // Si falla (sin conexión en el gym), se guarda en una cola y se reintenta al abrir la app.
+  async function syncSession(row) {
+    try { await postSession(row); }
+    catch (e) { const o = loadOutbox(); o.push(row); saveOutbox(o); }
+  }
+  async function flushOutbox() {
+    const o = loadOutbox();
+    if (!o.length) return;
+    const remaining = [];
+    for (const row of o) {
+      try { await postSession(row); } catch { remaining.push(row); }
+    }
+    saveOutbox(remaining);
+  }
+  flushOutbox();
+
   function persistSession() {
     const hist = loadHistory();
     const cards = trackerBody.querySelectorAll('.exercise-card');
     const dateIso = new Date().toISOString();
+    const sessionExercises = [];
     cards.forEach(card => {
       const slotIdx = parseInt(card.dataset.slot, 10);
       const slot = session.exercises[slotIdx];
@@ -1228,8 +1275,20 @@
       const rec = { date: dateIso, routineId: session.routineId, sets, notes };
       if (!hist[slot.exerciseId]) hist[slot.exerciseId] = [];
       hist[slot.exerciseId].push(rec);
+      sessionExercises.push({ exerciseId: slot.exerciseId, name: getExercise(slot.exerciseId).name, sets, notes });
     });
     saveHistory(hist);
+    // Sincroniza la sesión completa en la nube (registro por sesión)
+    if (sessionExercises.length) {
+      const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart) / 1000) : null;
+      syncSession({
+        session_date: dateIso.slice(0, 10),
+        routine_id: session.routineId || null,
+        device_id: getDeviceId(),
+        duration_sec: durationSec,
+        exercises: sessionExercises
+      });
+    }
   }
   function closeTracker() {
     document.getElementById('tracker').classList.remove('open');
