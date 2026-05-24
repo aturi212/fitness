@@ -403,6 +403,21 @@
   .finish-btn { color: #04140C; box-shadow: 0 12px 30px -12px rgba(79,224,166,.5); }
 
   nav.bottom { background: rgba(6,7,8,.92); }
+
+  /* Home rework */
+  .today-date { font-size: 13px; color: var(--muted); margin-top: 5px; letter-spacing: .06em; font-family: var(--font-display); }
+  .app-logo { width: 46px; height: 46px; border-radius: 16px; background: var(--bg-elev); border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0; }
+  .app-logo svg { width: 30px; height: 30px; }
+  .workout-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; margin-bottom: 12px; }
+  .workout-card .wc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .workout-card .wc-day { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+  .workout-card h3 { font-family: var(--font-display); font-weight: 500; font-size: 19px; margin: 5px 0 0; letter-spacing: -.01em; }
+  .workout-card .wc-meta { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .workout-card .wc-pos { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: .06em; white-space: nowrap; }
+  .workout-card .wc-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 16px; padding: 14px; background: var(--accent); color: #04140C; border-radius: var(--r-pill); font-family: var(--font-display); font-weight: 600; font-size: 15px; box-shadow: 0 8px 26px -12px rgba(53,245,139,.6); }
+  .workout-card .wc-cta svg { width: 18px; height: 18px; }
+  .recent-item .rdot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  .recent-item .chev { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -412,19 +427,17 @@
     <section class="screen active" data-screen="home">
       <div class="topbar">
         <div>
-          <div class="greet">Hola, Adrián 👋</div>
-          <h1 id="todayDate"></h1>
+          <div class="greet">Hola, Adrián</div>
+          <h1 id="todayDay"></h1>
+          <div class="today-date" id="todayDate"></div>
         </div>
-        <div class="avatar">A</div>
+        <div class="app-logo" aria-label="ÓNIX">
+          <svg viewBox="0 0 48 48" fill="none" stroke="#35F58B" stroke-linecap="round">
+            <circle cx="24" cy="27" r="12.5" stroke-width="4.5"/>
+            <path d="M19 11 L31 6" stroke-width="3.5"/>
+          </svg>
+        </div>
       </div>
-
-      <div id="planCardWrap"></div>
-      <button class="cta" id="startBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-        <span id="startBtnText">Empezar entrenamiento</span>
-      </button>
-
-      <div id="optionalWrap"></div>
 
       <div class="grid">
         <div class="stat-card">
@@ -433,28 +446,15 @@
         </div>
         <div class="stat-card">
           <div class="lbl">Esta semana</div>
-          <div class="v" id="statWeek">0<small>/2 entrenos</small></div>
+          <div class="v" id="statWeek">0<small>/3</small></div>
         </div>
       </div>
+
+      <div class="section-title">Entrenos de la semana</div>
+      <div id="weekWorkouts"></div>
 
       <div class="section-title">Últimos entrenamientos</div>
       <div id="recentList"></div>
-
-      <div class="section-title">Datos</div>
-      <div class="card data-card">
-        <h3>Sincronizar con Claude</h3>
-        <div class="sub">Después del gym, pulsa <b>Exportar</b> y pega el resultado en el chat. Si cambias de móvil, usa <b>Importar</b> para restaurar.</div>
-        <div class="data-actions">
-          <button class="data-btn primary" id="exportBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Exportar
-          </button>
-          <button class="data-btn" id="importBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Importar
-          </button>
-        </div>
-      </div>
     </section>
 
     <!-- =========== PERSONAL TRAINER =========== -->
@@ -503,12 +503,12 @@
         <svg class="line-chart" viewBox="0 0 300 100" preserveAspectRatio="none">
           <defs>
             <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#22C55E" stop-opacity=".3"/>
-              <stop offset="100%" stop-color="#22C55E" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#35F58B" stop-opacity=".3"/>
+              <stop offset="100%" stop-color="#35F58B" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30 L 300 100 L 0 100 Z" fill="url(#g1)"/>
-          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30" fill="none" stroke="#35F58B" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
       </div>
 
@@ -696,7 +696,8 @@
   const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const now = new Date();
   const todayDow = now.getDay();
-  document.getElementById('todayDate').textContent = `${days[todayDow]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('todayDay').textContent = days[todayDow];
+  document.getElementById('todayDate').textContent = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
   // ============ Workout queries (sobre historial localStorage) ============
   // Una rutina se considera "opcional" si su id es 'outdoor' o su tag empieza por 'OUT'.
@@ -792,105 +793,85 @@
   }
 
   // ============ Render Home ============
+  function getPlannedRoutinesThisWeek() {
+    const { start } = getWeekRange();
+    const sched = getEffectiveSchedule(start);
+    const order = [1, 2, 3, 4, 5, 6, 0]; // Lunes → Domingo
+    const seen = new Set();
+    const out = [];
+    for (const d of order) {
+      const id = sched[d];
+      if (id && id !== 'rest' && window.ROUTINES.routines[id] && !seen.has(id)) {
+        seen.add(id);
+        out.push({ id, dow: d });
+      }
+    }
+    return out;
+  }
+
   function renderHome() {
-    const nextId = getNextPendingRoutineId();
-    const wrap = document.getElementById('planCardWrap');
-    const startBtn = document.getElementById('startBtn');
-    const startTxt = document.getElementById('startBtnText');
-
-    if (nextId) {
-      const r = window.ROUTINES.routines[nextId];
-      const totalSets = r.exercises.reduce((a, e) => a + e.sets, 0);
-      const estMin = Math.round(totalSets * 2.5);
-      const order = getObligatoryRoutineOrder();
-      const pos = order.indexOf(nextId) + 1;
-      wrap.innerHTML = `
-        <div class="card plan-card">
-          <div class="label">Próximo entreno · ${pos} de ${order.length}</div>
-          <h2>${r.name}</h2>
-          <div class="muscles">${r.muscleGroups.join(' · ')}</div>
-          <div class="stats">
-            <span><b>${r.exercises.length}</b> ejercicios</span>
-            <span><b>${totalSets}</b> series</span>
-            <span><b>~${estMin}</b> min</span>
-          </div>
-        </div>`;
-      startBtn.classList.remove('disabled');
-      startBtn.dataset.routineId = nextId;
-      startTxt.textContent = 'Empezar entrenamiento';
-    } else {
-      const target = getWeeklyTarget();
-      wrap.innerHTML = `
-        <div class="card plan-card rest">
-          <div class="label">Esta semana</div>
-          <h2>¡Objetivo cumplido! 💪</h2>
-          <div class="muscles">Has completado los ${target} entrenos obligatorios</div>
-          <div class="stats"><span>Buen trabajo. Vuelve el lunes para la nueva semana.</span></div>
-        </div>`;
-      startBtn.classList.add('disabled');
-      startBtn.dataset.routineId = '';
-      startTxt.textContent = 'Sin entrenos pendientes';
-    }
-
-    // Optional card (outdoor u otras con tag OUT*)
-    const optWrap = document.getElementById('optionalWrap');
-    const optRoutines = Object.entries(window.ROUTINES.routines)
-      .filter(([id, r]) => isOptionalRoutine(id) && r.exercises && r.exercises.length);
-    if (optRoutines.length) {
-      const optDone = isOptionalDoneThisWeek();
-      optWrap.innerHTML = optRoutines.map(([id, r]) => `
-        <div class="optional-card">
-          <div class="opt-head">
-            <div>
-              <div class="label">Entrenamiento opcional</div>
-              <h3>${r.name}</h3>
-              <div class="opt-meta">${r.muscleGroups.join(' · ')} · ${r.exercises.length} ej.</div>
-            </div>
-            ${optDone ? '<span class="opt-done">✓ HECHO</span>' : ''}
-          </div>
-          <button class="opt-cta" data-go-routine="${id}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-            ${optDone ? 'Repetir sesión opcional' : 'Empezar sesión opcional'}
-          </button>
-        </div>`).join('');
-      optWrap.querySelectorAll('[data-go-routine]').forEach(b =>
-        b.addEventListener('click', () => startSession(b.dataset.goRoutine))
-      );
-    } else {
-      optWrap.innerHTML = '';
-    }
-
-    // Stats: racha (total sesiones) + esta semana (sesiones / target)
+    const planned = getPlannedRoutinesThisWeek();
+    const week = getWorkoutsThisWeek();
+    const doneIds = new Set(week.map(w => w.routineId));
+    const target = planned.length || getWeeklyTarget();
     const all = getAllWorkouts();
-    const thisWeek = getWorkoutsThisWeek();
-    const target = getWeeklyTarget();
+
+    // Stats: racha (total sesiones) + esta semana (hechos / planeados)
     document.getElementById('statRacha').innerHTML =
       `${all.length}<small>${all.length === 1 ? 'día' : 'días'}</small>`;
     document.getElementById('statWeek').innerHTML =
-      `${thisWeek.length}<small>/${target} entrenos</small>`;
+      `${week.length}<small>/${target}</small>`;
 
-    // Últimos entrenamientos
-    const recent = all.slice(0, 5);
-    const list = document.getElementById('recentList');
-    if (!recent.length) {
-      list.innerHTML = `<div class="empty-state">Aún no has registrado entrenos.<br>¡El primero será el comienzo de tu racha 💪</div>`;
+    // Entrenos de la semana — pendientes, en orden planeado
+    const pending = planned.filter(p => !doneIds.has(p.id));
+    const wk = document.getElementById('weekWorkouts');
+    if (!pending.length) {
+      wk.innerHTML = `<div class="empty-state">¡Semana completada! 💪<br>Vuelve el lunes para los nuevos entrenos.</div>`;
     } else {
-      list.innerHTML = recent.map(w => {
+      wk.innerHTML = pending.map(p => {
+        const r = window.ROUTINES.routines[p.id];
+        const totalSets = r.exercises.reduce((a, e) => a + e.sets, 0);
+        const estMin = Math.round(totalSets * 2.5);
+        const pos = planned.findIndex(x => x.id === p.id) + 1;
+        return `
+          <div class="workout-card">
+            <div class="wc-top">
+              <div>
+                <div class="wc-day">${days[p.dow]}</div>
+                <h3>${r.name}</h3>
+                <div class="wc-meta">${r.muscleGroups.join(' · ')} · ${r.exercises.length} ej · ~${estMin} min</div>
+              </div>
+              <div class="wc-pos">${pos}/${planned.length}</div>
+            </div>
+            <button class="wc-cta" data-go-routine="${p.id}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              Iniciar entrenamiento
+            </button>
+          </div>`;
+      }).join('');
+      wk.querySelectorAll('[data-go-routine]').forEach(b =>
+        b.addEventListener('click', () => startSession(b.dataset.goRoutine))
+      );
+    }
+
+    // Últimos entrenamientos — completados esta semana (se vacía cada lunes)
+    const list = document.getElementById('recentList');
+    if (!week.length) {
+      list.innerHTML = `<div class="empty-state">Aún no has entrenado esta semana.<br>Empieza por el primero de arriba 💪</div>`;
+    } else {
+      list.innerHTML = week.map(w => {
         const r = window.ROUTINES.routines[w.routineId];
         const name = r ? r.name : (w.routineId || 'Entreno');
         const groups = r ? r.muscleGroups.join(' · ') : '';
-        const dotIcon = w.routineId === 'outdoor' ? '🌳' :
-                        (r && r.muscleGroups && r.muscleGroups.includes('Pecho')) ? '🔥' :
-                        (r && r.muscleGroups && r.muscleGroups.includes('Cuádriceps')) ? '🦵' : '💪';
         const dateLabel = formatRecentDate(w.date);
         return `
           <div class="recent-item">
-            <div class="dot">${dotIcon}</div>
+            <div class="dot"><span class="rdot"></span></div>
             <div class="info">
               <b>${name}</b>
               <span>${dateLabel}${groups ? ' · ' + groups : ''}</span>
             </div>
-            <span class="chev">›</span>
+            <span class="chev">✓</span>
           </div>`;
       }).join('');
     }
@@ -1231,15 +1212,6 @@
     document.getElementById('trackerName').textContent = session.routineName;
   }
 
-  document.getElementById('startBtn').addEventListener('click', () => {
-    const rid = document.getElementById('startBtn').dataset.routineId;
-    if (!rid) {
-      alert('No quedan entrenos obligatorios esta semana. Puedes hacer el opcional o esperar al lunes.');
-      return;
-    }
-    startSession(rid);
-  });
-
   document.getElementById('closeTracker').addEventListener('click', () => {
     if (confirm('¿Salir sin guardar el entreno?')) closeTracker();
   });
@@ -1554,8 +1526,6 @@
     renderStats();
   }
 
-  document.getElementById('exportBtn').addEventListener('click', exportData);
-  document.getElementById('importBtn').addEventListener('click', openImport);
   document.getElementById('importCancel').addEventListener('click', closeImport);
   document.getElementById('importDo').addEventListener('click', doImport);
   document.getElementById('resetAll').addEventListener('click', resetAll);
