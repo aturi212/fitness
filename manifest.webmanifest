@@ -1,0 +1,19 @@
+{
+  "name": "FITNESS - Mi Entrenador",
+  "short_name": "FITNESS",
+  "description": "Tracker personal de entrenamiento",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F1419",
+  "theme_color": "#FF6B35",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
