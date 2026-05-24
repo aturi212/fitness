@@ -18,8 +18,8 @@
     --line: #2A313B;
     --text: #E8EAED;
     --muted: #8B92A0;
-    --accent: #FF6B35;
-    --accent-dim: #C44A1F;
+    --accent: #22C55E;
+    --accent-dim: #15803D;
     --success: #00D9A3;
     --warn: #FFB347;
     --shadow: 0 8px 24px rgba(0,0,0,.35);
@@ -58,7 +58,7 @@
   .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
   .plan-card { background: linear-gradient(135deg, #1F2530 0%, #1A1F26 100%); border: 1px solid var(--line); position: relative; overflow: hidden; }
-  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,53,.18), transparent 70%); }
+  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,94,.18), transparent 70%); }
   .plan-card.rest::before { background: radial-gradient(circle, rgba(139,146,160,.18), transparent 70%); }
   .plan-card h2 { font-size: 24px; }
   .plan-card .muscles { color: var(--muted); margin-top: 4px; font-size: 14px; }
@@ -71,7 +71,7 @@
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
     color: #fff; font-weight: 700; font-size: 17px; letter-spacing: .3px;
     border-radius: var(--r-md);
-    box-shadow: 0 10px 24px rgba(255,107,53,.35);
+    box-shadow: 0 10px 24px rgba(34,197,94,.35);
     transition: transform .12s ease;
   }
   .cta:active { transform: scale(.98); }
@@ -127,7 +127,7 @@
   .routine-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 8px; }
   .routine-item .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--bg-elev-2); color: var(--muted); white-space: nowrap; }
   .routine-item .tag.push,
-  .routine-item .tag.full-body-a { background: rgba(255,107,53,.15); color: var(--accent); }
+  .routine-item .tag.full-body-a { background: rgba(34,197,94,.15); color: var(--accent); }
   .routine-item .tag.pull,
   .routine-item .tag.full-body-b { background: rgba(0,217,163,.15); color: var(--success); }
   .routine-item .tag.legs,
@@ -145,7 +145,7 @@
 
   /* Plan macro (timeline de bloques) */
   .block-item { display: flex; gap: 10px; padding: 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 6px; align-items: flex-start; }
-  .block-item.current { border-color: var(--accent); background: linear-gradient(135deg, rgba(255,107,53,.08), transparent); }
+  .block-item.current { border-color: var(--accent); background: linear-gradient(135deg, rgba(34,197,94,.08), transparent); }
   .block-item.done { opacity: .55; }
   .block-item .b-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-elev-2); display: grid; place-items: center; font-weight: 700; font-size: 12px; color: var(--muted); flex-shrink: 0; }
   .block-item.current .b-num { background: var(--accent); color: #fff; }
@@ -174,7 +174,7 @@
   /* Vista de la semana (lista vertical por días) */
   .day-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .day-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); }
-  .day-row.today { border-color: var(--accent); background: linear-gradient(135deg, rgba(255,107,53,.08), transparent); }
+  .day-row.today { border-color: var(--accent); background: linear-gradient(135deg, rgba(34,197,94,.08), transparent); }
   .day-row.done { background: rgba(0,217,163,.05); border-color: rgba(0,217,163,.3); }
   .day-row.rest-day { opacity: .55; }
   .day-row .day-info { width: 48px; flex-shrink: 0; }
@@ -187,7 +187,7 @@
   .day-row .day-routine span { font-size: 11px; color: var(--muted); }
   .day-row .day-badge { font-size: 10px; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .4px; font-weight: 600; white-space: nowrap; }
   .day-row .day-badge.done { background: rgba(0,217,163,.15); color: var(--success); }
-  .day-row .day-badge.today { background: rgba(255,107,53,.15); color: var(--accent); }
+  .day-row .day-badge.today { background: rgba(34,197,94,.15); color: var(--accent); }
   .day-row .day-badge.rest { background: var(--bg-elev-2); color: var(--muted); }
   .day-row .day-badge.optional { background: rgba(255,179,71,.15); color: var(--warn); }
   .day-row .edit-day-btn { background: none; border: none; color: var(--muted); padding: 8px; border-radius: 8px; flex-shrink: 0; }
@@ -224,7 +224,7 @@
   .import-actions { display: flex; gap: 8px; margin-top: 10px; }
   .import-actions button { flex: 1; padding: 12px; border-radius: var(--r-md); font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: var(--bg-elev-2); color: var(--text); }
   .import-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .import-actions button.danger { background: rgba(255,107,53,.08); color: var(--accent); }
+  .import-actions button.danger { background: rgba(34,197,94,.08); color: var(--accent); }
 
   /* Sheet para editar día */
   .sheet-option { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--bg-elev-2); margin-bottom: 6px; width: 100%; text-align: left; }
@@ -307,7 +307,7 @@
     background: linear-gradient(135deg, var(--accent), var(--accent-dim));
     color: #fff; border-radius: var(--r-md); padding: 14px 18px;
     display: none; align-items: center; justify-content: space-between;
-    box-shadow: 0 12px 28px rgba(255,107,53,.4);
+    box-shadow: 0 12px 28px rgba(34,197,94,.4);
     z-index: 110;
   }
   .rest-timer.show { display: flex; }
@@ -457,12 +457,12 @@
         <svg class="line-chart" viewBox="0 0 300 100" preserveAspectRatio="none">
           <defs>
             <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#FF6B35" stop-opacity=".3"/>
-              <stop offset="100%" stop-color="#FF6B35" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#22C55E" stop-opacity=".3"/>
+              <stop offset="100%" stop-color="#22C55E" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30 L 300 100 L 0 100 Z" fill="url(#g1)"/>
-          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
       </div>
 
@@ -573,7 +573,7 @@
       </div>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Zona peligro</div>
-        <button class="danger" id="resetAll" style="width:100%;padding:10px;border-radius:var(--r-md);border:1px solid rgba(255,107,53,.3);background:transparent;color:var(--accent);font-size:13px">
+        <button class="danger" id="resetAll" style="width:100%;padding:10px;border-radius:var(--r-md);border:1px solid rgba(34,197,94,.3);background:transparent;color:var(--accent);font-size:13px">
           Borrar todo el historial local
         </button>
       </div>
