@@ -418,6 +418,28 @@
   .workout-card .wc-cta svg { width: 18px; height: 18px; }
   .recent-item .rdot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
   .recent-item .chev { color: var(--accent); font-weight: 600; }
+
+  /* Trainer: pestañas, semana, bloques */
+  .seg { display: flex; gap: 6px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 5px; margin-bottom: 18px; }
+  .seg-btn { flex: 1; padding: 11px; border-radius: var(--r-pill); font-family: var(--font-display); font-weight: 500; font-size: 14px; color: var(--muted); background: transparent; }
+  .seg-btn.active { background: var(--accent); color: #04140C; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fade .2s ease; }
+  .week-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .week-nav .wn-btn { width: 42px; height: 42px; border-radius: 13px; background: var(--bg-elev); border: 1px solid var(--line); display: grid; place-items: center; color: var(--text); flex-shrink: 0; }
+  .week-nav .wn-btn svg { width: 18px; height: 18px; }
+  .week-nav .wn-label { flex: 1; text-align: center; }
+  .week-nav .wn-label b { font-family: var(--font-display); font-weight: 500; font-size: 15px; display: block; }
+  .week-nav .wn-label span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .2em; }
+  .block-item { flex-direction: column; cursor: pointer; }
+  .block-item .b-head { display: flex; align-items: center; gap: 10px; width: 100%; }
+  .block-item .b-chev { width: 18px; height: 18px; color: var(--muted); margin-left: auto; transition: transform .2s ease; flex-shrink: 0; }
+  .block-item.open .b-chev { transform: rotate(180deg); }
+  .block-item .b-detail { display: none; width: 100%; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .block-item.open .b-detail { display: block; }
+  .b-line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+  .b-line span { color: var(--muted); }
+  .b-line b { font-weight: 500; text-align: right; }
 </style>
 </head>
 <body>
@@ -470,16 +492,27 @@
         </button>
       </div>
 
-      <div class="plan-banner" id="planBanner"></div>
+      <div class="seg">
+        <button class="seg-btn active" data-tab="cal">Calendario</button>
+        <button class="seg-btn" data-tab="prog">Programa</button>
+      </div>
 
-      <div class="section-title">Semana actual</div>
-      <div class="day-list" id="weekDayList"></div>
+      <div class="tab-panel active" data-panel="cal">
+        <div class="week-nav">
+          <button class="wn-btn" id="weekPrev" aria-label="Semana anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <div class="wn-label" id="weekLabel"></div>
+          <button class="wn-btn" id="weekNext" aria-label="Semana siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+        <div class="day-list" id="weekDayList"></div>
+      </div>
 
-      <div class="section-title">Rutinas activas</div>
-      <div id="routineList"></div>
-
-      <div class="section-title">Plan macro</div>
-      <div id="planBlocks"></div>
+      <div class="tab-panel" data-panel="prog">
+        <div class="plan-banner" id="planBanner"></div>
+        <div class="section-title">Rutinas activas</div>
+        <div id="routineList"></div>
+        <div class="section-title">Plan macro</div>
+        <div id="planBlocks"></div>
+      </div>
     </section>
 
     <!-- =========== ESTADÍSTICAS =========== -->
@@ -922,30 +955,58 @@
       planBlocks.innerHTML = macro.blocks.map((b, i) => {
         const status = todayIso > b.endDate ? 'done' : (todayIso >= b.startDate ? 'current' : '');
         return `
-          <div class="block-item ${status}">
-            <div class="b-num">${i+1}</div>
-            <div class="b-info">
-              <div class="b-name">${b.name}</div>
-              <div class="b-dates">${b.startDate} → ${b.endDate} · ${b.weeks} sem · ${b.scheme}</div>
-              <div class="b-scheme">${b.focus}</div>
+          <div class="block-item ${status}" data-block="${i}">
+            <div class="b-head">
+              <div class="b-num">${i+1}</div>
+              <div class="b-info">
+                <div class="b-name">${b.name}</div>
+                <div class="b-dates">${b.startDate} → ${b.endDate} · ${b.weeks} sem</div>
+              </div>
+              <svg class="b-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="b-detail">
+              <div class="b-line"><span>Esquema</span><b>${b.scheme}</b></div>
+              <div class="b-line"><span>Enfoque</span><b>${b.focus}</b></div>
+              <div class="b-line"><span>Duración</span><b>${b.weeks} semanas</b></div>
             </div>
           </div>`;
       }).join('');
+      planBlocks.querySelectorAll('.block-item').forEach(el =>
+        el.addEventListener('click', () => el.classList.toggle('open'))
+      );
     } else {
       planBlocks.innerHTML = '<div class="muted" style="font-size:12px;padding:8px 0">Sin plan macro definido todavía.</div>';
     }
   }
 
+  function getWorkoutsForWeek(startIso, endIso) {
+    return getAllWorkouts().filter(w => w.date >= startIso && w.date <= endIso);
+  }
+  let trainerWeek = 0;
+  function weekRangeForOffset(offset) {
+    const d = new Date(); d.setDate(d.getDate() + offset * 7);
+    return getWeekRange(d);
+  }
   function renderWeekDayList() {
-    const wk = getWeekRange();
+    const wk = weekRangeForOffset(trainerWeek);
     const schedule = getEffectiveSchedule(wk.start);
     const todayIso = new Date().toISOString().slice(0, 10);
     const dayShort = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     const weekStartDate = new Date(wk.start + 'T00:00:00');
 
-    // Mapa fecha → entrenos hechos
+    // Etiqueta de navegación de semana
+    const wkEnd = new Date(wk.end + 'T00:00:00');
+    const range = `${weekStartDate.getDate()} ${months[weekStartDate.getMonth()]} – ${wkEnd.getDate()} ${months[wkEnd.getMonth()]}`;
+    const tag = trainerWeek === 0 ? 'Esta semana'
+      : trainerWeek === 1 ? 'Próxima semana'
+      : trainerWeek === -1 ? 'Semana pasada'
+      : trainerWeek > 0 ? `En ${trainerWeek} semanas` : `Hace ${-trainerWeek} semanas`;
+    const lbl = document.getElementById('weekLabel');
+    if (lbl) lbl.innerHTML = `<b>${range}</b><span>${tag}</span>`;
+
+    // Mapa fecha → entrenos hechos (de la semana mostrada)
     const wByDate = {};
-    getWorkoutsThisWeek().forEach(w => {
+    getWorkoutsForWeek(wk.start, wk.end).forEach(w => {
       if (!wByDate[w.date]) wByDate[w.date] = [];
       wByDate[w.date].push(w);
     });
@@ -1026,7 +1087,7 @@
     editDayDow = null;
   }
   function renderEditDay() {
-    const wk = getWeekRange();
+    const wk = weekRangeForOffset(trainerWeek);
     const schedule = getEffectiveSchedule(wk.start);
     const current = schedule[editDayDow];
     const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -1215,6 +1276,17 @@
   document.getElementById('closeTracker').addEventListener('click', () => {
     if (confirm('¿Salir sin guardar el entreno?')) closeTracker();
   });
+
+  // Trainer: pestañas y navegación entre semanas
+  document.querySelectorAll('.seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+    });
+  });
+  document.getElementById('weekPrev').addEventListener('click', () => { trainerWeek--; renderWeekDayList(); });
+  document.getElementById('weekNext').addEventListener('click', () => { trainerWeek++; renderWeekDayList(); });
   document.getElementById('finishBtn').addEventListener('click', () => {
     persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
