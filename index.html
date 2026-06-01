@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#060708" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="FITNESS" />
+<meta name="apple-mobile-web-app-title" content="ONIX" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon.svg" />
-<title>FITNESS</title>
+<title>ONIX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -453,10 +453,31 @@
           <h1 id="todayDay"></h1>
           <div class="today-date" id="todayDate"></div>
         </div>
-        <div class="app-logo" aria-label="ÓNIX">
-          <svg viewBox="0 0 48 48" fill="none" stroke="#35F58B" stroke-linecap="round">
-            <circle cx="24" cy="27" r="12.5" stroke-width="4.5"/>
-            <path d="M19 11 L31 6" stroke-width="3.5"/>
+        <div class="app-logo" aria-label="ONIX">
+          <svg viewBox="0 0 48 48" fill="none">
+            <defs>
+              <linearGradient id="hd1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#7DFFC1"/>
+                <stop offset="0.5" stop-color="#35F58B"/>
+                <stop offset="1" stop-color="#0F5132"/>
+              </linearGradient>
+              <linearGradient id="hd2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#7DFFC1"/>
+                <stop offset="0.5" stop-color="#35F58B"/>
+                <stop offset="1" stop-color="#1B7E48"/>
+              </linearGradient>
+              <linearGradient id="hd3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#6BFFB6"/>
+                <stop offset="0.5" stop-color="#35F58B"/>
+                <stop offset="1" stop-color="#15703E"/>
+              </linearGradient>
+            </defs>
+            <circle cx="24" cy="24" r="22" fill="url(#hd1)"/>
+            <circle cx="24" cy="24" r="18" fill="#060708"/>
+            <circle cx="24" cy="24" r="15.5" fill="url(#hd2)"/>
+            <circle cx="24" cy="24" r="12.3" fill="#060708"/>
+            <circle cx="24" cy="24" r="10.4" fill="url(#hd3)"/>
+            <circle cx="24" cy="24" r="5.2" fill="#060708"/>
           </svg>
         </div>
       </div>
@@ -1508,7 +1529,7 @@
   // ============ Export / Import ============
   function buildExportPayload() {
     return {
-      app: 'FITNESS',
+      app: 'ONIX',
       version: 1,
       exportedAt: new Date().toISOString(),
       history: loadHistory(),
@@ -1555,7 +1576,7 @@
     try { data = JSON.parse(txt); }
     catch { alert('JSON inválido — revisa que has copiado el texto completo.'); return; }
     if (!data || (typeof data.history !== 'object' && typeof data.overrides !== 'object')) {
-      alert('El JSON no tiene formato FITNESS válido.'); return;
+      alert('El JSON no tiene formato ONIX válido.'); return;
     }
     // Fusión: añadimos registros nuevos sin duplicar (clave date+routineId+setsHash)
     const cur = loadHistory();
