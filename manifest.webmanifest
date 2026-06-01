@@ -1,6 +1,6 @@
 {
-  "name": "FITNESS - Mi Entrenador",
-  "short_name": "FITNESS",
+  "name": "ONIX",
+  "short_name": "ONIX",
   "description": "Tracker personal de entrenamiento",
   "start_url": "./index.html",
   "scope": "./",
