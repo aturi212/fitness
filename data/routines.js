@@ -17,94 +17,88 @@
 window.ROUTINES = {
 
   // ===== OBJETIVOS =====
-  // Definidos con Adrián el 2026-05-18.
-  // Perfil: 1,79 m / 89 kg. Intermedio. Sin lesiones.
-  // Quiere fuerza + masa magra + definición abdominal + capacidad
-  // aeróbica + flexibilidad. Estética: cuadraditos visibles sin
-  // estar excesivamente "mazado".
+  // Recalibrados con Adrián el 2026-06-01 tras medición pro en farmacia.
+  // Perfil real: 1,78 m / 83,7 kg / 20,9% grasa / 66,3 kg magra. 31 años.
+  // Prioridad: recomposición + adherencia. Reconciliarse con el deporte
+  // tras un año algo desconectado. Plan Junio-Julio-Agosto (parón sept).
   goals: {
 
     shortTerm: {
-      horizon: '8-12 semanas',
-      deadline: '2026-08-10',
+      horizon: '13 semanas (1 jun → 30 ago 2026)',
+      deadline: '2026-08-30',
       targets: [
-        { metric: 'Peso corporal',     target: '84-85 kg',  notes: 'Bajada controlada ~0,4 kg/sem, todo grasa' },
-        { metric: 'Frecuencia gym',    target: '3 días/sem consolidados', notes: 'Sin saltarse ninguno' },
-        { metric: 'Pasos diarios',     target: '8-10k',     notes: 'Media semanal, no obsesión diaria' },
-        { metric: 'Técnica básicos',   target: 'Sólida',    notes: 'Sentadilla, press banca, remo, peso muerto rumano, dominada' },
+        { metric: 'Adherencia',        target: '≥80% sesiones completadas', notes: 'Lo no-negociable: ir al gym los días planificados.' },
+        { metric: 'Grasa corporal',    target: '20,9% → ~18,5%', notes: 'Medir en misma báscula (farmacia) y mismas condiciones. -2,4 puntos en 13 sem.' },
+        { metric: 'Masa magra',        target: '≥66 kg',         notes: 'Mantener o subir ligeramente. No perder músculo en el proceso.' },
+        { metric: 'Fuerza básicos',    target: '+5-10%',         notes: 'Sentadilla, press banca, peso muerto rumano y remo. Medir en sem 1 y sem 13.' },
+        { metric: 'Dominada',          target: 'Primera negativa controlada (3-5s bajada)', notes: 'Vía remo invertido → dead hang → negativas.' },
+        { metric: 'Cardio 5k',         target: 'Correr 5k seguidos a ritmo cómodo', notes: 'A final de agosto. Progresión en día outdoor.' },
       ]
     },
 
     longTerm: {
-      horizon: '6-12 meses',
-      deadline: '2027-05-18',
+      horizon: '12 meses',
+      deadline: '2027-06-01',
       targets: [
-        { metric: 'Peso corporal',     target: '80-82 kg',          notes: 'Con abdomen marcado (~12-14% grasa)' },
-        { metric: 'Sentadilla',        target: '1,2 x peso (~95 kg)', notes: 'PR de fuerza relativa' },
-        { metric: 'Press banca',       target: '1,0 x peso (~80 kg)', notes: 'PR de fuerza relativa' },
-        { metric: 'Peso muerto rumano',target: '1,5 x peso (~120 kg)', notes: 'PR de fuerza relativa' },
-        { metric: 'Dominadas',         target: '8-10 estrictas',    notes: 'Sin asistencia, ROM completo' },
-        { metric: 'Capacidad aeróbica',target: '5k corriendo cómodo', notes: 'O equivalente' },
-        { metric: 'Movilidad',         target: 'Hombro/cadera/tobillo sin restricciones', notes: 'Hábito de movilidad consolidado' },
+        { metric: 'Grasa corporal',    target: '~14-15%',                  notes: 'Abdomen marcado, dentro de rango sano-deportivo.' },
+        { metric: 'Masa magra',        target: '68-70 kg',                 notes: '+2-4 kg de músculo respecto al punto de partida.' },
+        { metric: 'Sentadilla',        target: '1,2 x peso (~100 kg)',     notes: 'PR de fuerza relativa.' },
+        { metric: 'Press banca',       target: '1,0 x peso (~84 kg)',      notes: 'PR de fuerza relativa.' },
+        { metric: 'Peso muerto rumano',target: '1,5 x peso (~125 kg)',     notes: 'PR de fuerza relativa.' },
+        { metric: 'Dominadas',         target: '8-10 estrictas',           notes: 'Sin asistencia, ROM completo.' },
+        { metric: 'Cardio 5k',         target: '<25 min',                  notes: 'Carrera continua a buen ritmo.' },
+        { metric: 'Movilidad',         target: 'Tocar punta pies + sentadilla profunda sin compensar', notes: 'Hábito de movilidad consolidado.' },
       ]
     }
 
   },
 
-  // ===== PLAN MACRO (hoy → parón de septiembre) =====
-  // 15 semanas en bloques de 4. Cada bloque sube exigencia.
+  // ===== PLAN MACRO (1 jun → 30 ago 2026, parón de septiembre) =====
+  // 13 semanas en 3 bloques progresivos (Plan A: subimos días gradualmente).
+  // Filosofía: adherencia primero (junio), después intensidad (julio-agosto).
   plan: {
-    name: 'Plan Mayo - Septiembre 2026',
-    startDate: '2026-05-18',
-    endDate: '2026-09-01',
-    notes: 'Adrián tendrá un parón en septiembre. Objetivo: aprovechar al máximo estas 15 semanas con progresión gradual antes del descanso.',
+    name: 'Plan Junio-Agosto 2026 (Reconciliación + Recomposición)',
+    startDate: '2026-06-01',
+    endDate: '2026-08-30',
+    notes: 'Adrián vuelve tras ~1 año algo desconectado. Septiembre = parón (viaje/vacaciones). Estrategia progresiva: 2 → 3 → 3+1 días por semana. Re-evaluar a final de junio antes de subir a 3 días.',
     blocks: [
       {
         id: 'block-1-adaptacion',
         name: 'Bloque 1 — Adaptación',
-        startDate: '2026-05-18',
-        endDate: '2026-06-14',
+        startDate: '2026-06-01',
+        endDate: '2026-06-28',
         weeks: 4,
-        scheme: 'Full Body 2 días/sem + 1 día outdoor opcional',
-        focus: 'Crear hábito, afinar técnica en básicos, instaurar doble progresión, llegar a 8-10k pasos diarios de media.'
+        scheme: '2 días gym (FB A + FB B) + 1 día outdoor opcional',
+        focus: 'Crear hábito, técnica antes que carga. RPE 7-8 en BÁSICOS pesados (sentadilla, banca, PM rumano, remo, dominada) — la última rep cuesta pero técnica limpia. RPE 9-10 / cerca del fallo en ACCESORIOS (curls, laterales, tríceps, hip thrust, plancha). Última serie de cualquier ejercicio: libre, al fallo si apetece. Foco mental: que el gym vuelva a ser un sitio cómodo. Hito: ≥7 sesiones gym completadas en el mes.'
       },
       {
-        id: 'block-2-consolidacion',
-        name: 'Bloque 2 — Consolidación',
-        startDate: '2026-06-15',
-        endDate: '2026-07-12',
+        id: 'block-2-carga',
+        name: 'Bloque 2 — Carga',
+        startDate: '2026-06-29',
+        endDate: '2026-07-26',
         weeks: 4,
-        scheme: 'Full Body 3 días/sem (A / B / C)',
-        focus: 'Subir frecuencia. Añadir un tercer día de pesas. Mantener déficit ligero. Hito: 86-87 kg.'
+        scheme: '3 días gym (FB A / B / C) + 1 día outdoor opcional',
+        focus: 'Subir frecuencia a 3 sesiones (provisional: FB A/B/C, a confirmar el 28 jun según cómo haya ido junio). RPE 7-8. Hito del mes: +5% en los 4 levantamientos principales (sentadilla, banca, peso muerto rumano, remo).'
       },
       {
         id: 'block-3-intensificacion',
-        name: 'Bloque 3 — Intensificación',
-        startDate: '2026-07-13',
-        endDate: '2026-08-09',
-        weeks: 4,
-        scheme: 'Upper / Lower / Full Body — 3-4 días/sem',
-        focus: 'Más volumen e intensidad. Especializar empuje/tirón. Continuar pérdida de grasa hacia 84-85 kg.'
-      },
-      {
-        id: 'block-4-pico-deload',
-        name: 'Bloque 4 — Pico + Deload',
-        startDate: '2026-08-10',
-        endDate: '2026-09-01',
-        weeks: 3,
-        scheme: 'Semanas 1-2 pico (test de PRs), semana 3 deload',
-        focus: 'Buscar PRs en básicos antes del parón. Última semana, descarga (50-60% volumen). Llegar al parón sin fatiga acumulada.'
+        name: 'Bloque 3 — Intensificación + Deload',
+        startDate: '2026-07-27',
+        endDate: '2026-08-30',
+        weeks: 5,
+        scheme: '3 días gym + 1 día outdoor FIJO (4 días/sem). Semana 5 = deload',
+        focus: 'Cargas más altas (RPE 8). Outdoor fijo: añade cardio (5k) y calistenia (negativas de dominada). Sem 1-4 progresar, sem 5 (24-30 ago) descarga (volumen y cargas -40%). Hito de bloque: grasa hacia 18,5%, magra ≥66 kg, negativa de dominada controlada, correr 5k seguidos.'
       }
     ]
   },
 
   // ===== BLOQUE VIGENTE =====
   currentPlan: {
-    name: 'Bloque 1 — Adaptación Full Body',
-    startDate: '2026-05-18',
-    endDate: '2026-06-14',
+    name: 'Bloque 1 — Adaptación (Junio 2026)',
+    startDate: '2026-06-01',
+    endDate: '2026-06-28',
     status: 'active',
-    notes: '2 días de Full Body (A y B) + 1 día opcional outdoor (cardio suave + calistenia). Doble progresión: empezar en el rango bajo de reps, subir reps semana a semana, y solo subir peso al alcanzar techo del rango.'
+    notes: '2 días gym (FB A lunes + FB B jueves) + outdoor opcional sábado. INTENSIDAD: RPE 7-8 en básicos pesados (sentadilla, banca, PM rumano, remo, dominada) → técnica limpia, no fallo. RPE 9-10 / cerca del fallo en accesorios (curls, laterales, tríceps, hip thrust, plancha). Última serie libre, al fallo si apetece. Doble progresión: empieza en el rango bajo de reps, sube reps semana a semana; sólo sube peso al tocar techo del rango. Objetivo del mes: ≥7 sesiones de gym + 0 lesiones. Re-evaluar el 28 jun antes de pasar a 3 días.'
   },
 
   // ===== CALENDARIO SEMANAL =====
@@ -128,7 +122,7 @@ window.ROUTINES = {
       muscleGroups: ['Cuádriceps', 'Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Core'],
       exercises: [
         { exerciseId: 'back-squat',           sets: 4, repsTarget: '6-8',   restSec: 90,  notes: 'Si la profunda incomoda, empezar con sentadilla goblet o prensa 45° las primeras 2-3 semanas.' },
-        { exerciseId: 'bench-press-barbell',  sets: 4, repsTarget: '6-8',   restSec: 90,  notes: 'Dejar 1-2 reps en recámara. Pies firmes, escápulas retraídas.' },
+        { exerciseId: 'bench-press-barbell',  sets: 4, repsTarget: '6-8',   restSec: 90,  notes: 'Básico → RPE 7-8 (técnica limpia, no fallo). Pies firmes, escápulas retraídas. Última serie libre si apetece apretar.' },
         { exerciseId: 'barbell-row',          sets: 4, repsTarget: '8-10',  restSec: 75,  notes: 'Tirón con el codo hacia atrás (no con bíceps). Si dudas, remo con mancuerna a una mano.' },
         { exerciseId: 'dumbbell-shoulder-press', sets: 3, repsTarget: '8-12', restSec: 75, notes: 'Si de pie molesta lumbar, hacerlo sentado en banco con respaldo.' },
         { exerciseId: 'barbell-curl',         sets: 3, repsTarget: '10-12', restSec: 60,  notes: 'Barra Z si el agarre recto molesta la muñeca.' },
