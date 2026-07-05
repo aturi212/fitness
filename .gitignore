@@ -4,3 +4,11 @@ entrenamientos/
 # Sistema
 .DS_Store
 Thumbs.db
+.env.local
+.env*.local
+
+# Internos del proyecto (no publicar: repo público)
+CLAUDE.md
+supabase/
+scripts/
+.claude/
