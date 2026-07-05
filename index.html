@@ -33,7 +33,7 @@
     --r-md: 16px;
     --r-lg: 22px;
     --r-pill: 999px;
-    --nav-h: 74px;
+    --nav-h: 64px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -110,6 +110,7 @@
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-top: 1px solid var(--line);
     display: grid; grid-template-columns: repeat(5, 1fr);
+    overflow: visible;
     z-index: 50;
   }
   nav.bottom button {
@@ -482,6 +483,15 @@
         </div>
       </div>
 
+      <div class="wstrip-card" id="wstripCard">
+        <div class="wstrip-head">
+          <button type="button" class="ws-nav" id="wsPrev">‹</button>
+          <div class="ws-label" id="wsLabel">Esta semana</div>
+          <button type="button" class="ws-nav" id="wsNext">›</button>
+        </div>
+        <div class="wstrip" id="weekStrip"></div>
+      </div>
+
       <div class="grid">
         <div class="stat-card">
           <div class="lbl">Racha</div>
@@ -665,17 +675,17 @@
 
   <!-- =========== BOTTOM NAV =========== -->
   <nav class="bottom">
-    <button class="active" data-go="home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
-      Home
+    <button data-go="chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat
     </button>
     <button data-go="trainer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       Trainer
     </button>
-    <button data-go="chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Chat
+    <button class="nav-home active" data-go="home">
+      <span class="home-bump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg></span>
+      <span class="home-lbl">Home</span>
     </button>
     <button data-go="stats">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
@@ -686,6 +696,58 @@
       Nutri
     </button>
   </nav>
+
+  <!-- Sheet de la tira semanal (Home) -->
+  <div class="hs-backdrop" id="hsBackdrop"></div>
+  <div class="hsheet" id="homeSheet">
+    <div class="hs-title" id="hsTitle"></div>
+    <div class="hs-body" id="hsBody"></div>
+  </div>
+
+  <style>
+    /* ---------- Nav: Home destacado con semicírculo ---------- */
+    nav.bottom button.nav-home { position: relative; justify-content: flex-end; padding-bottom: 11px; }
+    .nav-home .home-bump {
+      position: absolute; top: -19px; left: 50%; transform: translateX(-50%);
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #0E1113; border: 1px solid var(--line);
+      display: grid; place-items: center;
+      box-shadow: 0 -5px 16px rgba(0,0,0,.45);
+    }
+    .nav-home .home-bump svg { width: 23px; height: 23px; }
+    .nav-home.active .home-bump { border-color: var(--accent); background: #101613; }
+    .nav-home .home-lbl { font-size: 11px; }
+
+    /* ---------- Tira semanal (Home) ---------- */
+    .wstrip-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md, 16px); padding: 12px; margin-bottom: 14px; }
+    .wstrip-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .ws-label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
+    .ws-nav { width: 30px; height: 30px; border-radius: 9px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); font-size: 15px; }
+    .wstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .ws-cell { border-radius: 11px; padding: 8px 2px 7px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .ws-cell .ws-d { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .ws-cell .ws-tag { font-size: 9px; font-weight: 700; letter-spacing: .03em; min-height: 12px; }
+    .ws-cell.empty { border-style: dashed; }
+    .ws-cell.empty .ws-tag { color: var(--muted); opacity: .7; }
+    .ws-cell.done { background: color-mix(in srgb, var(--accent) 15%, transparent); border-color: var(--accent); }
+    .ws-cell.done .ws-d, .ws-cell.done .ws-tag { color: var(--accent); }
+    .ws-cell.missed { background: rgba(255, 82, 82, .09); border-color: rgba(255, 82, 82, .45); }
+    .ws-cell.missed .ws-tag { color: #ff7a7a; }
+    .ws-cell.today { outline: 1.5px solid var(--accent); outline-offset: 1px; }
+    .ws-cell.drag { transform: scale(1.14); border-color: var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,.55); position: relative; z-index: 5; }
+    .ws-cell.drop { border-color: var(--accent); border-style: solid; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+    /* ---------- Sheet de la tira ---------- */
+    .hs-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 90; display: none; }
+    .hs-backdrop.open { display: block; }
+    .hsheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); z-index: 91; transform: translateY(105%); transition: transform .22s ease; max-height: 72dvh; overflow: auto; }
+    .hsheet.open { transform: none; }
+    .hs-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .hs-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
+    .hs-opt.danger { color: #ff7a7a; }
+    .hs-ex { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
+  </style>
 
   <!-- =========== TRACKER OVERLAY =========== -->
   <div class="tracker" id="tracker">
@@ -890,7 +952,9 @@
     const offset = (dow === 0 ? -6 : 1 - dow); // semana lunes-domingo
     const start = new Date(d); start.setDate(d.getDate() + offset); start.setHours(0,0,0,0);
     const end = new Date(start); end.setDate(start.getDate() + 6);
-    return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+    // Fecha LOCAL (toISOString es UTC y desplazaba la semana un día en Madrid)
+    const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+    return { start: iso(start), end: iso(end) };
   }
 
   // Overrides de calendario semanal (solo afectan a una semana concreta)
@@ -976,9 +1040,11 @@
     const target = planned.length || getWeeklyTarget();
     const all = getAllWorkouts();
 
-    // Stats: racha (total sesiones) + esta semana (hechos / planeados)
+    // Racha por días: se rompe al fallar un entreno planificado (ver computeStreak)
+    const streak = computeStreak();
     document.getElementById('statRacha').innerHTML =
-      `${all.length}<small>${all.length === 1 ? 'día' : 'días'}</small>`;
+      `${streak}<small>${streak === 1 ? 'día' : 'días'}</small>`;
+    renderWeekStrip();
     document.getElementById('statWeek').innerHTML =
       `${week.length}<small>/${target}</small>`;
 
@@ -1047,6 +1113,236 @@
     if (diffDays < 7) return days[d.getDay()];
     return `${d.getDate()} ${months[d.getMonth()]}`;
   }
+
+  // ============ Tira semanal (Home): plan, estados y edición ============
+  const WS_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  const WS_DOWS = [1, 2, 3, 4, 5, 6, 0]; // lunes..domingo
+  const WS_MESES = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  // Reset manual de racha pedido por Adrián el 5 jul 2026: los fallos
+  // anteriores a esta fecha no cuentan.
+  const STREAK_EPOCH = '2026-07-05';
+  let wsWeekStart = getWeekRange().start;
+  let wsDragging = null, wsDragTimer = null, wsDragMoved = false;
+
+  function wsIso(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function wsAddDays(iso, n) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return wsIso(new Date(y, m - 1, d + n));
+  }
+  function wsMondayOf(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + (dt.getDay() === 0 ? -6 : 1 - dt.getDay()));
+    return wsIso(dt);
+  }
+  function wsFmt(iso) { const p = iso.split('-').map(Number); return `${p[2]} ${WS_MESES[p[1]]}`; }
+
+  // Racha en días. Regla: un día pasado con entreno planificado y sin sesión
+  // registrada ese día rompe la racha. Si cumples todo lo planificado, la racha
+  // sigue creciendo día a día desde el primer entreno tras el último fallo.
+  function computeStreak() {
+    const doneDates = new Set(getAllWorkouts().map((w) => w.date).filter(Boolean));
+    const today = wsIso(new Date());
+    let lastMiss = null;
+    for (let i = 1; i <= 120; i++) {
+      const dIso = wsAddDays(today, -i);
+      if (dIso < STREAK_EPOCH) break;
+      const sched = getEffectiveSchedule(wsMondayOf(dIso));
+      const [y, m, d] = dIso.split('-').map(Number);
+      const rid = sched[new Date(y, m - 1, d).getDay()];
+      if (rid && rid !== 'rest' && !doneDates.has(dIso)) { lastMiss = dIso; break; }
+    }
+    const from = lastMiss ? wsAddDays(lastMiss, 1) : STREAK_EPOCH;
+    const since = [...doneDates].filter((x) => x >= from).sort();
+    if (!since.length) return 0;
+    const [y1, m1, d1] = since[0].split('-').map(Number);
+    const [y2, m2, d2] = today.split('-').map(Number);
+    return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 86400000) + 1;
+  }
+
+  function renderWeekStrip() {
+    const strip = document.getElementById('weekStrip');
+    if (!strip) return;
+    const curStart = getWeekRange().start;
+    const isPast = wsWeekStart < curStart;
+    document.getElementById('wsLabel').textContent =
+      wsWeekStart === curStart ? 'Esta semana' : `${wsFmt(wsWeekStart)} — ${wsFmt(wsAddDays(wsWeekStart, 6))}`;
+    const sched = getEffectiveSchedule(wsWeekStart);
+    const doneDates = new Set(getAllWorkouts().map((w) => w.date).filter(Boolean));
+    const today = wsIso(new Date());
+    strip.innerHTML = WS_DOWS.map((dow, i) => {
+      const dateIso = wsAddDays(wsWeekStart, i);
+      const rid = sched[dow];
+      const planned = rid && rid !== 'rest';
+      const r = planned ? window.ROUTINES.routines[rid] : null;
+      const done = doneDates.has(dateIso);
+      let cls = 'ws-cell';
+      if (done) cls += ' done';
+      else if (planned && isPast) cls += ' missed';
+      else if (!planned) cls += ' empty';
+      if (dateIso === today) cls += ' today';
+      const tag = r ? (r.tag || rid.slice(0, 3).toUpperCase()) : (done ? '✓' : (isPast ? '·' : '+'));
+      return `<div class="${cls}" data-dow="${dow}" data-rid="${planned ? rid : ''}" data-date="${dateIso}">
+        <span class="ws-d">${WS_LETTERS[i]}</span><span class="ws-tag">${tag}</span></div>`;
+    }).join('');
+    bindWeekStrip(strip, isPast);
+  }
+
+  function bindWeekStrip(strip, isPast) {
+    strip.querySelectorAll('.ws-cell').forEach((cell) => {
+      cell.addEventListener('click', () => {
+        if (wsDragMoved) { wsDragMoved = false; return; }
+        if (isPast) return;
+        if (cell.dataset.rid) openWorkoutSheet(cell);
+        else openAddSheet(cell);
+      });
+      const startPress = () => {
+        if (isPast || !cell.dataset.rid) return;
+        wsDragTimer = setTimeout(() => beginWsDrag(cell, strip), 350);
+      };
+      const cancelPress = () => { if (!wsDragging) clearTimeout(wsDragTimer); };
+      cell.addEventListener('touchstart', startPress, { passive: true });
+      cell.addEventListener('touchend', cancelPress);
+      cell.addEventListener('touchcancel', cancelPress);
+      cell.addEventListener('mousedown', startPress);
+      cell.addEventListener('mouseup', cancelPress);
+      cell.addEventListener('mouseleave', () => { if (!wsDragging) clearTimeout(wsDragTimer); });
+    });
+  }
+
+  // Mantener pulsado y arrastrar para mover un entreno de día (con swap)
+  function beginWsDrag(cell, strip) {
+    wsDragging = cell;
+    wsDragMoved = false;
+    cell.classList.add('drag');
+    if (navigator.vibrate) navigator.vibrate(25);
+    const cells = [...strip.querySelectorAll('.ws-cell')];
+    const move = (e) => {
+      const x = (e.touches ? e.touches[0] : e).clientX;
+      if (e.cancelable) e.preventDefault();
+      wsDragMoved = true;
+      cells.forEach((c) => c.classList.remove('drop'));
+      const target = cells.find((c) => {
+        const rc = c.getBoundingClientRect();
+        return x >= rc.left && x <= rc.right;
+      });
+      if (target && target !== cell) target.classList.add('drop');
+    };
+    const up = () => {
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('touchend', up);
+      document.removeEventListener('mouseup', up);
+      const target = strip.querySelector('.ws-cell.drop');
+      cell.classList.remove('drag');
+      if (target) {
+        setDayAssignment(wsWeekStart, +target.dataset.dow, cell.dataset.rid);
+        setDayAssignment(wsWeekStart, +cell.dataset.dow, target.dataset.rid || 'rest');
+        if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
+      }
+      wsDragging = null;
+      renderHome(); renderTrainer();
+    };
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('mousemove', move);
+    document.addEventListener('touchend', up);
+    document.addEventListener('mouseup', up);
+  }
+
+  // Sheet de acciones de la tira
+  let hsCtx = null;
+  const hsBackdrop = document.getElementById('hsBackdrop');
+  const homeSheet = document.getElementById('homeSheet');
+  function openHs(title, html) {
+    document.getElementById('hsTitle').textContent = title;
+    document.getElementById('hsBody').innerHTML = html;
+    hsBackdrop.classList.add('open');
+    homeSheet.classList.add('open');
+  }
+  function closeHs() {
+    hsBackdrop.classList.remove('open');
+    homeSheet.classList.remove('open');
+    hsCtx = null;
+  }
+  hsBackdrop.addEventListener('click', closeHs);
+
+  function routineListHtml() {
+    const items = Object.entries(window.ROUTINES.routines)
+      .filter(([id, r]) => id !== 'rest' && (r.exercises || []).length)
+      .map(([id, r]) => `<button type="button" class="hs-opt" data-act="pick" data-id="${id}">
+        <b>${r.tag || ''}</b>&nbsp;${r.name}
+        <span style="margin-left:auto;color:var(--muted);font-size:12px">${(r.exercises || []).length} ej</span></button>`);
+    return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Trainer o pídeselas al Chat.</div>';
+  }
+
+  function openWorkoutSheet(cell) {
+    hsCtx = { dow: +cell.dataset.dow, date: cell.dataset.date, rid: cell.dataset.rid };
+    const r = window.ROUTINES.routines[hsCtx.rid];
+    openHs(r ? r.name : 'Entreno', `
+      <div class="hs-sub">${wsFmt(hsCtx.date)}</div>
+      <button type="button" class="hs-opt" data-act="view">👁️&nbsp; Ver entreno</button>
+      <button type="button" class="hs-opt" data-act="change">🔁&nbsp; Cambiar entreno</button>
+      <button type="button" class="hs-opt danger" data-act="del">🗑️&nbsp; Eliminar entreno</button>`);
+  }
+  function openAddSheet(cell) {
+    hsCtx = { dow: +cell.dataset.dow, date: cell.dataset.date, rid: '' };
+    openHs('Añadir entrenamiento', `<div class="hs-sub">${wsFmt(hsCtx.date)}</div>` + routineListHtml());
+  }
+
+  document.getElementById('hsBody').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn || !hsCtx) return;
+    const act = btn.dataset.act;
+    if (act === 'view') {
+      const r = window.ROUTINES.routines[hsCtx.rid];
+      if (!r) return;
+      openHs(r.name,
+        (r.exercises || []).map((ex) =>
+          `<div class="hs-ex"><span>${getExercise(ex.exerciseId).name}</span><span style="color:var(--muted)">${ex.sets}×${ex.repsTarget}</span></div>`).join('') +
+        `<button type="button" class="hs-opt" data-act="start" style="margin-top:12px;justify-content:center;background:var(--accent);color:#081108;font-weight:700">▶&nbsp; Empezar ahora</button>`);
+    } else if (act === 'start') {
+      const rid = hsCtx.rid;
+      closeHs();
+      startSession(rid);
+    } else if (act === 'change') {
+      openHs('Cambiar entreno', `<div class="hs-sub">${wsFmt(hsCtx.date)}</div>` + routineListHtml());
+    } else if (act === 'del') {
+      setDayAssignment(wsWeekStart, hsCtx.dow, 'rest');
+      closeHs();
+      renderHome(); renderTrainer();
+    } else if (act === 'pick') {
+      setDayAssignment(wsWeekStart, hsCtx.dow, btn.dataset.id);
+      closeHs();
+      renderHome(); renderTrainer();
+    }
+  });
+
+  // Navegación de semanas: botones + swipe horizontal sobre la tira
+  document.getElementById('wsPrev').addEventListener('click', () => {
+    wsWeekStart = wsAddDays(wsWeekStart, -7); renderWeekStrip();
+  });
+  document.getElementById('wsNext').addEventListener('click', () => {
+    wsWeekStart = wsAddDays(wsWeekStart, 7); renderWeekStrip();
+  });
+  (() => {
+    const card = document.getElementById('wstripCard');
+    let sx = null, sy = null;
+    card.addEventListener('touchstart', (e) => {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    card.addEventListener('touchend', (e) => {
+      if (wsDragging || sx == null) { sx = null; return; }
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 55 && Math.abs(dy) < 40) {
+        wsWeekStart = wsAddDays(wsWeekStart, dx < 0 ? 7 : -7);
+        renderWeekStrip();
+      }
+    });
+  })();
 
   renderHome();
 
