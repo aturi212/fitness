@@ -680,14 +680,43 @@
     </div>
   </div>
 
-<!-- Data files (editados por chat de Personal Trainer) -->
+<!-- Login cloud sync (lo gestiona el módulo cloud del final) -->
+<div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:200; background:#0a0a0a; align-items:center; justify-content:center;">
+  <form id="loginForm" style="width:min(320px, 86vw); display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:22px; font-weight:700;">Sincronización ☁️</div>
+    <div style="color:#888; font-size:13px; margin-bottom:8px;">Inicia sesión una vez para sincronizar tus entrenos y rutinas.</div>
+    <input id="loginEmail" type="email" placeholder="Email" required autocomplete="username"
+      style="background:#161616; border:1px solid #2a2a2a; color:#fff; border-radius:10px; padding:12px 14px; font-size:15px;">
+    <input id="loginPass" type="password" placeholder="Contraseña" required autocomplete="current-password"
+      style="background:#161616; border:1px solid #2a2a2a; color:#fff; border-radius:10px; padding:12px 14px; font-size:15px;">
+    <button type="submit" style="background:#ff6b00; color:#000; font-weight:700; border:none; border-radius:10px; padding:13px; font-size:15px; cursor:pointer;">Entrar</button>
+    <div id="loginErr" style="color:#ff5252; font-size:13px; min-height:16px;"></div>
+    <button type="button" id="loginSkip" style="background:none; border:none; color:#666; font-size:13px; text-decoration:underline; cursor:pointer;">Seguir sin conexión</button>
+  </form>
+</div>
+
+<!-- Data files (fallback local; la fuente de verdad ahora es Supabase) -->
 <script src="./data/exercises.js"></script>
 <script src="./data/routines.js"></script>
 
 <script>
 (() => {
+  // ============ Programa desde caché cloud (si existe) ============
+  // El módulo cloud (final del archivo) descarga catálogo+rutinas de
+  // Supabase y los cachea. Se aplican ANTES de construir la UI para que
+  // la app pinte lo último conocido aunque no haya red. Si nunca hubo
+  // sync, se usa el fallback de data/*.js.
+  try {
+    const pc = JSON.parse(localStorage.getItem('fitness_program_cache_v1') || 'null');
+    if (pc && pc.exercises && pc.routines) {
+      window.EXERCISES = pc.exercises;
+      window.ROUTINES = pc.routines;
+    }
+  } catch {}
+
   // ============ Helpers ============
-  const EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e]));
+  let EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e]));
+  window.refreshCatalog = () => { EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e])); };
   const getExercise = id => EX_BY_ID[id] || { id, name: '⚠️ Ejercicio no encontrado: ' + id, group: 'other' };
   const groupLabel = g => window.GROUP_LABELS[g] || g;
   const eqIcon = e => window.EQUIPMENT_ICONS[e] || '·';
@@ -811,6 +840,10 @@
     if (!all[weekStartIso]) all[weekStartIso] = {};
     all[weekStartIso][dow] = routineId;
     saveOverrides(all);
+    // Espejo en la nube (week_overrides)
+    const item = { type: 'override', week_start: weekStartIso, day_of_week: dow, routine_id: routineId };
+    if (window.cloudPushOverride) window.cloudPushOverride(item);
+    else enqueue(item);
   }
 
   function getWorkoutsThisWeek() {
@@ -1318,51 +1351,16 @@
     renderStats();
   });
 
-  // ============ Sincronización en la nube (Supabase) ============
-  // La clave anon es PÚBLICA por diseño (va en el cliente). No es la service_role.
-  const SUPABASE_URL = 'https://rffzgrpoffosqfkqutqq.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZnpncnBvZmZvc3Fma3F1dHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NDQ3MzQsImV4cCI6MjA5NTIyMDczNH0.0D2o7BEP27BKvrBUSlE4De9lQDeXP3XQA_TConS39_8';
-  const SB_SESSIONS = SUPABASE_URL + '/rest/v1/sessions';
-  const DEVICE_KEY = 'fitness_device_id';
-  function getDeviceId() {
-    let d = localStorage.getItem(DEVICE_KEY);
-    if (!d) {
-      d = (crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-      localStorage.setItem(DEVICE_KEY, d);
-    }
-    return d;
-  }
-  const OUTBOX_KEY = 'fitness_sync_outbox_v1';
+  // ============ Sincronización en la nube v2 (Supabase) ============
+  // La lógica de red vive en el módulo cloud del final del archivo
+  // (window.cloudPushWorkout / window.cloudPushOverride). Aquí solo se
+  // construye el payload y se encola en el outbox si el módulo aún no
+  // está listo o no hay conexión (se reintenta al abrir la app).
+  const OUTBOX_KEY = 'fitness_sync_outbox_v2';
   function loadOutbox() { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } }
   function saveOutbox(o) { localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); }
-  async function postSession(row) {
-    const res = await fetch(SB_SESSIONS, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + SUPABASE_ANON,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(row)
-    });
-    if (!res.ok) throw new Error('Supabase ' + res.status);
-  }
-  // Si falla (sin conexión en el gym), se guarda en una cola y se reintenta al abrir la app.
-  async function syncSession(row) {
-    try { await postSession(row); }
-    catch (e) { const o = loadOutbox(); o.push(row); saveOutbox(o); }
-  }
-  async function flushOutbox() {
-    const o = loadOutbox();
-    if (!o.length) return;
-    const remaining = [];
-    for (const row of o) {
-      try { await postSession(row); } catch { remaining.push(row); }
-    }
-    saveOutbox(remaining);
-  }
-  flushOutbox();
+  function enqueue(item) { const o = loadOutbox(); o.push(item); saveOutbox(o); }
+  window.fitnessEnqueue = enqueue;
 
   function persistSession() {
     const hist = loadHistory();
@@ -1386,19 +1384,36 @@
       const rec = { date: dateIso, routineId: session.routineId, sets, notes };
       if (!hist[slot.exerciseId]) hist[slot.exerciseId] = [];
       hist[slot.exerciseId].push(rec);
-      sessionExercises.push({ exerciseId: slot.exerciseId, name: getExercise(slot.exerciseId).name, sets, notes });
+      sessionExercises.push({ exerciseId: slot.exerciseId, name: getExercise(slot.exerciseId).name, sets, notes, swapped: !!slot.swapped });
     });
     saveHistory(hist);
-    // Sincroniza la sesión completa en la nube (registro por sesión)
+    // Sincroniza la sesión en la nube (modelo workouts + workout_sets)
     if (sessionExercises.length) {
       const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart) / 1000) : null;
-      syncSession({
-        session_date: dateIso.slice(0, 10),
+      const workout = {
+        id: (crypto.randomUUID ? crypto.randomUUID() : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+        date: dateIso.slice(0, 10),
         routine_id: session.routineId || null,
-        device_id: getDeviceId(),
         duration_sec: durationSec,
-        exercises: sessionExercises
+      };
+      const rows = [];
+      sessionExercises.forEach((ex, slotIdx) => {
+        ex.sets.forEach((st, setIdx) => {
+          if (!st.done) return; // solo series realizadas
+          rows.push({
+            workout_id: workout.id,
+            exercise_id: ex.exerciseId,
+            slot_index: slotIdx + 1,
+            set_index: setIdx + 1,
+            weight_kg: st.kg,
+            reps: st.reps,
+            swapped: !!ex.swapped,
+            notes: (setIdx === 0 && ex.notes) ? ex.notes : null,
+          });
+        });
       });
+      if (window.cloudPushWorkout) window.cloudPushWorkout(workout, rows);
+      else enqueue({ type: 'workout', workout, sets: rows });
     }
   }
   function closeTracker() {
@@ -1623,11 +1638,206 @@
   document.getElementById('importDo').addEventListener('click', doImport);
   document.getElementById('resetAll').addEventListener('click', resetAll);
 
+  // Hook para que el módulo cloud repinte la UI tras un pull
+  window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); };
+
   // ============ Register service worker ============
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 })();
+</script>
+
+<script type="module">
+// ============ Módulo cloud v2 (Supabase) ============
+// Login una vez por dispositivo · bajada de programa en realtime ·
+// subida de entrenos con outbox offline. La publishable key es pública
+// por diseño (el acceso real lo controla RLS + login).
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const sb = createClient(
+  'https://rffzgrpoffosqfkqutqq.supabase.co',
+  'sb_publishable_cMVl8RyTE6EUHOBze-iXgQ_6-1ZDYAo'
+);
+window.__sb = sb; // hook de debug (la key es pública; la sesión es del propio navegador)
+
+const $ = (id) => document.getElementById(id);
+const OUTBOX_KEY = 'fitness_sync_outbox_v2';
+const SKIP_KEY = 'fitness_login_skipped';
+const outbox = () => { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } };
+const saveOutbox = (o) => localStorage.setItem(OUTBOX_KEY, JSON.stringify(o));
+
+// ---------- Subida ----------
+async function pushWorkoutNow(workout, sets) {
+  const { error: e1 } = await sb.from('workouts').upsert(workout);
+  if (e1) throw e1;
+  const { error: eDel } = await sb.from('workout_sets').delete().eq('workout_id', workout.id);
+  if (eDel) throw eDel;
+  if (sets.length) {
+    const { error: e2 } = await sb.from('workout_sets').insert(sets);
+    if (e2) throw e2;
+  }
+}
+async function pushOverrideNow(item) {
+  const { error } = await sb.from('week_overrides').upsert({
+    week_start: item.week_start, day_of_week: item.day_of_week, routine_id: item.routine_id,
+  });
+  if (error) throw error;
+}
+window.cloudPushWorkout = (workout, sets) => {
+  pushWorkoutNow(workout, sets).catch(() => window.fitnessEnqueue({ type: 'workout', workout, sets }));
+};
+window.cloudPushOverride = (item) => {
+  pushOverrideNow(item).catch(() => window.fitnessEnqueue(item));
+};
+
+async function flushOutbox() {
+  const items = outbox();
+  if (!items.length) return;
+  const remaining = [];
+  for (const it of items) {
+    try {
+      if (it.type === 'workout') await pushWorkoutNow(it.workout, it.sets);
+      else if (it.type === 'override') await pushOverrideNow(it);
+    } catch { remaining.push(it); }
+  }
+  saveOutbox(remaining);
+}
+
+// ---------- Bajada: programa (catálogo + rutinas + plan + overrides) ----------
+async function pullProgram() {
+  const [ex, ro, rex, plan, ovr] = await Promise.all([
+    sb.from('exercises').select('*').order('id'),
+    sb.from('routines').select('*'),
+    sb.from('routine_exercises').select('*').order('position'),
+    sb.from('plan').select('*').eq('status', 'active').limit(1).maybeSingle(),
+    sb.from('week_overrides').select('*'),
+  ]);
+  if (ex.error || ro.error || rex.error || plan.error || ovr.error) return false;
+  if (!ex.data?.length || !ro.data?.length) return false; // nunca pisar con vacío
+
+  const exercises = ex.data.map(e => ({
+    id: e.id, name: e.name, group: e.muscle_group, pattern: e.pattern, equipment: e.equipment,
+  }));
+  const routines = {};
+  ro.data.forEach(r => {
+    routines[r.id] = { name: r.name, tag: r.tag, muscleGroups: r.muscle_groups || [], optional: r.optional, exercises: [] };
+  });
+  rex.data.forEach(x => {
+    routines[x.routine_id]?.exercises.push({
+      exerciseId: x.exercise_id, sets: x.sets, repsTarget: x.reps_target, restSec: x.rest_sec, notes: x.notes || '',
+    });
+  });
+  const p = plan.data || {};
+  const ROUT = {
+    goals: p.goals || window.ROUTINES.goals,
+    plan: { name: p.name, startDate: p.start_date, endDate: p.end_date, notes: p.notes, blocks: p.blocks || [] },
+    currentPlan: p.current_block || window.ROUTINES.currentPlan,
+    weeklySchedule: p.weekly_schedule || window.ROUTINES.weeklySchedule,
+    routines,
+  };
+  localStorage.setItem('fitness_program_cache_v1',
+    JSON.stringify({ exercises, routines: ROUT, pulledAt: new Date().toISOString() }));
+  window.EXERCISES = exercises;
+  window.ROUTINES = ROUT;
+  window.refreshCatalog?.();
+  // Overrides de la nube → localStorage (la nube gana)
+  try {
+    const cur = JSON.parse(localStorage.getItem('fitness_week_override_v1') || '{}');
+    ovr.data.forEach(o => {
+      if (!cur[o.week_start]) cur[o.week_start] = {};
+      cur[o.week_start][o.day_of_week] = o.routine_id || 'rest';
+    });
+    localStorage.setItem('fitness_week_override_v1', JSON.stringify(cur));
+  } catch {}
+  return true;
+}
+
+// ---------- Bajada: historial (workouts → formato local) ----------
+async function pullHistory() {
+  const [w, s] = await Promise.all([
+    sb.from('workouts').select('*'),
+    sb.from('workout_sets').select('*').order('slot_index').order('set_index'),
+  ]);
+  if (w.error || s.error) return;
+  const setsByWorkout = {};
+  s.data.forEach(x => { (setsByWorkout[x.workout_id] ||= []).push(x); });
+  let hist;
+  try { hist = JSON.parse(localStorage.getItem('fitness_history_v1') || '{}'); } catch { hist = {}; }
+  let added = 0;
+  w.data.forEach(wk => {
+    const byEx = {};
+    (setsByWorkout[wk.id] || []).forEach(r => { (byEx[r.exercise_id] ||= []).push(r); });
+    Object.entries(byEx).forEach(([exId, rs]) => {
+      const rec = {
+        date: wk.date + 'T12:00:00.000Z',
+        routineId: wk.routine_id,
+        sets: rs.map(r => ({ kg: r.weight_kg != null ? Number(r.weight_kg) : null, reps: r.reps, done: true })),
+        notes: rs.find(r => r.notes)?.notes || '',
+      };
+      const list = (hist[exId] ||= []);
+      const sig = JSON.stringify(rec.sets.map(t => [t.kg, t.reps]));
+      const dup = list.some(x => (x.date || '').slice(0, 10) === wk.date &&
+        JSON.stringify((x.sets || []).map(t => [t.kg, t.reps])) === sig);
+      if (!dup) { list.push(rec); added++; }
+    });
+  });
+  if (added) {
+    Object.values(hist).forEach(l => l.sort((a, b) => (a.date || '').localeCompare(b.date || '')));
+    localStorage.setItem('fitness_history_v1', JSON.stringify(hist));
+  }
+}
+
+// ---------- Login ----------
+const showLogin = () => { $('loginOverlay').style.display = 'flex'; };
+const hideLogin = () => { $('loginOverlay').style.display = 'none'; };
+
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('loginErr').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('loginEmail').value.trim(),
+    password: $('loginPass').value,
+  });
+  if (error) { $('loginErr').textContent = 'No se pudo entrar: ' + error.message; return; }
+  localStorage.removeItem(SKIP_KEY);
+  hideLogin();
+  boot(true);
+});
+$('loginSkip').addEventListener('click', () => {
+  localStorage.setItem(SKIP_KEY, '1');
+  hideLogin();
+});
+
+// ---------- Arranque ----------
+let rt = null, pullTimer = null;
+function onProgramChange() {
+  clearTimeout(pullTimer);
+  pullTimer = setTimeout(async () => { if (await pullProgram()) window.appRerender?.(); }, 400);
+}
+async function boot(loggedIn) {
+  if (!loggedIn) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      if (!localStorage.getItem(SKIP_KEY) && navigator.onLine) showLogin();
+      return;
+    }
+  }
+  await flushOutbox();
+  const ok = await pullProgram();
+  await pullHistory();
+  if (ok) window.appRerender?.();
+  rt?.unsubscribe?.();
+  rt = sb.channel('program')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, onProgramChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'routine_exercises' }, onProgramChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'plan' }, onProgramChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'week_overrides' }, onProgramChange)
+    .subscribe((status, err) => { window.__rtStatus = status; window.__rtErr = err ? String(err) : null; });
+  window.__rt = rt;
+  window.addEventListener('online', flushOutbox);
+}
+boot(false);
 </script>
 </body>
 </html>
