@@ -1,4 +1,4 @@
-const CACHE = 'onix-v13';
+const CACHE = 'onix-v14';
 const SHELL = [
   './',
   './index.html',
@@ -25,6 +25,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   const url = new URL(req.url);
+
+  // API de Supabase (REST/auth/realtime): SIEMPRE red, nunca caché.
+  // Cachearla servía datos viejos al sync. La app ya tiene su propia
+  // caché offline (localStorage + outbox).
+  if (url.hostname.endsWith('.supabase.co')) return;
+
   const isNavigation = req.mode === 'navigate';
   const isHTML = url.pathname.endsWith('/') || url.pathname.endsWith('.html');
   const isData = url.pathname.includes('/data/');
