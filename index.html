@@ -523,26 +523,41 @@
         </button>
       </div>
 
-      <div class="seg">
-        <button class="seg-btn active" data-tab="cal">Calendario</button>
-        <button class="seg-btn" data-tab="prog">Programa</button>
+      <div class="seg" id="trainerTabs">
+        <button class="seg-btn active" data-tab="prog">Programa</button>
+        <button class="seg-btn" data-tab="entrenos">Entrenos</button>
+        <button class="seg-btn" data-tab="obj">Objetivos</button>
       </div>
 
-      <div class="tab-panel active" data-panel="cal">
-        <div class="week-nav">
-          <button class="wn-btn" id="weekPrev" aria-label="Semana anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-          <div class="wn-label" id="weekLabel"></div>
-          <button class="wn-btn" id="weekNext" aria-label="Semana siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-        </div>
-        <div class="day-list" id="weekDayList"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="prog">
+      <div class="tab-panel active" data-panel="prog">
         <div class="plan-banner" id="planBanner"></div>
-        <div class="section-title">Rutinas activas</div>
-        <div id="routineList"></div>
         <div class="section-title">Plan macro</div>
         <div id="planBlocks"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="entrenos">
+        <div class="section-title">Tus entrenos</div>
+        <div id="routineList"></div>
+        <div class="muted" style="font-size:12px;padding:10px 2px;line-height:1.5">Los entrenos nuevos que crees desde el Chat (o con Claude) aparecen aquí automáticamente, y podrás asignarlos a cualquier día desde la semana de Home.</div>
+      </div>
+
+      <div class="tab-panel" data-panel="obj">
+        <div class="seg" id="goalsSeg" style="margin-bottom:14px">
+          <button class="seg-btn active" data-goals="shortTerm">Corto plazo</button>
+          <button class="seg-btn" data-goals="longTerm">Largo plazo</button>
+        </div>
+        <div id="goalsPanel"></div>
+
+        <div class="card chart-card">
+          <h3>Peso corporal</h3>
+          <div class="sub" id="weightSub">Registra tu peso para ver la evolución</div>
+          <svg class="line-chart" id="weightChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+          <div class="chart-range" id="weightRange"></div>
+          <form class="weight-form" id="weightForm">
+            <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso de hoy (kg)">
+            <button type="submit">Guardar</button>
+          </form>
+        </div>
       </div>
     </section>
 
@@ -594,12 +609,10 @@
         <div class="check-grid" id="weeklyCheck"></div>
       </div>
 
-      <div class="card chart-card">
-        <h3>Progresión por ejercicio</h3>
-        <div class="sub" id="progSub">Mejor serie de cada sesión</div>
-        <select id="progSelect" class="prog-select"></select>
-        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="chart-range" id="progRange"></div>
+      <div class="card">
+        <h3 style="margin:0 0 2px;font-size:15px">2026</h3>
+        <div class="sub" style="margin-bottom:12px">Semanas cumplidas · julio a diciembre</div>
+        <div id="yearGrid"></div>
       </div>
 
       <div class="card">
@@ -611,18 +624,20 @@
         </div>
         <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
         <div class="cal-grid" id="calGrid"></div>
-        <div class="cal-legend"><span><span class="dot gym"></span>Gym</span><span><span class="dot out"></span>Outdoor</span></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 2px;font-size:15px">Progresión por grupo muscular</h3>
+        <div class="sub" style="margin-bottom:12px">Media de mejora de tus ejercicios en cada grupo</div>
+        <div id="groupProg"></div>
       </div>
 
       <div class="card chart-card">
-        <h3>Peso corporal</h3>
-        <div class="sub" id="weightSub">Registra tu peso para ver la evolución</div>
-        <svg class="line-chart" id="weightChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="chart-range" id="weightRange"></div>
-        <form class="weight-form" id="weightForm">
-          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso de hoy (kg)">
-          <button type="submit">Guardar</button>
-        </form>
+        <h3>Progresión por ejercicio</h3>
+        <div class="sub" id="progSub">Mejor serie de cada sesión · ejercicios con más de 4 sesiones</div>
+        <select id="progSelect" class="prog-select"></select>
+        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="chart-range" id="progRange"></div>
       </div>
 
       <div class="card">
@@ -653,9 +668,30 @@
         .weight-form input { flex: 1; min-width: 0; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
         .weight-form input:focus { outline: none; border-color: var(--accent); }
         .weight-form button { padding: 0 16px; border-radius: 10px; background: var(--accent); color: #081108; border: none; font-weight: 600; font-size: 13.5px; }
+
+        /* Cuadrícula anual de semanas cumplidas */
+        .yg-row { display: flex; align-items: center; gap: 12px; padding: 5px 0; }
+        .yg-m { width: 34px; font-size: 10.5px; color: var(--muted); font-weight: 700; letter-spacing: .12em; }
+        .yg-dots { display: flex; gap: 10px; }
+        .yg-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); }
+        .yg-dot.done { background: var(--accent); border-color: var(--accent); }
+        .yg-dot.cur { outline: 1.5px solid var(--accent); outline-offset: 2px; }
+
+        /* Calendario: número rodeado en verde al entrenar */
+        .cal-num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid transparent; }
+        .cal-day.trained .cal-num { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+        /* Progresión por grupo muscular */
+        .gp-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+        .gp-name { width: 86px; font-size: 12.5px; color: var(--text); flex-shrink: 0; }
+        .gp-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--bg-elev-2, #15181C); overflow: hidden; }
+        .gp-fill { height: 100%; border-radius: 99px; background: var(--accent); }
+        .gp-fill.neg { background: #ff7a7a; }
+        .gp-val { width: 58px; text-align: right; font-size: 12.5px; font-weight: 700; color: var(--accent); }
+        .gp-val.neg { color: #ff7a7a; }
+        .gp-n { font-size: 10px; color: var(--muted); font-weight: 400; }
       </style>
 
-      <div id="goalsWrap"></div>
     </section>
 
     <!-- =========== NUTRICIÓN =========== -->
@@ -1363,8 +1399,9 @@
     document.getElementById('planBanner').innerHTML =
       `<b>${plan.name}</b> · ${plan.status === 'draft' ? 'Borrador' : 'Activo'}<br>${plan.notes || ''}`;
 
-    // Semana actual — vista por días (editable + check completado)
-    renderWeekDayList();
+    // Objetivos (pestaña Objetivos) + peso corporal
+    renderGoals();
+    renderWeight();
 
     // Rutinas
     const list = document.getElementById('routineList');
@@ -1589,32 +1626,10 @@
     }
     grid.innerHTML = html.join('');
 
-    // Objetivos (movidos desde Trainer)
-    const goals = window.ROUTINES.goals;
-    const goalsWrap = document.getElementById('goalsWrap');
-    if (goals) {
-      const renderGoalList = (g, icon, title) => `
-        <div class="card goals-card">
-          <h3>${icon} ${title}</h3>
-          <div class="horizon">${g.horizon} · objetivo ${g.deadline}</div>
-          ${g.targets.map(t => `
-            <div class="goal-row">
-              <div class="gname">${t.metric}<small>${t.notes || ''}</small></div>
-              <div class="gval">${t.target}</div>
-            </div>`).join('')}
-        </div>`;
-      goalsWrap.innerHTML = `
-        <div class="section-title">Objetivos</div>
-        ${goals.shortTerm ? renderGoalList(goals.shortTerm, '🎯', 'Corto plazo') : ''}
-        ${goals.longTerm ? renderGoalList(goals.longTerm, '🏁', 'Largo plazo') : ''}
-      `;
-    } else {
-      goalsWrap.innerHTML = '';
-    }
-
-    renderProgression();
+    renderYearGrid();
     renderCalendar();
-    renderWeight();
+    renderGroupProgress();
+    renderProgression();
     renderPRs();
   }
 
@@ -1666,12 +1681,12 @@
     const range = document.getElementById('progRange');
     const sub = document.getElementById('progSub');
     const ids = Object.keys(loadHistory())
-      .filter((id) => topSetSeries(id).length >= 1)
+      .filter((id) => topSetSeries(id).length > 4)
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
-      sel.innerHTML = '<option>Sin datos aún</option>';
+      sel.innerHTML = '<option>Sin ejercicios suficientes aún</option>';
       chart.innerHTML = ''; range.textContent = '';
-      sub.textContent = 'Registra entrenos para ver tu progresión';
+      sub.textContent = 'Aquí aparecerán los ejercicios con más de 4 sesiones registradas';
       return;
     }
     if (!progExId || !ids.includes(progExId)) {
@@ -1708,11 +1723,8 @@
     for (let i = 0; i < firstDow; i++) cells.push('<div class="cal-day out-month"></div>');
     for (let d = 1; d <= daysIn; d++) {
       const dIso = localIso(new Date(y, m, d));
-      const r = byDate[dIso];
-      const dot = r
-        ? `<span class="dot ${isOptionalRoutine(r) ? 'out' : 'gym'}"></span>`
-        : '<span class="spacer"></span>';
-      cells.push(`<div class="cal-day ${dIso === todayIso ? 'today' : ''}">${d}${dot}</div>`);
+      const trained = !!byDate[dIso];
+      cells.push(`<div class="cal-day ${dIso === todayIso ? 'today' : ''} ${trained ? 'trained' : ''}"><span class="cal-num">${d}</span></div>`);
     }
     grid.innerHTML = cells.join('');
   }
@@ -1764,6 +1776,91 @@
       }
       return `<div class="pr-item"><span class="ex">${d.label}</span><span><span class="val">${val}</span></span></div>`;
     }).join('');
+  }
+
+  // ===== Objetivos (Trainer) con toggle corto/largo plazo =====
+  let goalsView = 'shortTerm';
+  function renderGoals() {
+    const wrap = document.getElementById('goalsPanel');
+    if (!wrap) return;
+    const g = (window.ROUTINES.goals || {})[goalsView];
+    if (!g) {
+      wrap.innerHTML = '<div class="muted" style="font-size:12px;padding:8px 0">Sin objetivos definidos todavía.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="card goals-card">
+        <div class="horizon">${g.horizon} · objetivo ${g.deadline}</div>
+        ${g.targets.map((t) => `
+          <div class="goal-row">
+            <div class="gname">${t.metric}<small>${t.notes || ''}</small></div>
+            <div class="gval">${t.target}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+  document.querySelectorAll('#goalsSeg .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      goalsView = btn.dataset.goals;
+      document.querySelectorAll('#goalsSeg .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      renderGoals();
+    });
+  });
+
+  // ===== Cuadrícula 2026: una fila por mes, un punto por semana cumplida =====
+  function renderYearGrid() {
+    const el = document.getElementById('yearGrid');
+    if (!el) return;
+    const doneDates = new Set(getAllWorkouts().map((w) => w.date).filter(Boolean));
+    const today = wsIso(new Date());
+    const MONTHS = [['JUL', 6], ['AGO', 7], ['SEP', 8], ['OCT', 9], ['NOV', 10], ['DIC', 11]];
+    el.innerHTML = MONTHS.map(([label, m]) => {
+      const daysIn = new Date(2026, m + 1, 0).getDate();
+      const ranges = [[1, 7], [8, 14], [15, 21], [22, daysIn]];
+      const dots = ranges.map(([a, b]) => {
+        const iso = (dd) => `2026-${String(m + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        let planned = 0, missed = 0;
+        for (let dd = a; dd <= b; dd++) {
+          const dIso = iso(dd);
+          if (dIso > today) continue;
+          const sched = getEffectiveSchedule(wsMondayOf(dIso));
+          const rid = sched[new Date(2026, m, dd).getDay()];
+          if (rid && rid !== 'rest') { planned++; if (!doneDates.has(dIso)) missed++; }
+        }
+        let cls = 'yg-dot';
+        if (iso(b) <= today && planned > 0 && missed === 0) cls += ' done';
+        if (today >= iso(a) && today <= iso(b)) cls += ' cur';
+        return `<span class="${cls}"></span>`;
+      }).join('');
+      return `<div class="yg-row"><span class="yg-m">${label}</span><span class="yg-dots">${dots}</span></div>`;
+    }).join('');
+  }
+
+  // ===== Progresión media por grupo muscular =====
+  function renderGroupProgress() {
+    const el = document.getElementById('groupProg');
+    if (!el) return;
+    const byGroup = {};
+    Object.keys(loadHistory()).forEach((id) => {
+      const s = topSetSeries(id);
+      if (s.length < 2 || !s[0].kg) return;
+      const pct = ((s[s.length - 1].kg - s[0].kg) / s[0].kg) * 100;
+      const g = getExercise(id).group || 'other';
+      (byGroup[g] = byGroup[g] || []).push(pct);
+    });
+    const rows = Object.entries(byGroup)
+      .map(([g, arr]) => ({ g, n: arr.length, avg: arr.reduce((a, b) => a + b, 0) / arr.length }))
+      .sort((a, b) => b.avg - a.avg);
+    if (!rows.length) {
+      el.innerHTML = '<div class="muted" style="font-size:12.5px;padding:6px 0;line-height:1.5">Necesitas al menos 2 sesiones de un mismo ejercicio para ver la progresión de su grupo.</div>';
+      return;
+    }
+    const max = Math.max(...rows.map((r) => Math.abs(r.avg)), 1);
+    el.innerHTML = rows.map((r) => `
+      <div class="gp-row">
+        <span class="gp-name">${(window.GROUP_LABELS || {})[r.g] || r.g} <span class="gp-n">(${r.n})</span></span>
+        <div class="gp-bar"><div class="gp-fill ${r.avg < 0 ? 'neg' : ''}" style="width:${Math.max(Math.min(Math.abs(r.avg) / max * 100, 100), 3)}%"></div></div>
+        <span class="gp-val ${r.avg < 0 ? 'neg' : ''}">${r.avg >= 0 ? '+' : ''}${r.avg.toFixed(1)}%</span>
+      </div>`).join('');
   }
 
   document.getElementById('progSelect').addEventListener('change', (e) => {
@@ -1891,15 +1988,13 @@
   });
 
   // Trainer: pestañas y navegación entre semanas
-  document.querySelectorAll('.seg-btn').forEach(btn => {
+  document.querySelectorAll('#trainerTabs .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#trainerTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
       const tab = btn.dataset.tab;
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+      document.querySelectorAll('[data-screen="trainer"] > .tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
     });
   });
-  document.getElementById('weekPrev').addEventListener('click', () => { trainerWeek--; renderWeekDayList(); });
-  document.getElementById('weekNext').addEventListener('click', () => { trainerWeek++; renderWeekDayList(); });
   document.getElementById('finishBtn').addEventListener('click', () => {
     persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);

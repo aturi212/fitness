@@ -117,7 +117,7 @@ window.ROUTINES = {
   routines: {
 
     'full-body-a': {
-      name: 'Full Body A',
+      name: 'INTRO A',
       tag: 'FB-A',
       muscleGroups: ['Cuádriceps', 'Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Core'],
       exercises: [
@@ -132,7 +132,7 @@ window.ROUTINES = {
     },
 
     'full-body-b': {
-      name: 'Full Body B',
+      name: 'INTRO B',
       tag: 'FB-B',
       muscleGroups: ['Femoral', 'Glúteo', 'Espalda', 'Pecho', 'Hombro', 'Bíceps', 'Tríceps', 'Core'],
       exercises: [
@@ -148,7 +148,7 @@ window.ROUTINES = {
     },
 
     'outdoor': {
-      name: 'Día Outdoor (parque)',
+      name: 'Solo Outdoor',
       tag: 'OUT',
       muscleGroups: ['Cardio', 'Espalda', 'Pecho', 'Tríceps', 'Core'],
       // Estructura: calentamiento 5-8 min (movilidad hombro/cadera + trote suave)
