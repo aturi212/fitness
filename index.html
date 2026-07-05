@@ -576,6 +576,8 @@
       .chat-input input:focus { outline: none; border-color: var(--accent); }
       .chat-input button { width: 50px; border-radius: 14px; background: var(--accent); color: #081108; border: none; font-size: 17px; flex-shrink: 0; }
       .chat-input button:disabled { opacity: .5; }
+      .chat-sug { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: var(--bg-elev, #14161a); border: 1px solid var(--line, #23262c); border-radius: 14px; padding: 13px 15px; font-size: 14px; color: var(--text, #fff); margin-top: 10px; }
+      .chat-sug:active { border-color: var(--accent); }
     </style>
 
     <section class="screen" data-screen="stats">
@@ -747,6 +749,13 @@
     .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
     .hs-opt.danger { color: #ff7a7a; }
     .hs-ex { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
+
+    /* ---------- Stat cards compactas (Racha / Esta semana) ---------- */
+    .grid .stat-card { padding: 9px 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .grid .stat-card .lbl { margin: 0; font-size: 10px; }
+    .grid .stat-card .v { font-size: 17px; margin: 0; white-space: nowrap; }
+    .grid .stat-card.on-fire { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-elev)); }
+    .grid .stat-card.on-fire .v { color: var(--accent); }
   </style>
 
   <!-- =========== TRACKER OVERLAY =========== -->
@@ -1042,8 +1051,10 @@
 
     // Racha por días: se rompe al fallar un entreno planificado (ver computeStreak)
     const streak = computeStreak();
-    document.getElementById('statRacha').innerHTML =
-      `${streak}<small>${streak === 1 ? 'día' : 'días'}</small>`;
+    const rachaEl = document.getElementById('statRacha');
+    rachaEl.innerHTML =
+      `${streak > 0 ? '🔥 ' : ''}${streak}<small>${streak === 1 ? 'día' : 'días'}</small>`;
+    rachaEl.closest('.stat-card').classList.toggle('on-fire', streak > 0);
     renderWeekStrip();
     document.getElementById('statWeek').innerHTML =
       `${week.length}<small>/${target}</small>`;
@@ -2379,10 +2390,10 @@ $('loginSkip').addEventListener('click', () => {
 });
 
 // ---------- Chat entrenador (Edge Function "chat") ----------
-const CHAT_KEY = 'fitness_chat_history_v1';
 const chatLog = $('chatLog'), chatForm = $('chatForm'), chatText = $('chatText'), chatSend = $('chatSend');
+// El chat arranca siempre vacío: la conversación vive solo mientras la app está abierta
 let chatHistory = [];
-try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]'); } catch {}
+localStorage.removeItem('fitness_chat_history_v1'); // limpia restos de la versión con historial
 
 function chatBubble(cls, text) {
   const d = document.createElement('div');
@@ -2397,8 +2408,20 @@ function renderChat() {
   if (!chatHistory.length) {
     const d = document.createElement('div');
     d.className = 'chat-empty';
-    d.innerHTML = 'Soy tu entrenador. Puedo <b>modificarte la semana</b>, <b>crear rutinas</b> y responder con <b>tus datos reales</b>.<br><br>Prueba:<br>· "Esta semana estoy de viaje, solo tengo mancuernas"<br>· "¿Cómo voy en press banca?"<br>· "Cambia el jueves a descanso"<br>· "¿Cómo se hace el peso muerto rumano?"';
+    d.innerHTML = 'Soy tu entrenador. Puedo <b>modificarte la semana</b>, <b>crear rutinas</b> y responder con <b>tus datos reales</b>. ¿Por dónde empezamos?';
     chatLog.appendChild(d);
+    [
+      ['🏗️', 'Quiero crear un entreno nuevo'],
+      ['🧳', 'Estoy fuera esta semana, dame alternativas de ejercicio'],
+      ['🔎', 'Dame info sobre un ejercicio concreto'],
+    ].forEach(([icon, q]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chat-sug';
+      b.innerHTML = `<span>${icon}</span><span>${q}</span>`;
+      b.addEventListener('click', () => sendChat(q));
+      chatLog.appendChild(b);
+    });
     return;
   }
   chatHistory.forEach((m) => {
@@ -2413,16 +2436,13 @@ function renderChat() {
 }
 renderChat();
 
-chatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const text = chatText.value.trim();
+async function sendChat(text) {
   if (!text || chatSend.disabled) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showLogin(); return; }
 
-  chatText.value = '';
   chatHistory.push({ role: 'user', content: text });
-  localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory));
+  if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
   const typing = chatBubble('bot typing', 'Pensando…');
   chatSend.disabled = true;
@@ -2435,8 +2455,6 @@ chatForm.addEventListener('submit', async (e) => {
       chatBubble('bot', '⚠️ ' + (data?.error || error?.message || 'Error de conexión. Reintenta.'));
     } else {
       chatHistory.push({ role: 'assistant', content: data.reply || '(sin respuesta)', actions: data.actions || [] });
-      if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
-      localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory));
       renderChat();
       // Si el entrenador tocó la BD, refresca el programa al momento
       // (el realtime también lo haría, esto lo hace instantáneo)
@@ -2448,6 +2466,14 @@ chatForm.addEventListener('submit', async (e) => {
   } finally {
     chatSend.disabled = false;
   }
+}
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = chatText.value.trim();
+  if (!text) return;
+  chatText.value = '';
+  sendChat(text);
 });
 
 // ---------- Arranque ----------
