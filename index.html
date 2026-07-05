@@ -583,27 +583,65 @@
       </div>
 
       <div class="card chart-card">
+        <h3>Progresión por ejercicio</h3>
+        <div class="sub" id="progSub">Mejor serie de cada sesión</div>
+        <select id="progSelect" class="prog-select"></select>
+        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="chart-range" id="progRange"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 4px;font-size:15px">Calendario de entrenos</h3>
+        <div class="cal-head">
+          <button type="button" class="cal-btn" id="calPrev">‹</button>
+          <div class="cal-title" id="calTitle"></div>
+          <button type="button" class="cal-btn" id="calNext">›</button>
+        </div>
+        <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend"><span><span class="dot gym"></span>Gym</span><span><span class="dot out"></span>Outdoor</span></div>
+      </div>
+
+      <div class="card chart-card">
         <h3>Peso corporal</h3>
-        <div class="sub" id="weightSub">Próximamente: registrar peso semanal</div>
-        <svg class="line-chart" viewBox="0 0 300 100" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#35F58B" stop-opacity=".3"/>
-              <stop offset="100%" stop-color="#35F58B" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30 L 300 100 L 0 100 Z" fill="url(#g1)"/>
-          <path d="M 0 60 L 30 55 L 60 50 L 90 52 L 120 45 L 150 42 L 180 38 L 210 40 L 240 35 L 270 32 L 300 30" fill="none" stroke="#35F58B" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
+        <div class="sub" id="weightSub">Registra tu peso para ver la evolución</div>
+        <svg class="line-chart" id="weightChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="chart-range" id="weightRange"></div>
+        <form class="weight-form" id="weightForm">
+          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso de hoy (kg)">
+          <button type="submit">Guardar</button>
+        </form>
       </div>
 
       <div class="card">
         <h3 style="margin:0 0 12px;font-size:15px">Récords personales (PR)</h3>
-        <div class="pr-item"><span class="ex">Press banca</span><span><span class="val">— kg</span></span></div>
-        <div class="pr-item"><span class="ex">Sentadilla</span><span><span class="val">— kg</span></span></div>
-        <div class="pr-item"><span class="ex">Peso muerto rumano</span><span><span class="val">— kg</span></span></div>
-        <div class="pr-item"><span class="ex">Dominadas</span><span><span class="val">— reps</span></span></div>
+        <div id="prList"></div>
       </div>
+
+      <style>
+        /* ---------- Stats v2 ---------- */
+        .chart-card .line-chart { color: var(--accent); width: 100%; }
+        .prog-select { width: 100%; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0 12px; -webkit-appearance: none; appearance: none; }
+        .chart-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+        .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 8px; }
+        .cal-title { font-size: 14px; font-weight: 600; text-transform: capitalize; }
+        .cal-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); font-size: 17px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-dows span { text-align: center; font-size: 9.5px; color: var(--muted); padding: 2px 0; letter-spacing: .1em; }
+        .cal-day { aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11.5px; background: var(--bg-elev); border: 1px solid transparent; }
+        .cal-day.out-month { background: transparent; }
+        .cal-day.today { border-color: var(--accent); }
+        .cal-day .dot, .cal-legend .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+        .cal-day .spacer { height: 5px; }
+        .dot.gym { background: var(--accent); }
+        .dot.out { background: #4da3ff; }
+        .cal-legend { display: flex; gap: 16px; align-items: center; font-size: 11px; color: var(--muted); margin-top: 10px; }
+        .cal-legend .dot { margin-right: 5px; width: 7px; height: 7px; }
+        .weight-form { display: flex; gap: 8px; margin-top: 12px; }
+        .weight-form input { flex: 1; min-width: 0; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+        .weight-form input:focus { outline: none; border-color: var(--accent); }
+        .weight-form button { padding: 0 16px; border-radius: 10px; background: var(--accent); color: #081108; border: none; font-weight: 600; font-size: 13.5px; }
+      </style>
 
       <div id="goalsWrap"></div>
     </section>
@@ -1266,7 +1304,186 @@
     } else {
       goalsWrap.innerHTML = '';
     }
+
+    renderProgression();
+    renderCalendar();
+    renderWeight();
+    renderPRs();
   }
+
+  // ============ Stats v2: progresión, calendario, peso, PRs ============
+  const WEIGHT_KEY = 'fitness_bodyweight_v1';
+  function loadWeights() { try { return JSON.parse(localStorage.getItem(WEIGHT_KEY) || '[]'); } catch { return []; } }
+  const MESES = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const fmtD = (iso) => { const p = (iso || '').split('-'); return p.length === 3 ? `${+p[2]} ${MESES[+p[1]]}` : iso; };
+  const localIso = (d = new Date()) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  // Mejor serie (más kg; a igualdad, más reps) de cada sesión de un ejercicio
+  function topSetSeries(exId) {
+    const recs = loadHistory()[exId] || [];
+    return recs.map((r) => {
+      const best = (r.sets || []).reduce((a, b) => {
+        if ((b.kg || 0) > (a.kg || 0)) return b;
+        if ((b.kg || 0) === (a.kg || 0) && (b.reps || 0) > (a.reps || 0)) return b;
+        return a;
+      }, { kg: 0, reps: 0 });
+      return { date: (r.date || '').slice(0, 10), kg: best.kg || 0, reps: best.reps || 0 };
+    }).filter((p) => p.kg > 0).sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  function drawLine(svg, values, gid) {
+    if (!svg) return;
+    if (values.length < 2) { svg.innerHTML = ''; return; }
+    const min = Math.min(...values), max = Math.max(...values);
+    const span = (max - min) || 1;
+    const W = 300, H = 110, T = 8, B = 12;
+    const x = (i) => (i / (values.length - 1)) * W;
+    const y = (v) => T + (1 - (v - min) / span) * (H - T - B);
+    const pts = values.map((v, i) => `${x(i).toFixed(1)} ${y(v).toFixed(1)}`);
+    const line = 'M ' + pts.join(' L ');
+    svg.innerHTML = `
+      <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="currentColor" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${line} L ${W} ${H} L 0 ${H} Z" fill="url(#${gid})"/>
+      <path d="${line}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="currentColor"/>`).join('')}`;
+  }
+
+  let progExId = null;
+  function renderProgression() {
+    const sel = document.getElementById('progSelect');
+    const chart = document.getElementById('progChart');
+    const range = document.getElementById('progRange');
+    const sub = document.getElementById('progSub');
+    const ids = Object.keys(loadHistory())
+      .filter((id) => topSetSeries(id).length >= 1)
+      .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
+    if (!ids.length) {
+      sel.innerHTML = '<option>Sin datos aún</option>';
+      chart.innerHTML = ''; range.textContent = '';
+      sub.textContent = 'Registra entrenos para ver tu progresión';
+      return;
+    }
+    if (!progExId || !ids.includes(progExId)) {
+      progExId = ids.includes('bench-press-barbell') ? 'bench-press-barbell' : ids[0];
+    }
+    sel.innerHTML = ids.map((id) =>
+      `<option value="${id}" ${id === progExId ? 'selected' : ''}>${getExercise(id).name}</option>`).join('');
+    const s = topSetSeries(progExId);
+    if (s.length === 1) {
+      chart.innerHTML = ''; range.textContent = '';
+      sub.textContent = `1 sesión: ${s[0].kg} kg × ${s[0].reps} (${fmtD(s[0].date)}). Con 2+ sesiones verás la gráfica.`;
+      return;
+    }
+    drawLine(chart, s.map((p) => p.kg), 'gProg');
+    const first = s[0], last = s[s.length - 1];
+    const diff = +(last.kg - first.kg).toFixed(1);
+    sub.textContent = `${s.length} sesiones · ${diff >= 0 ? '+' : ''}${diff} kg desde ${fmtD(first.date)}`;
+    range.innerHTML = `<span>${fmtD(first.date)} · ${first.kg} kg</span><span>${fmtD(last.date)} · ${last.kg} kg × ${last.reps}</span>`;
+  }
+
+  const calMonth = new Date(); calMonth.setDate(1);
+  function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    if (!grid) return;
+    const y = calMonth.getFullYear(), m = calMonth.getMonth();
+    document.getElementById('calTitle').textContent =
+      calMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    const byDate = {};
+    getAllWorkouts().forEach((w) => { if (w.date) byDate[w.date] = w.routineId; });
+    const todayIso = localIso();
+    const firstDow = (new Date(y, m, 1).getDay() + 6) % 7; // lunes = 0
+    const daysIn = new Date(y, m + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < firstDow; i++) cells.push('<div class="cal-day out-month"></div>');
+    for (let d = 1; d <= daysIn; d++) {
+      const dIso = localIso(new Date(y, m, d));
+      const r = byDate[dIso];
+      const dot = r
+        ? `<span class="dot ${isOptionalRoutine(r) ? 'out' : 'gym'}"></span>`
+        : '<span class="spacer"></span>';
+      cells.push(`<div class="cal-day ${dIso === todayIso ? 'today' : ''}">${d}${dot}</div>`);
+    }
+    grid.innerHTML = cells.join('');
+  }
+
+  function renderWeight() {
+    const list = loadWeights().slice().sort((a, b) => a.date.localeCompare(b.date));
+    const sub = document.getElementById('weightSub');
+    const chart = document.getElementById('weightChart');
+    const range = document.getElementById('weightRange');
+    if (!list.length) {
+      sub.textContent = 'Registra tu peso para ver la evolución';
+      chart.innerHTML = ''; range.textContent = '';
+      return;
+    }
+    const first = list[0], last = list[list.length - 1];
+    if (list.length === 1) {
+      sub.textContent = `${last.kg} kg (${fmtD(last.date)})`;
+      chart.innerHTML = ''; range.textContent = '';
+      return;
+    }
+    const diff = +(last.kg - first.kg).toFixed(1);
+    sub.textContent = `${last.kg} kg · ${diff >= 0 ? '+' : ''}${diff} kg desde ${fmtD(first.date)}`;
+    drawLine(chart, list.map((p) => p.kg), 'gWeight');
+    range.innerHTML = `<span>${fmtD(first.date)} · ${first.kg} kg</span><span>${fmtD(last.date)} · ${last.kg} kg</span>`;
+  }
+
+  function renderPRs() {
+    const wrap = document.getElementById('prList');
+    const hist = loadHistory();
+    const defs = [
+      { id: 'bench-press-barbell', label: 'Press banca' },
+      { id: 'back-squat', label: 'Sentadilla' },
+      { id: 'romanian-deadlift', label: 'Peso muerto rumano' },
+      { id: 'barbell-row', label: 'Remo con barra' },
+      { id: 'pull-up', label: 'Dominadas', reps: true },
+    ];
+    wrap.innerHTML = defs.map((d) => {
+      let val = '—';
+      if (d.reps) {
+        const best = (hist[d.id] || []).flatMap((r) => r.sets || [])
+          .reduce((a, b) => Math.max(a, b.reps || 0), 0);
+        if (best > 0) val = `${best} reps`;
+      } else {
+        const s = topSetSeries(d.id);
+        if (s.length) {
+          const best = s.reduce((a, b) => (b.kg > a.kg ? b : a));
+          val = `${best.kg} kg × ${best.reps}`;
+        }
+      }
+      return `<div class="pr-item"><span class="ex">${d.label}</span><span><span class="val">${val}</span></span></div>`;
+    }).join('');
+  }
+
+  document.getElementById('progSelect').addEventListener('change', (e) => {
+    progExId = e.target.value;
+    renderProgression();
+  });
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar();
+  });
+  document.getElementById('weightForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const inp = document.getElementById('weightInput');
+    const kg = parseFloat(String(inp.value).replace(',', '.'));
+    if (isNaN(kg) || kg < 30 || kg > 250) return;
+    const today = localIso();
+    const list = loadWeights().filter((w) => w.date !== today);
+    list.push({ date: today, kg });
+    localStorage.setItem(WEIGHT_KEY, JSON.stringify(list));
+    inp.value = '';
+    if (window.cloudPushWeight) window.cloudPushWeight(today, kg);
+    else enqueue({ type: 'weight', date: today, kg });
+    if (navigator.vibrate) navigator.vibrate(30);
+    renderWeight();
+  });
   renderTrainer();
   renderStats();
 
@@ -1725,6 +1942,13 @@ window.cloudPushWorkout = (workout, sets) => {
 window.cloudPushOverride = (item) => {
   pushOverrideNow(item).catch(() => window.fitnessEnqueue(item));
 };
+async function pushWeightNow(item) {
+  const { error } = await sb.from('body_weight').upsert({ date: item.date, weight_kg: item.kg });
+  if (error) throw error;
+}
+window.cloudPushWeight = (date, kg) => {
+  pushWeightNow({ date, kg }).catch(() => window.fitnessEnqueue({ type: 'weight', date, kg }));
+};
 
 async function flushOutbox() {
   const items = outbox();
@@ -1734,6 +1958,7 @@ async function flushOutbox() {
     try {
       if (it.type === 'workout') await pushWorkoutNow(it.workout, it.sets);
       else if (it.type === 'override') await pushOverrideNow(it);
+      else if (it.type === 'weight') await pushWeightNow(it);
     } catch { remaining.push(it); }
   }
   saveOutbox(remaining);
@@ -1821,6 +2046,19 @@ async function pullHistory() {
     Object.values(hist).forEach(l => l.sort((a, b) => (a.date || '').localeCompare(b.date || '')));
     localStorage.setItem('fitness_history_v1', JSON.stringify(hist));
   }
+}
+
+// ---------- Bajada: peso corporal ----------
+async function pullBodyWeight() {
+  const { data, error } = await sb.from('body_weight').select('date, weight_kg');
+  if (error || !data) return;
+  let local;
+  try { local = JSON.parse(localStorage.getItem('fitness_bodyweight_v1') || '[]'); } catch { local = []; }
+  const byDate = {};
+  local.forEach((w) => { byDate[w.date] = w.kg; });
+  data.forEach((r) => { byDate[r.date] = Number(r.weight_kg); }); // la nube gana
+  localStorage.setItem('fitness_bodyweight_v1',
+    JSON.stringify(Object.entries(byDate).map(([date, kg]) => ({ date, kg }))));
 }
 
 // ---------- Login ----------
@@ -1933,6 +2171,7 @@ async function boot(loggedIn) {
   await flushOutbox();
   const ok = await pullProgram();
   await pullHistory();
+  await pullBodyWeight();
   if (ok) window.appRerender?.();
   rt?.unsubscribe?.();
   rt = sb.channel('program')
