@@ -1810,7 +1810,7 @@
         ${g.targets.map((t) => `
           <div class="goal-row">
             <div class="gname">${t.metric}<small>${t.notes || ''}</small></div>
-            <div class="gval">${t.target}${t.progress != null ? `<small style="display:block;text-align:right;color:var(--accent)">${Math.round(t.progress)}%</small>` : ''}</div>
+            <div class="gval">${t.target}</div>
           </div>`).join('')}
       </div>`;
   }
