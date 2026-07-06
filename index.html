@@ -696,6 +696,11 @@
         .op-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent-dim, var(--accent)), var(--accent)); transition: width .4s ease; }
         .op-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
         .op-mini { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+        /* Selector de cambiar ejercicio */
+        .swap-dots { padding: 8px 6px 8px 10px; color: var(--muted); font-size: 19px; line-height: 1; flex-shrink: 0; }
+        .swap-item.swap-new { border-style: dashed; }
+        .swap-item.swap-new .swap-icon { color: var(--accent); }
       </style>
 
     </section>
@@ -2216,32 +2221,98 @@
       renderSwap();
     }));
 
-    // List
+    // List — tus ejercicios (el catálogo ya solo contiene los que usas),
+    // con nº de sesiones, menú ⋯ para renombrar y opción de crear uno nuevo
+    const hist = loadHistory();
     const list = swapFilter === 'group'
       ? window.EXERCISES.filter(e => e.group === currentEx.group)
       : window.EXERCISES;
-    document.getElementById('swapList').innerHTML = list.map(e => `
+    document.getElementById('swapList').innerHTML = `
+      <button class="swap-item swap-new" data-new="1">
+        <div class="swap-icon">➕</div>
+        <div class="swap-info">
+          <b>Crear ejercicio nuevo</b>
+          <span>Escribe tú el nombre y apunta ahí tus series</span>
+        </div>
+      </button>` + list.map(e => {
+        const n = (hist[e.id] || []).length;
+        return `
       <button class="swap-item ${e.id === slot.exerciseId ? 'current' : ''}" data-id="${e.id}">
         <div class="swap-icon">${eqIcon(e.equipment)}</div>
         <div class="swap-info">
           <b>${e.name}</b>
-          <span>${groupLabel(e.group)} · ${e.equipment}</span>
+          <span>${groupLabel(e.group)}${n ? ` · ${n} ${n === 1 ? 'sesión' : 'sesiones'}` : ' · aún sin hacer'}</span>
         </div>
-        ${e.id === slot.exerciseId ? '<span class="muted" style="font-size:11px">actual</span>' : '<span class="muted">›</span>'}
-      </button>`).join('');
+        ${e.id === slot.exerciseId ? '<span class="muted" style="font-size:11px">actual</span>' : ''}
+        <span class="swap-dots" data-dots="${e.id}" title="Opciones">⋯</span>
+      </button>`;
+      }).join('');
 
-    document.querySelectorAll('#swapList .swap-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const newId = btn.dataset.id;
-        if (newId === slot.exerciseId) return;
+    const doSwapTo = (newId) => {
+      if (newId !== slot.exerciseId) {
         slot.exerciseId = newId;
         slot.swapped = (newId !== slot.originalId);
-        // Re-render only this card
         const cards = trackerBody.querySelectorAll('.exercise-card');
         cards[swapSlotIdx].outerHTML = renderCard(swapSlotIdx);
-        closeSwap();
+      }
+      closeSwap();
+    };
+
+    document.querySelectorAll('#swapList .swap-dots').forEach(dot => {
+      dot.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const id = dot.dataset.dots;
+        const ex = getExercise(id);
+        const nuevo = prompt('Nuevo nombre para el ejercicio:', ex.name);
+        if (!nuevo || !nuevo.trim() || nuevo.trim() === ex.name) return;
+        renameExercise(id, nuevo.trim());
+        renderSwap();
       });
     });
+    document.querySelectorAll('#swapList .swap-item').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        if (ev.target.closest('.swap-dots')) return;
+        if (btn.dataset.new) {
+          const nombre = prompt('Nombre del ejercicio nuevo:');
+          if (!nombre || !nombre.trim()) return;
+          doSwapTo(createExercise(nombre.trim(), currentEx.group));
+          return;
+        }
+        doSwapTo(btn.dataset.id);
+      });
+    });
+  }
+
+  // ===== Renombrar / crear ejercicios (sincronizado a la nube) =====
+  function saveCatalogCache() {
+    try {
+      const pc = JSON.parse(localStorage.getItem('fitness_program_cache_v1') || 'null');
+      if (pc) { pc.exercises = window.EXERCISES; localStorage.setItem('fitness_program_cache_v1', JSON.stringify(pc)); }
+    } catch {}
+  }
+  function renameExercise(id, name) {
+    const ex = window.EXERCISES.find(e => e.id === id);
+    if (!ex) return;
+    ex.name = name;
+    window.refreshCatalog?.();
+    saveCatalogCache();
+    if (window.cloudRenameExercise) window.cloudRenameExercise(id, name);
+    else enqueue({ type: 'exrename', id, name });
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+  function createExercise(name, group) {
+    let base = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'ejercicio';
+    let id = base, n = 2;
+    while (window.EXERCISES.some(e => e.id === id)) id = `${base}-${n++}`;
+    const ex = { id, name, group: group || 'core', pattern: null, equipment: 'other' };
+    window.EXERCISES.push(ex);
+    window.refreshCatalog?.();
+    saveCatalogCache();
+    if (window.cloudAddExercise) window.cloudAddExercise(ex);
+    else enqueue({ type: 'exadd', ex });
+    if (navigator.vibrate) navigator.vibrate(20);
+    return id;
   }
 
   // ============ Export / Import ============
@@ -2402,6 +2473,23 @@ async function pushWeightNow(item) {
 window.cloudPushWeight = (date, kg, note) => {
   pushWeightNow({ date, kg, note }).catch(() => window.fitnessEnqueue({ type: 'weight', date, kg, note }));
 };
+async function renameExerciseNow(item) {
+  const { error } = await sb.from('exercises').update({ name: item.name }).eq('id', item.id);
+  if (error) throw error;
+}
+async function addExerciseNow(item) {
+  const { error } = await sb.from('exercises').upsert({
+    id: item.ex.id, name: item.ex.name, muscle_group: item.ex.group,
+    pattern: item.ex.pattern || null, equipment: item.ex.equipment || 'other',
+  });
+  if (error) throw error;
+}
+window.cloudRenameExercise = (id, name) => {
+  renameExerciseNow({ id, name }).catch(() => window.fitnessEnqueue({ type: 'exrename', id, name }));
+};
+window.cloudAddExercise = (ex) => {
+  addExerciseNow({ ex }).catch(() => window.fitnessEnqueue({ type: 'exadd', ex }));
+};
 
 async function flushOutbox() {
   const items = outbox();
@@ -2412,6 +2500,8 @@ async function flushOutbox() {
       if (it.type === 'workout') await pushWorkoutNow(it.workout, it.sets);
       else if (it.type === 'override') await pushOverrideNow(it);
       else if (it.type === 'weight') await pushWeightNow(it);
+      else if (it.type === 'exrename') await renameExerciseNow(it);
+      else if (it.type === 'exadd') await addExerciseNow(it);
     } catch { remaining.push(it); }
   }
   saveOutbox(remaining);
