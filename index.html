@@ -2145,10 +2145,34 @@
     const tr = btn.closest('tr');
     tr.classList.toggle('completed', btn.classList.contains('checked'));
     if (btn.classList.contains('checked')) {
+      autofillSet(tr);
       if (navigator.vibrate) navigator.vibrate(30);
       startRest(restSec);
     }
   };
+
+  // Al marcar ✓ una serie con casillas vacías, hereda los valores:
+  // 1º de la serie más cercana de HOY que esté rellena (hacia arriba),
+  // 2º de la misma serie del último día. El valor queda escrito en la
+  // casilla (editable), así lo que se guarda siempre es visible.
+  function autofillSet(tr) {
+    const card = tr.closest('.exercise-card');
+    if (!card) return;
+    const slot = session.exercises[parseInt(card.dataset.slot, 10)];
+    if (!slot) return;
+    const rows = [...tr.parentElement.children];
+    const idx = rows.indexOf(tr);
+    ['kg', 'reps'].forEach((field) => {
+      const input = tr.querySelector(`input[data-field="${field}"]`);
+      if (!input || String(input.value).trim() !== '') return;
+      for (let i = idx - 1; i >= 0; i--) {
+        const v = rows[i].querySelector(`input[data-field="${field}"]`)?.value;
+        if (String(v ?? '').trim() !== '') { input.value = v; return; }
+      }
+      const prev = getLastSet(slot.exerciseId, idx);
+      if (prev && prev[field] != null) input.value = prev[field];
+    });
+  }
   function startRest(sec) {
     restRemaining = sec;
     updateRestUI();
