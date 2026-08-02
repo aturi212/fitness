@@ -722,15 +722,116 @@
     <section class="screen" data-screen="nutrition">
       <div class="topbar">
         <div>
-          <div class="greet">Próximamente</div>
+          <div class="greet">Alimentación</div>
           <h1>Nutrición</h1>
         </div>
       </div>
-      <div class="placeholder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        <h2>Aún no disponible</h2>
-        <p>Aquí trackearemos calorías, macros, hidratación y consejos. Lo trabajamos en una fase posterior.</p>
+
+      <div class="seg" id="nutriTabs">
+        <button type="button" class="seg-btn active" data-ntab="daily">Diario</button>
+        <button type="button" class="seg-btn" data-ntab="weekly">Semanal</button>
       </div>
+
+      <div id="nutriDaily">
+        <div class="card">
+          <h3 style="margin:0 0 6px;font-size:15px">Macros de hoy</h3>
+          <div class="sub" id="nutriKcal"></div>
+          <div class="nutri-rings-wrap">
+            <svg id="nutriRings" viewBox="0 0 200 200"></svg>
+            <div class="nutri-legend" id="nutriLegend"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px;font-size:15px">Comidas de hoy</h3>
+          <div id="mealList"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px;font-size:15px">💡 Recomendación del día</h3>
+          <div class="nutri-advice" id="nutriAdvice">Registra lo que comes y te diré cómo vas.</div>
+        </div>
+      </div>
+
+      <div id="nutriWeekly" style="display:none">
+        <div class="card">
+          <h3 style="margin:0 0 4px;font-size:15px">Esta semana</h3>
+          <div class="sub" style="margin-bottom:12px">Cumplimiento de macros por día</div>
+          <div class="wm-grid" id="weekMacros"></div>
+          <div class="nutri-legend wm-legend" id="weekLegend"></div>
+        </div>
+      </div>
+
+      <button type="button" class="nutri-fab" id="nutriAdd" aria-label="Registrar comida">+</button>
+
+      <div class="hs-backdrop" id="nsBackdrop"></div>
+      <div class="hsheet nutri-sheet" id="nutriSheet">
+        <div class="ns-title">Registrar comida</div>
+        <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
+        <div class="ns-hint">🎤 Para dictarlo, toca el campo y usa el micrófono del teclado</div>
+        <div class="ns-actions">
+          <button type="button" class="ns-photo" id="nsPhoto">📷 Foto</button>
+          <button type="button" class="ns-send" id="nsSend">Analizar y añadir</button>
+        </div>
+        <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
+        <div class="ns-status" id="nsStatus"></div>
+      </div>
+
+      <style>
+        /* ---------- Nutrición ---------- */
+        .nutri-rings-wrap { display: flex; align-items: center; gap: 16px; margin-top: 10px; }
+        #nutriRings { width: 46%; max-width: 190px; flex-shrink: 0; }
+        .nutri-legend { display: flex; flex-direction: column; gap: 9px; min-width: 0; flex: 1; }
+        .nl-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+        .nl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+        .nl-item b { color: var(--text); font-weight: 700; }
+        .nl-item small { margin-left: auto; font-size: 11px; }
+
+        .meal-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
+        .meal-item:last-child { border-bottom: none; }
+        .meal-top { display: flex; align-items: baseline; gap: 8px; }
+        .meal-name { font-size: 13.5px; font-weight: 500; flex: 1; min-width: 0; }
+        .meal-kcal { font-size: 11px; color: var(--muted); white-space: nowrap; }
+        .meal-del { color: var(--muted); background: none; border: none; font-size: 16px; padding: 0 2px; line-height: 1; }
+        .meal-macros { display: flex; gap: 10px; margin-top: 4px; font-size: 11.5px; }
+        .nutri-empty { color: var(--muted); font-size: 13px; padding: 6px 0; line-height: 1.5; }
+        .nutri-advice { font-size: 13.5px; line-height: 1.55; color: var(--text); }
+        .nutri-advice.muted { color: var(--muted); }
+
+        .wm-grid { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 2px; }
+        .wm-day { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+        .wm-bars { display: flex; gap: 3px; align-items: flex-end; height: 64px; }
+        .wm-bar { width: 6px; border-radius: 3px; background: var(--bg-elev-2, #15181C); }
+        .wm-d { font-size: 10.5px; color: var(--muted); font-weight: 700; }
+        .wm-day.today .wm-d { color: var(--accent); }
+        .wm-day.future { opacity: .35; }
+        .wm-legend { flex-direction: row; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+        .wm-legend .nl-item small { margin-left: 4px; }
+
+        .nutri-fab {
+          position: fixed; right: 18px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+          width: 54px; height: 54px; border-radius: 50%; z-index: 45;
+          background: var(--accent); color: #04140C; border: none;
+          font-size: 28px; font-weight: 400; line-height: 1;
+          box-shadow: 0 6px 18px rgba(0,0,0,.45);
+        }
+        .nutri-fab:active { transform: scale(.94); }
+
+        .nutri-sheet .ns-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        .nutri-sheet textarea {
+          width: 100%; box-sizing: border-box; resize: none;
+          background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text);
+          border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit;
+        }
+        .nutri-sheet textarea:focus { outline: none; border-color: var(--accent); }
+        .ns-hint { font-size: 11.5px; color: var(--muted); margin: 8px 2px 12px; }
+        .ns-actions { display: flex; gap: 10px; }
+        .ns-photo { flex: 0 0 auto; padding: 12px 16px; border-radius: 12px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); font-size: 14px; }
+        .ns-send { flex: 1; padding: 12px; border-radius: 12px; background: var(--accent); color: #04140C; border: none; font-weight: 700; font-size: 14px; }
+        .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
+        .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
+        .ns-status.err { color: #ff7a8a; }
+      </style>
     </section>
 
   </div>
@@ -2655,6 +2756,247 @@ async function pullBodyWeight() {
     JSON.stringify(Object.entries(byDate).map(([date, v]) => ({ date, kg: v.kg, note: v.note }))));
 }
 
+// ---------- Nutrición (online-only: el análisis necesita la Edge Function) ----------
+const MEALS_KEY = 'fitness_meals_v1';
+const ADVICE_KEY = 'fitness_nutri_advice_v1';
+const NUTRI_DEFAULT_TARGETS = { protein_g: 160, carbs_g: 220, fat_g: 70, fiber_g: 30 };
+const NUTRI_MACROS = [
+  { k: 'protein_g', label: 'Proteína', short: 'P', color: '#35F58B' },
+  { k: 'carbs_g', label: 'Hidratos', short: 'H', color: '#4da3ff' },
+  { k: 'fat_g', label: 'Grasa', short: 'G', color: '#ffd166' },
+  { k: 'fiber_g', label: 'Fibra', short: 'F', color: '#c792ff' },
+];
+const nutriIso = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const nutriAddDays = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); return nutriIso(new Date(y, m - 1, d + n)); };
+const loadMeals = () => { try { return JSON.parse(localStorage.getItem(MEALS_KEY) || '[]'); } catch { return []; } };
+const saveMeals = (l) => localStorage.setItem(MEALS_KEY, JSON.stringify(l));
+const mealsOf = (dateIso) => loadMeals().filter((m) => m.date === dateIso);
+// Objetivos: del plan (goals.nutrition, ajustable por el Personal Trainer) o defaults
+const nutriTargets = () => ({ ...NUTRI_DEFAULT_TARGETS, ...((window.ROUTINES?.goals || {}).nutrition || {}) });
+const nutriTotals = (meals) => {
+  const t = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0 };
+  meals.forEach((m) => { Object.keys(t).forEach((k) => { t[k] += Number(m[k]) || 0; }); });
+  Object.keys(t).forEach((k) => { t[k] = Math.round(t[k] * 10) / 10; });
+  return t;
+};
+
+async function pullMeals() {
+  const since = nutriAddDays(nutriIso(), -30);
+  const { data, error } = await sb.from('meals').select('*').gte('date', since).order('created_at');
+  if (!error && data) saveMeals(data);
+}
+
+function renderNutriDaily() {
+  const meals = mealsOf(nutriIso());
+  const totals = nutriTotals(meals);
+  const targets = nutriTargets();
+  // Anillos concéntricos
+  const radii = [86, 70, 54, 38];
+  $('nutriRings').innerHTML = NUTRI_MACROS.map((m, i) => {
+    const r = radii[i], circ = 2 * Math.PI * r;
+    const pct = Math.min(1, (totals[m.k] || 0) / (targets[m.k] || 1));
+    return `<circle cx="100" cy="100" r="${r}" fill="none" stroke="#191d22" stroke-width="13"/>` +
+      (pct > 0 ? `<circle cx="100" cy="100" r="${r}" fill="none" stroke="${m.color}" stroke-width="13" stroke-linecap="round"
+        stroke-dasharray="${(pct * circ).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 100 100)"/>` : '');
+  }).join('');
+  $('nutriLegend').innerHTML = NUTRI_MACROS.map((m) => {
+    const v = totals[m.k] || 0, t = targets[m.k] || 0;
+    return `<div class="nl-item"><span class="nl-dot" style="background:${m.color}"></span>
+      ${m.label} <b>${Math.round(v)}</b>/${Math.round(t)} g <small>${t ? Math.round((v / t) * 100) : 0}%</small></div>`;
+  }).join('');
+  $('nutriKcal').textContent = meals.length
+    ? `${meals.length} ${meals.length === 1 ? 'comida' : 'comidas'} · ${Math.round(totals.kcal)} kcal`
+    : 'Nada registrado aún — dale al +';
+  // Lista de comidas
+  $('mealList').innerHTML = meals.length ? meals.map((m) => `
+    <div class="meal-item">
+      <div class="meal-top">
+        <span class="meal-name">${m.source === 'photo' ? '📷 ' : ''}${m.description}</span>
+        <span class="meal-kcal">${Math.round(m.kcal || 0)} kcal</span>
+        <button type="button" class="meal-del" data-del="${m.id}" aria-label="Borrar">×</button>
+      </div>
+      <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
+        `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}</div>
+    </div>`).join('')
+    : '<div class="nutri-empty">Registra lo que comes con el botón <b>+</b>: escríbelo, díctalo o hazle una foto.</div>';
+  refreshAdvice();
+}
+
+let adviceBusy = false;
+async function refreshAdvice() {
+  const el = $('nutriAdvice');
+  const today = nutriIso();
+  const meals = mealsOf(today);
+  if (!meals.length) { el.textContent = 'Registra lo que comes y te diré cómo vas.'; el.classList.add('muted'); return; }
+  const sig = today + '|' + meals.map((m) => m.id).join(',');
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(ADVICE_KEY) || 'null'); } catch { cached = null; }
+  if (cached?.sig === sig) { el.textContent = cached.text; el.classList.remove('muted'); return; }
+  if (adviceBusy || !navigator.onLine) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  adviceBusy = true;
+  el.textContent = 'Pensando…'; el.classList.add('muted');
+  try {
+    const { data, error } = await sb.functions.invoke('nutrition', {
+      body: { mode: 'advice', totals: nutriTotals(meals), targets: nutriTargets(), meals: meals.map((m) => m.description) },
+    });
+    if (error || data?.error) throw new Error(data?.error || error?.message);
+    const text = String(data.advice || '').replace(/\*\*/g, '').trim();
+    if (text) localStorage.setItem(ADVICE_KEY, JSON.stringify({ sig, text }));
+    el.textContent = text || 'Sin recomendación ahora mismo.';
+    el.classList.remove('muted');
+  } catch {
+    el.textContent = 'No pude generar la recomendación (¿sin conexión?). Se reintentará.';
+    el.classList.add('muted');
+  } finally { adviceBusy = false; }
+}
+
+function renderNutriWeekly() {
+  const targets = nutriTargets();
+  const today = nutriIso();
+  const d = new Date();
+  const monday = nutriAddDays(today, d.getDay() === 0 ? -6 : 1 - d.getDay());
+  const LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  $('weekMacros').innerHTML = LETTERS.map((lt, i) => {
+    const dateIso = nutriAddDays(monday, i);
+    const totals = nutriTotals(mealsOf(dateIso));
+    const bars = NUTRI_MACROS.map((m) => {
+      const pct = Math.min(1, (totals[m.k] || 0) / (targets[m.k] || 1));
+      const h = Math.max(pct > 0 ? 6 : 3, Math.round(pct * 64));
+      return `<div class="wm-bar" style="height:${h}px;${pct > 0 ? `background:${m.color}` : ''}"></div>`;
+    }).join('');
+    const cls = 'wm-day' + (dateIso === today ? ' today' : '') + (dateIso > today ? ' future' : '');
+    return `<div class="${cls}"><div class="wm-bars">${bars}</div><span class="wm-d">${lt}</span></div>`;
+  }).join('');
+  $('weekLegend').innerHTML = NUTRI_MACROS.map((m) =>
+    `<div class="nl-item"><span class="nl-dot" style="background:${m.color}"></span>${m.label}</div>`).join('');
+}
+
+function renderNutrition() { renderNutriDaily(); renderNutriWeekly(); }
+
+// --- Alta de comidas: texto / dictado (teclado iOS) / foto ---
+function nsStatus(msg, isErr) {
+  const el = $('nsStatus');
+  el.textContent = msg || '';
+  el.classList.toggle('err', !!isErr);
+}
+function nsBusy(busy) { $('nsSend').disabled = busy; $('nsPhoto').disabled = busy; }
+function openNutriSheet() {
+  $('nsBackdrop').style.display = 'block';
+  $('nutriSheet').classList.add('open');
+  nsStatus('');
+  setTimeout(() => $('nsText').focus(), 250);
+}
+function closeNutriSheet() {
+  $('nsBackdrop').style.display = 'none';
+  $('nutriSheet').classList.remove('open');
+  $('nsText').blur();
+}
+
+function fileToBase64Jpeg(file, maxSide = 1100) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * scale));
+      c.height = Math.max(1, Math.round(img.height * scale));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const url = c.toDataURL('image/jpeg', 0.82);
+      URL.revokeObjectURL(img.src);
+      resolve(url.slice(url.indexOf(',') + 1));
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('No pude leer la imagen')); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function analyzeAndAdd({ text, imageB64 }) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { closeNutriSheet(); showLogin(); throw new Error('Necesitas iniciar sesión'); }
+  const body = { mode: 'analyze' };
+  if (imageB64) { body.image = { data: imageB64, media_type: 'image/jpeg' }; if (text) body.text = text; }
+  else body.text = text;
+  const { data, error } = await sb.functions.invoke('nutrition', { body });
+  if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
+  const items = data?.items || [];
+  if (!items.length) throw new Error('No he reconocido comida ahí. Prueba a describirlo de otra forma.');
+  const rows = items.map((it) => ({
+    date: nutriIso(),
+    description: it.description,
+    protein_g: it.protein_g, carbs_g: it.carbs_g, fat_g: it.fat_g, fiber_g: it.fiber_g, kcal: it.kcal,
+    source: imageB64 ? 'photo' : 'text',
+  }));
+  const { data: inserted, error: e2 } = await sb.from('meals').insert(rows).select();
+  if (e2) throw e2;
+  saveMeals(loadMeals().concat(inserted || []));
+  return items.length;
+}
+
+async function nsSubmit(imageB64) {
+  const text = $('nsText').value.trim();
+  if (!imageB64 && !text) { nsStatus('Escribe (o dicta) lo que has comido, o haz una foto.', true); return; }
+  nsBusy(true);
+  nsStatus(imageB64 ? 'Analizando la foto…' : 'Analizando…');
+  try {
+    const n = await analyzeAndAdd({ text, imageB64 });
+    if (navigator.vibrate) navigator.vibrate(30);
+    $('nsText').value = '';
+    nsStatus('');
+    closeNutriSheet();
+    renderNutrition();
+    void n;
+  } catch (err) {
+    nsStatus(String(err?.message || err), true);
+  } finally { nsBusy(false); }
+}
+
+$('nutriAdd').addEventListener('click', openNutriSheet);
+$('nsBackdrop').addEventListener('click', closeNutriSheet);
+$('nsSend').addEventListener('click', () => nsSubmit(null));
+$('nsPhoto').addEventListener('click', () => $('nsFile').click());
+$('nsFile').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  nsBusy(true);
+  nsStatus('Preparando la foto…');
+  try {
+    const b64 = await fileToBase64Jpeg(file);
+    await nsSubmit(b64);
+  } catch (err) {
+    nsStatus(String(err?.message || err), true);
+    nsBusy(false);
+  }
+});
+$('mealList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-del]');
+  if (!btn) return;
+  const id = btn.dataset.del;
+  const meal = loadMeals().find((m) => String(m.id) === id);
+  if (!meal || !confirm(`¿Borrar "${meal.description}"?`)) return;
+  const { error } = await sb.from('meals').delete().eq('id', id);
+  if (error) { alert('No se pudo borrar: ' + error.message); return; }
+  saveMeals(loadMeals().filter((m) => String(m.id) !== id));
+  renderNutrition();
+});
+document.querySelectorAll('#nutriTabs .seg-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#nutriTabs .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+    const weekly = btn.dataset.ntab === 'weekly';
+    $('nutriDaily').style.display = weekly ? 'none' : '';
+    $('nutriWeekly').style.display = weekly ? '' : 'none';
+  });
+});
+// Al entrar en la pestaña, re-render (cubre el cambio de día con la app abierta)
+document.querySelector('[data-go="nutrition"]')?.addEventListener('click', renderNutrition);
+// Enganche al re-render global de la app
+const _rerenderPreNutri = window.appRerender;
+window.appRerender = () => { _rerenderPreNutri?.(); renderNutrition(); };
+renderNutrition();
+
 // ---------- Login ----------
 const showLogin = () => { $('loginOverlay').style.display = 'flex'; };
 const hideLogin = () => { $('loginOverlay').style.display = 'none'; };
@@ -2784,6 +3126,8 @@ async function boot(loggedIn) {
   const ok = await pullProgram();
   await pullHistory();
   await pullBodyWeight();
+  await pullMeals();
+  renderNutrition();
   if (ok) window.appRerender?.();
   rt?.unsubscribe?.();
   rt = sb.channel('program')
