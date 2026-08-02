@@ -598,13 +598,15 @@
     <section class="screen" data-screen="stats">
       <div class="topbar">
         <div>
-          <div class="greet">Perfil</div>
-          <h1>Adrián</h1>
-          <div class="profile-meta" id="profileMeta"></div>
+          <div class="greet">Tu progreso</div>
+          <h1>Estadísticas</h1>
         </div>
-        <div class="avatar profile-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
+      </div>
+
+      <div class="card check-card">
+        <h3>Check semanal</h3>
+        <div class="sub">¿Cumples tu objetivo? Últimas 4 semanas</div>
+        <div class="check-grid" id="weeklyCheck"></div>
       </div>
 
       <div class="card">
@@ -630,34 +632,21 @@
         </div>
       </div>
 
-      <div class="card check-card">
-        <h3>Check semanal</h3>
-        <div class="sub">¿Cumples tu objetivo? Últimas 4 semanas</div>
-        <div class="check-grid" id="weeklyCheck"></div>
-      </div>
-
       <div class="card chart-card">
         <div class="prog-head">
           <h3>Progresión por ejercicio</h3>
           <span class="pr-pill" id="progPr" style="display:none"></span>
         </div>
-        <div class="sub" id="progSub">Mejor serie de cada sesión</div>
         <div class="ex-slider" id="exSlider"></div>
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readout" id="progReadout"></div>
+        <div class="sub" id="progSub"></div>
       </div>
 
       <style>
         /* ---------- Stats v2 ---------- */
         .chart-card .line-chart { color: var(--accent); width: 100%; }
         .chart-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
-
-        /* Cabecera de perfil */
-        .profile-meta { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
-        .pm-item { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
-        .pm-item b { color: var(--text); font-weight: 700; }
-        .profile-avatar { color: #04140C; }
-        .profile-avatar svg { width: 21px; height: 21px; }
 
         /* Toggle Mes/Año del calendario */
         .cal-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -679,6 +668,7 @@
         .prog-readout { text-align: center; margin-top: 10px; min-height: 40px; }
         .prog-readout b { display: block; font-size: 17px; color: var(--accent); }
         .prog-readout span { font-size: 11.5px; color: var(--muted); }
+        #progSub { text-align: center; margin-top: 8px; }
         .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 8px; }
         .cal-title { font-size: 14px; font-weight: 600; text-transform: capitalize; }
         .cal-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); font-size: 17px; }
@@ -760,8 +750,8 @@
       <span class="home-lbl">Home</span>
     </button>
     <button data-go="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Perfil
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+      Stats
     </button>
     <button data-go="nutrition">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -1626,24 +1616,23 @@
 
   // Render Stats (check semanal + objetivos)
   function renderStats() {
-    // Check semanal — últimas 4 semanas
+    // Check semanal — últimas 4 semanas. Cuenta SESIONES registradas contra los
+    // días planificados (≠rest) de la semana efectiva (base + overrides).
     const grid = document.getElementById('weeklyCheck');
-    const target = getWeeklyTarget();
     const all = getAllWorkouts();
     const html = [];
-    const now2 = new Date();
-    const dow2 = now2.getDay();
-    const monOffset = (dow2 === 0 ? -6 : 1 - dow2);
+    const curMonday = wsMondayOf(localIso());
     for (let i = 3; i >= 0; i--) {
-      const start = new Date(now2);
-      start.setDate(now2.getDate() + monOffset - i * 7);
-      start.setHours(0,0,0,0);
-      const startIso = start.toISOString().slice(0,10);
-      const end = new Date(start); end.setDate(start.getDate() + 6);
-      const endIso = end.toISOString().slice(0,10);
-      const wks = all.filter(w => w.date >= startIso && w.date <= endIso);
-      const obl = new Set(wks.filter(w => isObligatoryRoutine(w.routineId)).map(w => w.routineId));
-      const done = obl.size;
+      const startIso = wsAddDays(curMonday, -i * 7);
+      const endIso = wsAddDays(startIso, 6);
+      const sched = getEffectiveSchedule(startIso);
+      let target = 0;
+      for (let d = 0; d < 7; d++) {
+        const [y, m, dd] = wsAddDays(startIso, d).split('-').map(Number);
+        const rid = sched[new Date(y, m - 1, dd).getDay()];
+        if (rid && rid !== 'rest') target++;
+      }
+      const done = all.filter(w => w.date && w.date >= startIso && w.date <= endIso).length;
       let cls = 'empty';
       if (target > 0 && done >= target) cls = 'met';
       else if (done > 0) cls = 'partial';
@@ -1660,22 +1649,9 @@
     }
     grid.innerHTML = html.join('');
 
-    renderProfileMeta();
     renderYearGrid();
     renderCalendar();
     renderProgression();
-  }
-
-  // Cabecera de Perfil: racha + último peso registrado
-  function renderProfileMeta() {
-    const el = document.getElementById('profileMeta');
-    if (!el) return;
-    const streak = computeStreak();
-    const ws = loadWeights().slice().sort((a, b) => a.date.localeCompare(b.date));
-    const lastW = ws.length ? ws[ws.length - 1] : null;
-    el.innerHTML =
-      `<span class="pm-item">🔥 <b>${streak}</b> ${streak === 1 ? 'día' : 'días'} de racha</span>` +
-      `<span class="pm-item">⚖️ <b>${lastW ? String(lastW.kg).replace('.', ',') : '—'}</b> kg</span>`;
   }
 
   // ============ Stats v2: progresión, calendario, peso, PRs ============
@@ -1686,17 +1662,26 @@
   const localIso = (d = new Date()) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Mejor serie (más kg; a igualdad, más reps) de cada sesión de un ejercicio
+  // Ejercicios ASISTIDOS: el kg registrado es la asistencia — menos kg = mejor.
+  // La mejor serie y el PR se invierten (mínimo en vez de máximo).
+  const INVERTED_EX = new Set(['chin-up', 'dips-tricep']);
+  const isInvertedEx = (id) => INVERTED_EX.has(id);
+
+  // Mejor serie de cada sesión de un ejercicio (más kg; en asistidos, menos kg;
+  // a igualdad, más reps)
   function topSetSeries(exId) {
+    const inv = isInvertedEx(exId);
     const recs = loadHistory()[exId] || [];
     return recs.map((r) => {
-      const best = (r.sets || []).reduce((a, b) => {
-        if ((b.kg || 0) > (a.kg || 0)) return b;
-        if ((b.kg || 0) === (a.kg || 0) && (b.reps || 0) > (a.reps || 0)) return b;
+      const sets = (r.sets || []).filter((s) => (s.kg || 0) > 0);
+      if (!sets.length) return null;
+      const best = sets.reduce((a, b) => {
+        if (inv ? (b.kg < a.kg) : (b.kg > a.kg)) return b;
+        if (b.kg === a.kg && (b.reps || 0) > (a.reps || 0)) return b;
         return a;
-      }, { kg: 0, reps: 0 });
-      return { date: (r.date || '').slice(0, 10), kg: best.kg || 0, reps: best.reps || 0 };
-    }).filter((p) => p.kg > 0).sort((a, b) => a.date.localeCompare(b.date));
+      });
+      return { date: (r.date || '').slice(0, 10), kg: best.kg, reps: best.reps || 0 };
+    }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
   }
 
   function drawLine(svg, values, gid) {
@@ -1750,11 +1735,12 @@
     centerActiveChip();
     const s = topSetSeries(progExId);
     progSeries = s;
+    const inv = isInvertedEx(progExId);
     const first = s[0], last = s[s.length - 1];
     const diff = +(last.kg - first.kg).toFixed(1);
-    sub.textContent = `${s.length} sesiones · ${diff >= 0 ? '+' : ''}${fmtKg(diff)} kg desde ${fmtD(first.date)} · toca la gráfica para recorrerla`;
+    sub.textContent = `${s.length} sesiones · ${diff >= 0 ? '+' : ''}${fmtKg(diff)} kg desde ${fmtD(first.date)}${inv ? ' · asistencia: menos kg = mejor' : ''}`;
     drawLine(chart, s.map((p) => p.kg), 'gProg');
-    const best = s.reduce((a, b) => (b.kg > a.kg ? b : a));
+    const best = s.reduce((a, b) => ((inv ? b.kg < a.kg : b.kg > a.kg) ? b : a));
     pr.textContent = `PR ${fmtKg(best.kg)} kg × ${best.reps}`;
     pr.style.display = '';
     setProgPoint(s.length - 1);
