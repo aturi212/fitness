@@ -598,8 +598,35 @@
     <section class="screen" data-screen="stats">
       <div class="topbar">
         <div>
-          <div class="greet">Tu progreso</div>
-          <h1>Estadísticas</h1>
+          <div class="greet">Perfil</div>
+          <h1>Adrián</h1>
+          <div class="profile-meta" id="profileMeta"></div>
+        </div>
+        <div class="avatar profile-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cal-card-head">
+          <h3 style="margin:0;font-size:15px">Calendario de entrenos</h3>
+          <div class="seg seg-mini" id="calSeg">
+            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
+            <button type="button" class="seg-btn" data-calview="year">Año</button>
+          </div>
+        </div>
+        <div id="calMonthView">
+          <div class="cal-head">
+            <button type="button" class="cal-btn" id="calPrev">‹</button>
+            <div class="cal-title" id="calTitle"></div>
+            <button type="button" class="cal-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div id="calYearView" style="display:none">
+          <div class="yg-title">2026</div>
+          <div id="yearGrid"></div>
         </div>
       </div>
 
@@ -609,47 +636,49 @@
         <div class="check-grid" id="weeklyCheck"></div>
       </div>
 
-      <div class="card">
-        <h3 style="margin:0 0 12px;font-size:15px">2026</h3>
-        <div id="yearGrid"></div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin:0 0 4px;font-size:15px">Calendario de entrenos</h3>
-        <div class="cal-head">
-          <button type="button" class="cal-btn" id="calPrev">‹</button>
-          <div class="cal-title" id="calTitle"></div>
-          <button type="button" class="cal-btn" id="calNext">›</button>
+      <div class="card chart-card">
+        <div class="prog-head">
+          <h3>Progresión por ejercicio</h3>
+          <span class="pr-pill" id="progPr" style="display:none"></span>
         </div>
-        <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
-
-      <div class="card chart-card">
-        <h3>Progresión por grupo muscular</h3>
-        <div class="sub" style="margin-bottom:10px">Evolución de la carga (% desde el inicio)</div>
-        <svg class="line-chart" id="groupChart" viewBox="0 0 300 130" preserveAspectRatio="none"></svg>
-        <div id="groupLegend" class="gp-legend"></div>
-      </div>
-
-      <div class="card chart-card">
-        <h3>Progresión por ejercicio</h3>
-        <div class="sub" id="progSub">Mejor serie de cada sesión · ejercicios con más de 4 sesiones</div>
-        <select id="progSelect" class="prog-select"></select>
+        <div class="sub" id="progSub">Mejor serie de cada sesión</div>
+        <div class="ex-slider" id="exSlider"></div>
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="chart-range" id="progRange"></div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin:0 0 12px;font-size:15px">Récords personales (PR)</h3>
-        <div id="prList"></div>
+        <div class="prog-readout" id="progReadout"></div>
       </div>
 
       <style>
         /* ---------- Stats v2 ---------- */
         .chart-card .line-chart { color: var(--accent); width: 100%; }
-        .prog-select { width: 100%; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0 12px; -webkit-appearance: none; appearance: none; }
         .chart-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+        /* Cabecera de perfil */
+        .profile-meta { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+        .pm-item { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+        .pm-item b { color: var(--text); font-weight: 700; }
+        .profile-avatar { color: #04140C; }
+        .profile-avatar svg { width: 21px; height: 21px; }
+
+        /* Toggle Mes/Año del calendario */
+        .cal-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .seg-mini { margin-bottom: 0; padding: 4px; gap: 4px; }
+        .seg-mini .seg-btn { flex: 0 0 auto; padding: 6px 14px; font-size: 12.5px; }
+        .yg-title { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted); text-align: center; margin: 14px 0 14px; }
+        #calMonthView .cal-head { margin-top: 12px; }
+        #calYearView { padding-bottom: 6px; }
+
+        /* Progresión por ejercicio: slider + lectura central */
+        .prog-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .pr-pill { font-size: 11.5px; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+        .ex-slider { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 12px -18px; padding: 2px 0 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .ex-slider::-webkit-scrollbar { display: none; }
+        .ex-slider::before, .ex-slider::after { content: ''; flex: 0 0 calc(50% - 70px); }
+        .ex-chip { flex: 0 0 auto; scroll-snap-align: center; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 15px; font-size: 13px; white-space: nowrap; transition: color .15s, border-color .15s; }
+        .ex-chip.active { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+        #progChart { touch-action: none; }
+        .prog-readout { text-align: center; margin-top: 10px; min-height: 40px; }
+        .prog-readout b { display: block; font-size: 17px; color: var(--accent); }
+        .prog-readout span { font-size: 11.5px; color: var(--muted); }
         .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 8px; }
         .cal-title { font-size: 14px; font-weight: 600; text-transform: capitalize; }
         .cal-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); font-size: 17px; }
@@ -680,12 +709,6 @@
         /* Calendario: número rodeado en verde al entrenar */
         .cal-num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid transparent; }
         .cal-day.trained .cal-num { border-color: var(--accent); color: var(--accent); font-weight: 700; }
-
-        /* Progresión por grupo muscular (líneas superpuestas por color) */
-        .gp-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .gp-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; }
-        .gp-chip b { color: var(--text); }
-        .gp-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
         /* Barra de progreso de objetivos */
         .op-card { margin-bottom: 14px; }
@@ -737,8 +760,8 @@
       <span class="home-lbl">Home</span>
     </button>
     <button data-go="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
-      Stats
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Perfil
     </button>
     <button data-go="nutrition">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -1637,11 +1660,22 @@
     }
     grid.innerHTML = html.join('');
 
+    renderProfileMeta();
     renderYearGrid();
     renderCalendar();
-    renderGroupProgress();
     renderProgression();
-    renderPRs();
+  }
+
+  // Cabecera de Perfil: racha + último peso registrado
+  function renderProfileMeta() {
+    const el = document.getElementById('profileMeta');
+    if (!el) return;
+    const streak = computeStreak();
+    const ws = loadWeights().slice().sort((a, b) => a.date.localeCompare(b.date));
+    const lastW = ws.length ? ws[ws.length - 1] : null;
+    el.innerHTML =
+      `<span class="pm-item">🔥 <b>${streak}</b> ${streak === 1 ? 'día' : 'días'} de racha</span>` +
+      `<span class="pm-item">⚖️ <b>${lastW ? String(lastW.kg).replace('.', ',') : '—'}</b> kg</span>`;
   }
 
   // ============ Stats v2: progresión, calendario, peso, PRs ============
@@ -1685,38 +1719,115 @@
       ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="currentColor"/>`).join('')}`;
   }
 
-  let progExId = null;
+  let progExId = null, progIdsKey = '', progSeries = [];
+  const fmtKg = (n) => String(n).replace('.', ',');
   function renderProgression() {
-    const sel = document.getElementById('progSelect');
+    const slider = document.getElementById('exSlider');
     const chart = document.getElementById('progChart');
-    const range = document.getElementById('progRange');
     const sub = document.getElementById('progSub');
+    const pr = document.getElementById('progPr');
     const ids = Object.keys(loadHistory())
       .filter((id) => topSetSeries(id).length > 4)
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
-      sel.innerHTML = '<option>Sin ejercicios suficientes aún</option>';
-      chart.innerHTML = ''; range.textContent = '';
+      slider.innerHTML = ''; chart.innerHTML = '';
+      document.getElementById('progReadout').innerHTML = '';
+      pr.style.display = 'none'; progIdsKey = ''; progSeries = [];
       sub.textContent = 'Aquí aparecerán los ejercicios con más de 4 sesiones registradas';
       return;
     }
     if (!progExId || !ids.includes(progExId)) {
       progExId = ids.includes('bench-press-barbell') ? 'bench-press-barbell' : ids[0];
     }
-    sel.innerHTML = ids.map((id) =>
-      `<option value="${id}" ${id === progExId ? 'selected' : ''}>${getExercise(id).name}</option>`).join('');
-    const s = topSetSeries(progExId);
-    if (s.length === 1) {
-      chart.innerHTML = ''; range.textContent = '';
-      sub.textContent = `1 sesión: ${s[0].kg} kg × ${s[0].reps} (${fmtD(s[0].date)}). Con 2+ sesiones verás la gráfica.`;
-      return;
+    // El slider solo se reconstruye si cambia la lista (para no romper el scroll del usuario)
+    const key = ids.join('|');
+    if (key !== progIdsKey) {
+      progIdsKey = key;
+      slider.innerHTML = ids.map((id) =>
+        `<button type="button" class="ex-chip" data-ex="${id}">${getExercise(id).name}</button>`).join('');
     }
-    drawLine(chart, s.map((p) => p.kg), 'gProg');
+    slider.querySelectorAll('.ex-chip').forEach((c) => c.classList.toggle('active', c.dataset.ex === progExId));
+    centerActiveChip();
+    const s = topSetSeries(progExId);
+    progSeries = s;
     const first = s[0], last = s[s.length - 1];
     const diff = +(last.kg - first.kg).toFixed(1);
-    sub.textContent = `${s.length} sesiones · ${diff >= 0 ? '+' : ''}${diff} kg desde ${fmtD(first.date)}`;
-    range.innerHTML = `<span>${fmtD(first.date)} · ${first.kg} kg</span><span>${fmtD(last.date)} · ${last.kg} kg × ${last.reps}</span>`;
+    sub.textContent = `${s.length} sesiones · ${diff >= 0 ? '+' : ''}${fmtKg(diff)} kg desde ${fmtD(first.date)} · toca la gráfica para recorrerla`;
+    drawLine(chart, s.map((p) => p.kg), 'gProg');
+    const best = s.reduce((a, b) => (b.kg > a.kg ? b : a));
+    pr.textContent = `PR ${fmtKg(best.kg)} kg × ${best.reps}`;
+    pr.style.display = '';
+    setProgPoint(s.length - 1);
   }
+
+  // Punto activo de la gráfica: lectura central fecha + peso
+  function setProgPoint(idx) {
+    if (!progSeries.length) return;
+    idx = Math.max(0, Math.min(progSeries.length - 1, idx));
+    const p = progSeries[idx];
+    document.getElementById('progReadout').innerHTML =
+      `<b>${fmtKg(p.kg)} kg × ${p.reps}</b><span>${fmtD(p.date)}</span>`;
+    document.getElementById('progChart').querySelectorAll('circle').forEach((c, i) => {
+      c.setAttribute('r', i === idx ? '4.5' : '3');
+      c.setAttribute('opacity', i === idx ? '1' : '.5');
+    });
+  }
+
+  // Deslizador lateral de ejercicios
+  const exSliderEl = document.getElementById('exSlider');
+  let exSliderTimer = null, exSliderCentering = false, exSliderUser = false;
+  // Solo los scrolls iniciados por el usuario cambian de ejercicio (los ajustes
+  // del scroll-snap al mostrar la pantalla también disparan eventos scroll)
+  exSliderEl.addEventListener('pointerdown', () => { exSliderUser = true; });
+  exSliderEl.addEventListener('touchstart', () => { exSliderUser = true; }, { passive: true });
+  exSliderEl.addEventListener('wheel', () => { exSliderUser = true; }, { passive: true });
+  function nearestChip() {
+    const r = exSliderEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    let best = null, bd = Infinity;
+    exSliderEl.querySelectorAll('.ex-chip').forEach((c) => {
+      const cr = c.getBoundingClientRect();
+      const d = Math.abs(cr.left + cr.width / 2 - cx);
+      if (d < bd) { bd = d; best = c; }
+    });
+    return best;
+  }
+  function centerActiveChip() {
+    const chip = exSliderEl.querySelector('.ex-chip.active');
+    if (!chip || nearestChip() === chip) return;
+    exSliderCentering = true;
+    exSliderEl.scrollTo({ left: chip.offsetLeft + chip.offsetWidth / 2 - exSliderEl.clientWidth / 2 });
+    setTimeout(() => { exSliderCentering = false; }, 80);
+  }
+  exSliderEl.addEventListener('scroll', () => {
+    if (exSliderCentering || !exSliderUser) return;
+    const chip = nearestChip();
+    if (!chip) return;
+    exSliderEl.querySelectorAll('.ex-chip').forEach((c) => c.classList.toggle('active', c === chip));
+    clearTimeout(exSliderTimer);
+    exSliderTimer = setTimeout(() => {
+      exSliderUser = false;
+      if (chip.dataset.ex !== progExId) { progExId = chip.dataset.ex; renderProgression(); }
+    }, 130);
+  }, { passive: true });
+  exSliderEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.ex-chip');
+    if (!chip || chip.dataset.ex === progExId) return;
+    progExId = chip.dataset.ex;
+    renderProgression();
+  });
+
+  // Scrub con el dedo sobre la gráfica
+  const progChartEl = document.getElementById('progChart');
+  function progScrub(e) {
+    if (progSeries.length < 2) return;
+    if (e.pointerType === 'mouse' && e.type === 'pointermove' && !e.buttons) return;
+    const r = progChartEl.getBoundingClientRect();
+    if (!r.width) return;
+    setProgPoint(Math.round(((e.clientX - r.left) / r.width) * (progSeries.length - 1)));
+  }
+  progChartEl.addEventListener('pointerdown', progScrub);
+  progChartEl.addEventListener('pointermove', progScrub);
 
   const calMonth = new Date(); calMonth.setDate(1);
   function renderCalendar() {
@@ -1763,33 +1874,6 @@
     chart.style.display = '';
     drawLine(chart, list.map((p) => p.kg), 'gWeight');
     range.innerHTML = `<span>${fmtD(first.date)} · ${first.kg} kg</span><span>${fmtD(last.date)} · ${last.kg} kg</span>`;
-  }
-
-  function renderPRs() {
-    const wrap = document.getElementById('prList');
-    const hist = loadHistory();
-    const defs = [
-      { id: 'bench-press-barbell', label: 'Press banca' },
-      { id: 'back-squat', label: 'Sentadilla' },
-      { id: 'romanian-deadlift', label: 'Peso muerto rumano' },
-      { id: 'barbell-row', label: 'Remo con barra' },
-      { id: 'pull-up', label: 'Dominadas', reps: true },
-    ];
-    wrap.innerHTML = defs.map((d) => {
-      let val = '—';
-      if (d.reps) {
-        const best = (hist[d.id] || []).flatMap((r) => r.sets || [])
-          .reduce((a, b) => Math.max(a, b.reps || 0), 0);
-        if (best > 0) val = `${best} reps`;
-      } else {
-        const s = topSetSeries(d.id);
-        if (s.length) {
-          const best = s.reduce((a, b) => (b.kg > a.kg ? b : a));
-          val = `${best.kg} kg × ${best.reps}`;
-        }
-      }
-      return `<div class="pr-item"><span class="ex">${d.label}</span><span><span class="val">${val}</span></span></div>`;
-    }).join('');
   }
 
   // ===== Objetivos (Trainer) con toggle corto/largo plazo =====
@@ -1856,62 +1940,16 @@
     }).join('') + '</div>';
   }
 
-  // ===== Progresión por grupo muscular: líneas superpuestas por color =====
-  function renderGroupProgress() {
-    const svg = document.getElementById('groupChart');
-    const leg = document.getElementById('groupLegend');
-    if (!svg) return;
-    const PAL = ['#35F58B', '#4da3ff', '#ff9d5c', '#c792ff', '#ffd166', '#ff7a8a', '#6ee7e0', '#f78fb3', '#9ccc65', '#90a4ae'];
-    // % de mejora por sesión respecto a la primera de cada ejercicio, media por grupo y fecha
-    const byGroup = {};
-    Object.keys(loadHistory()).forEach((id) => {
-      const s = topSetSeries(id);
-      if (s.length < 2 || !s[0].kg) return;
-      const g = getExercise(id).group || 'other';
-      (byGroup[g] = byGroup[g] || []).push(
-        s.map((p) => ({ date: p.date, pct: ((p.kg - s[0].kg) / s[0].kg) * 100 }))
-      );
+  // ===== Toggle Mes/Año del calendario =====
+  document.querySelectorAll('#calSeg .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#calSeg .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      const year = btn.dataset.calview === 'year';
+      document.getElementById('calMonthView').style.display = year ? 'none' : '';
+      document.getElementById('calYearView').style.display = year ? '' : 'none';
     });
-    const groups = Object.entries(byGroup).map(([g, exs]) => {
-      const byDate = {};
-      exs.flat().forEach((p) => { (byDate[p.date] = byDate[p.date] || []).push(p.pct); });
-      const pts = Object.entries(byDate)
-        .map(([d, arr]) => ({ d, v: arr.reduce((a, b) => a + b, 0) / arr.length }))
-        .sort((a, b) => a.d.localeCompare(b.d));
-      return { g, pts };
-    }).filter((x) => x.pts.length >= 2);
-    if (!groups.length) {
-      svg.style.display = 'none';
-      leg.innerHTML = '<div class="muted" style="font-size:12.5px;line-height:1.5">Con 2+ sesiones de un mismo ejercicio verás aquí la evolución de su grupo muscular.</div>';
-      return;
-    }
-    svg.style.display = '';
-    const dates = [...new Set(groups.flatMap((x) => x.pts.map((p) => p.d)))].sort();
-    const all = groups.flatMap((x) => x.pts.map((p) => p.v));
-    const min = Math.min(...all, 0), max = Math.max(...all, 1);
-    const W = 300, H = 130, T = 8, B = 10, span = (max - min) || 1;
-    const X = (d) => (dates.length > 1 ? (dates.indexOf(d) / (dates.length - 1)) * W : W / 2);
-    const Y = (v) => T + (1 - (v - min) / span) * (H - T - B);
-    svg.innerHTML =
-      `<line x1="0" y1="${Y(0).toFixed(1)}" x2="${W}" y2="${Y(0).toFixed(1)}" stroke="rgba(255,255,255,.13)" stroke-dasharray="3 4"/>` +
-      groups.map((grp, i) => {
-        const c = PAL[i % PAL.length];
-        const pts = grp.pts.map((p) => `${X(p.d).toFixed(1)} ${Y(p.v).toFixed(1)}`);
-        const line = 'M ' + pts.join(' L ');
-        return `<path d="${line} L ${X(grp.pts[grp.pts.length - 1].d).toFixed(1)} ${H} L ${X(grp.pts[0].d).toFixed(1)} ${H} Z" fill="${c}" opacity=".09"/>` +
-          `<path d="${line}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>` +
-          grp.pts.map((p) => `<circle cx="${X(p.d).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.6" fill="${c}"/>`).join('');
-      }).join('');
-    leg.innerHTML = groups.map((grp, i) => {
-      const last = grp.pts[grp.pts.length - 1].v;
-      return `<span class="gp-chip"><span class="gp-dot" style="background:${PAL[i % PAL.length]}"></span>${(window.GROUP_LABELS || {})[grp.g] || grp.g} <b>${last >= 0 ? '+' : ''}${last.toFixed(0)}%</b></span>`;
-    }).join('');
-  }
-
-  document.getElementById('progSelect').addEventListener('change', (e) => {
-    progExId = e.target.value;
-    renderProgression();
   });
+
   document.getElementById('calPrev').addEventListener('click', () => {
     calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar();
   });
@@ -1953,6 +1991,9 @@
     screens.forEach(s => s.classList.toggle('active', s.dataset.screen === target));
     navBtns.forEach(b => b.classList.toggle('active', b === btn));
     window.scrollTo(0, 0);
+    // El slider de ejercicios se construye con la pantalla oculta (anchos 0):
+    // re-centrar el chip activo cuando Perfil se hace visible
+    if (target === 'stats') requestAnimationFrame(() => centerActiveChip());
   }));
 
   // ============ Tracker ============
