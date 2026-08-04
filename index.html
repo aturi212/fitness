@@ -520,21 +520,15 @@
       </div>
 
       <div class="seg" id="trainerTabs">
-        <button class="seg-btn active" data-tab="prog">Programa</button>
-        <button class="seg-btn" data-tab="entrenos">Entrenos</button>
+        <button class="seg-btn active" data-tab="entrenos">Entrenos</button>
         <button class="seg-btn" data-tab="obj">Objetivos</button>
       </div>
 
-      <div class="tab-panel active" data-panel="prog">
-        <div class="plan-banner" id="planBanner"></div>
-        <div class="section-title">Plan macro</div>
-        <div id="planBlocks"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="entrenos">
+      <div class="tab-panel active" data-panel="entrenos">
         <div class="section-title">Tus entrenos</div>
         <div id="routineList"></div>
-        <div class="muted" style="font-size:12px;padding:10px 2px;line-height:1.5">Los entrenos nuevos que crees desde el Chat (o con Claude) aparecen aquí automáticamente, y podrás asignarlos a cualquier día desde la semana de Home.</div>
+        <button type="button" class="hs-opt" id="aiRoutineBtn" style="justify-content:center;margin-top:10px">✨&nbsp; Crear entreno con IA</button>
+        <div class="muted" style="font-size:12px;padding:10px 2px;line-height:1.5">Toca un entreno para verlo o empezarlo. Los que crees con la IA aparecen aquí y podrás asignarlos a cualquier día desde la semana de Home.</div>
       </div>
 
       <div class="tab-panel" data-panel="obj">
@@ -567,8 +561,23 @@
           <h1>Chat</h1>
         </div>
       </div>
-      <div class="chat-log" id="chatLog"></div>
-      <div class="chat-sugs" id="chatSugs"></div>
+
+      <div class="seg" id="chatTabs">
+        <button type="button" class="seg-btn active" data-ctab="chat">Entrenador</button>
+        <button type="button" class="seg-btn" data-ctab="prog">Programa</button>
+      </div>
+
+      <div id="chatPane">
+        <div class="chat-box" id="chatBox">
+          <div class="chat-log" id="chatLog"></div>
+        </div>
+      </div>
+
+      <div id="progPane" style="display:none">
+        <div class="section-title">Plan macro</div>
+        <div id="planBlocks"></div>
+      </div>
+
       <form class="chat-input" id="chatForm">
         <input id="chatText" type="text" placeholder="Pregunta o pide un cambio…" autocomplete="off" enterkeyhint="send">
         <button type="submit" id="chatSend" aria-label="Enviar">➤</button>
@@ -577,7 +586,13 @@
 
     <style>
       /* ---------- Chat entrenador ---------- */
-      .chat-log { display: flex; flex-direction: column; gap: 10px; padding: 2px 0 84px; }
+      .chat-box {
+        background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-lg);
+        padding: 14px; overflow-y: auto; box-shadow: var(--shadow);
+        height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 262px);
+        min-height: 180px;
+      }
+      .chat-log { display: flex; flex-direction: column; gap: 10px; }
       .chat-msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: break-word; }
       .chat-msg.user { align-self: flex-end; background: var(--accent); color: #081108; border-bottom-right-radius: 5px; }
       .chat-msg.bot { align-self: flex-start; background: var(--bg-elev, #14161a); border: 1px solid var(--line, #23262c); border-bottom-left-radius: 5px; }
@@ -590,9 +605,6 @@
       .chat-input input:focus { outline: none; border-color: var(--accent); }
       .chat-input button { width: 50px; border-radius: 14px; background: var(--accent); color: #081108; border: none; font-size: 17px; flex-shrink: 0; }
       .chat-input button:disabled { opacity: .5; }
-      .chat-sugs { position: fixed; left: 14px; right: 14px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 72px); display: flex; flex-direction: column; align-items: flex-end; gap: 7px; z-index: 39; pointer-events: none; }
-      .chat-sug { pointer-events: auto; display: inline-flex; align-items: center; gap: 7px; max-width: 88%; text-align: left; background: color-mix(in srgb, var(--bg-elev, #14161a) 70%, transparent); border: 1px solid color-mix(in srgb, var(--line, #2a2d33) 65%, transparent); border-radius: 999px; padding: 9px 14px; font-size: 13px; color: var(--text, #fff); opacity: .6; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-      .chat-sug:active { opacity: 1; border-color: var(--accent); }
     </style>
 
     <section class="screen" data-screen="stats">
@@ -748,16 +760,23 @@
         </div>
 
         <div class="card">
-          <h3 style="margin:0 0 8px;font-size:15px">💡 Recomendación del día</h3>
-          <div class="nutri-advice" id="nutriAdvice">Registra lo que comes y te diré cómo vas.</div>
+          <h3 style="margin:0 0 8px;font-size:15px">💬 Nutricionista</h3>
+          <div class="nchat-log" id="nchatLog"></div>
+          <form class="nchat-input" id="nchatForm">
+            <input id="nchatText" type="text" placeholder="Pregúntame cómo rematar el día…" autocomplete="off" enterkeyhint="send">
+            <button type="submit" id="nchatSend" aria-label="Enviar">➤</button>
+          </form>
         </div>
       </div>
 
       <div id="nutriWeekly" style="display:none">
         <div class="card">
-          <h3 style="margin:0 0 4px;font-size:15px">Esta semana</h3>
-          <div class="sub" style="margin-bottom:12px">Cumplimiento de macros por día</div>
-          <div class="wm-grid" id="weekMacros"></div>
+          <div class="cal-head" style="margin-top:0">
+            <button type="button" class="cal-btn" id="nwPrev">‹</button>
+            <div class="cal-title" id="nwTitle"></div>
+            <button type="button" class="cal-btn" id="nwNext">›</button>
+          </div>
+          <div id="weekMacros"></div>
           <div class="nutri-legend wm-legend" id="weekLegend"></div>
         </div>
       </div>
@@ -765,8 +784,10 @@
       <button type="button" class="nutri-fab" id="nutriAdd" aria-label="Registrar comida">+</button>
 
       <div class="hs-backdrop" id="nsBackdrop"></div>
+
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
+        <div class="ns-types" id="nsTypes"></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
         <div class="ns-hint">🎤 Para dictarlo, toca el campo y usa el micrófono del teclado</div>
         <div class="ns-actions">
@@ -775,6 +796,30 @@
         </div>
         <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
         <div class="ns-status" id="nsStatus"></div>
+      </div>
+
+      <div class="hsheet nutri-sheet" id="maSheet">
+        <div class="ns-title" id="maTitle"></div>
+        <div class="ma-btns">
+          <button type="button" id="maEdit">✏️ Editar</button>
+          <button type="button" id="maRecur">🔁 Hacer periódico</button>
+          <button type="button" id="maDelete" class="ma-danger">🗑 Eliminar</button>
+        </div>
+      </div>
+
+      <div class="hsheet nutri-sheet" id="editSheet">
+        <div class="ns-title">Editar alimento</div>
+        <div class="ns-types" id="editTypes"></div>
+        <input type="text" id="edDesc" class="ed-desc" placeholder="Descripción">
+        <div class="ed-grid">
+          <label>Proteína<input type="number" inputmode="decimal" step="0.1" id="edP"></label>
+          <label>Hidratos<input type="number" inputmode="decimal" step="0.1" id="edC"></label>
+          <label>Grasa<input type="number" inputmode="decimal" step="0.1" id="edF"></label>
+          <label>Fibra<input type="number" inputmode="decimal" step="0.1" id="edFi"></label>
+          <label>Kcal<input type="number" inputmode="numeric" id="edK"></label>
+        </div>
+        <button type="button" class="ns-send" id="edSave" style="width:100%">Guardar</button>
+        <div class="ns-status" id="edStatus"></div>
       </div>
 
       <style>
@@ -787,26 +832,64 @@
         .nl-item b { color: var(--text); font-weight: 700; }
         .nl-item small { margin-left: auto; font-size: 11px; }
 
-        .meal-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
-        .meal-item:last-child { border-bottom: none; }
+        /* Bloques desayuno/comida/cena/otros */
+        .mt-block { margin-bottom: 4px; }
+        .mt-block:last-child { margin-bottom: 0; }
+        .mt-head { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+        .mt-head small { font-size: 11px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+        .meal-item { padding: 9px 0; border-bottom: 1px solid var(--line); }
+        .mt-block .meal-item:last-child { border-bottom: none; }
+        .meal-item:active { opacity: .65; }
         .meal-top { display: flex; align-items: baseline; gap: 8px; }
         .meal-name { font-size: 13.5px; font-weight: 500; flex: 1; min-width: 0; }
         .meal-kcal { font-size: 11px; color: var(--muted); white-space: nowrap; }
-        .meal-del { color: var(--muted); background: none; border: none; font-size: 16px; padding: 0 2px; line-height: 1; }
         .meal-macros { display: flex; gap: 10px; margin-top: 4px; font-size: 11.5px; }
-        .nutri-empty { color: var(--muted); font-size: 13px; padding: 6px 0; line-height: 1.5; }
-        .nutri-advice { font-size: 13.5px; line-height: 1.55; color: var(--text); }
-        .nutri-advice.muted { color: var(--muted); }
+        .nutri-empty { color: var(--muted); font-size: 12.5px; padding: 4px 0 6px; line-height: 1.5; }
 
-        .wm-grid { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 2px; }
-        .wm-day { display: flex; flex-direction: column; align-items: center; gap: 7px; }
-        .wm-bars { display: flex; gap: 3px; align-items: flex-end; height: 64px; }
-        .wm-bar { width: 6px; border-radius: 3px; background: var(--bg-elev-2, #15181C); }
-        .wm-d { font-size: 10.5px; color: var(--muted); font-weight: 700; }
-        .wm-day.today .wm-d { color: var(--accent); }
-        .wm-day.future { opacity: .35; }
+        /* Chat nutricionista */
+        .nchat-log { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+        .nchat-msg { max-width: 88%; padding: 8px 12px; border-radius: 13px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: break-word; }
+        .nchat-msg.user { align-self: flex-end; background: var(--accent); color: #081108; border-bottom-right-radius: 4px; }
+        .nchat-msg.bot { align-self: flex-start; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+        .nchat-msg.typing { color: var(--muted); font-style: italic; }
+        .nchat-empty { color: var(--muted); font-size: 12.5px; line-height: 1.5; padding: 2px 0 4px; }
+        .nchat-input { display: flex; gap: 8px; }
+        .nchat-input input { flex: 1; min-width: 0; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 10px 13px; font-size: 16px; }
+        .nchat-input input:focus { outline: none; border-color: var(--accent); }
+        .nchat-input button { width: 42px; border-radius: 12px; background: var(--accent); color: #081108; border: none; font-size: 15px; flex-shrink: 0; }
+        .nchat-input button:disabled { opacity: .5; }
+
+        /* Semanal vertical */
+        .nw-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+        .nw-row:last-child { border-bottom: none; }
+        .nw-day { width: 84px; flex-shrink: 0; font-size: 13px; font-weight: 600; }
+        .nw-day small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+        .nw-row.today .nw-day { color: var(--accent); }
+        .nw-row.future { opacity: .4; }
+        .nw-bar { flex: 1; display: flex; gap: 3px; height: 14px; }
+        .nw-seg { flex: 1; background: var(--bg-elev-2, #15181C); border-radius: 4px; overflow: hidden; }
+        .nw-fill { height: 100%; border-radius: 4px; }
         .wm-legend { flex-direction: row; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-        .wm-legend .nl-item small { margin-left: 4px; }
+
+        /* Selector de bloque en sheets */
+        .ns-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
+        .ns-type { padding: 9px 2px; border-radius: 11px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); font-size: 11.5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .ns-type span { font-size: 17px; }
+        .ns-type.active { border-color: var(--accent); color: var(--accent); }
+
+        /* Menú de acciones de un alimento */
+        .ma-btns { display: flex; flex-direction: column; gap: 8px; }
+        .ma-btns button { padding: 13px; border-radius: 12px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); font-size: 14px; text-align: left; }
+        .ma-btns button:active { border-color: var(--accent); }
+        .ma-btns .ma-danger { color: #ff7a8a; }
+
+        /* Editor de alimento */
+        .ed-desc { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font-size: 15px; margin-bottom: 10px; }
+        .ed-desc:focus { outline: none; border-color: var(--accent); }
+        .ed-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-bottom: 12px; }
+        .ed-grid label { font-size: 10px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+        .ed-grid input { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 9px; padding: 8px 6px; font-size: 14px; text-align: center; }
+        .ed-grid input:focus { outline: none; border-color: var(--accent); }
 
         .nutri-fab {
           position: fixed; right: 18px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
@@ -850,13 +933,13 @@
       <span class="home-bump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg></span>
       <span class="home-lbl">Home</span>
     </button>
-    <button data-go="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
-      Stats
-    </button>
     <button data-go="nutrition">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
       Nutri
+    </button>
+    <button data-go="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+      Stats
     </button>
   </nav>
 
@@ -908,6 +991,8 @@
     .hs-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .hs-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
     .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
+    .ai-rt-text { width: 100%; box-sizing: border-box; resize: none; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit; margin-bottom: 10px; }
+    .ai-rt-text:focus { outline: none; border-color: var(--accent); }
     .hs-opt.danger { color: #ff7a7a; }
     .hs-ex { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
 
@@ -1449,6 +1534,48 @@
     return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Trainer o pídeselas al Chat.</div>';
   }
 
+  // Ver/empezar un entreno desde la lista de Trainer→Entrenos
+  function openRoutineView(rid) {
+    const r = window.ROUTINES.routines[rid];
+    if (!r) return;
+    hsCtx = { rid, dow: null, date: null };
+    openHs(r.name,
+      (r.exercises || []).map((ex) =>
+        `<div class="hs-ex"><span>${getExercise(ex.exerciseId).name}</span><span style="color:var(--muted)">${ex.sets}×${ex.repsTarget}</span></div>`).join('') +
+      `<button type="button" class="hs-opt" data-act="start" style="margin-top:12px;justify-content:center;background:var(--accent);color:#081108;font-weight:700">▶&nbsp; Hacer entrenamiento</button>`);
+  }
+  document.getElementById('routineList').addEventListener('click', (e) => {
+    const item = e.target.closest('[data-rid]');
+    if (item) openRoutineView(item.dataset.rid);
+  });
+
+  // Crear entreno con IA (usa la Edge Function del chat, que tiene las herramientas)
+  document.getElementById('aiRoutineBtn').addEventListener('click', () => {
+    hsCtx = { rid: null };
+    openHs('Crear entreno con IA', `
+      <div class="hs-sub">Cuéntame qué quieres entrenar hoy (objetivo, material, tiempo…) y te monto el entreno.</div>
+      <textarea id="aiRtText" class="ai-rt-text" rows="3" placeholder="Ej: algo corto de empuje, solo mancuernas, 40 minutos"></textarea>
+      <button type="button" class="hs-opt" id="aiRtSend" style="justify-content:center;background:var(--accent);color:#081108;font-weight:700">✨&nbsp; Crear entreno</button>
+      <div id="aiRtStatus" class="muted" style="font-size:12.5px;line-height:1.5;white-space:pre-wrap"></div>`);
+    const btn = document.getElementById('aiRtSend');
+    btn.addEventListener('click', async () => {
+      const text = document.getElementById('aiRtText').value.trim();
+      const status = document.getElementById('aiRtStatus');
+      if (!text) { status.textContent = 'Cuéntame primero qué quieres hacer.'; return; }
+      if (!window.cloudCreateRoutine) { status.textContent = 'Necesitas conexión para crear entrenos con IA.'; return; }
+      btn.disabled = true;
+      status.textContent = 'Creando el entreno… (puede tardar medio minuto)';
+      try {
+        const res = await window.cloudCreateRoutine(text);
+        status.textContent = ((res.actions || []).join('\n') + '\n\n' + (res.reply || '')).trim();
+        if (navigator.vibrate) navigator.vibrate(30);
+      } catch (err) {
+        status.textContent = '⚠️ ' + (err?.message || err);
+        btn.disabled = false;
+      }
+    });
+  });
+
   function openWorkoutSheet(cell) {
     hsCtx = { dow: +cell.dataset.dow, date: cell.dataset.date, rid: cell.dataset.rid };
     const r = window.ROUTINES.routines[hsCtx.rid];
@@ -1520,10 +1647,6 @@
 
   // ============ Render Trainer screen ============
   function renderTrainer() {
-    const plan = window.ROUTINES.currentPlan;
-    document.getElementById('planBanner').innerHTML =
-      `<b>${plan.name}</b> · ${plan.status === 'draft' ? 'Borrador' : 'Activo'}<br>${plan.notes || ''}`;
-
     // Objetivos (pestaña Objetivos) + peso corporal
     renderGoals();
     renderWeight();
@@ -1533,7 +1656,7 @@
     list.innerHTML = Object.entries(window.ROUTINES.routines)
       .filter(([id, r]) => id !== 'rest' && r.exercises && r.exercises.length)
       .map(([id, r]) => `
-        <div class="routine-item">
+        <div class="routine-item" data-rid="${id}">
           <div>
             <b>${r.name}</b>
             <div class="muted" style="font-size:12px;margin-top:2px">
@@ -2170,6 +2293,17 @@
   });
 
   // Trainer: pestañas y navegación entre semanas
+  // Pestañas del Chat: Entrenador / Programa
+  document.querySelectorAll('#chatTabs .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#chatTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      const prog = btn.dataset.ctab === 'prog';
+      document.getElementById('chatPane').style.display = prog ? 'none' : '';
+      document.getElementById('progPane').style.display = prog ? '' : 'none';
+      document.getElementById('chatForm').style.display = prog ? 'none' : 'flex';
+    });
+  });
+
   document.querySelectorAll('#trainerTabs .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#trainerTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
@@ -2758,7 +2892,7 @@ async function pullBodyWeight() {
 
 // ---------- Nutrición (online-only: el análisis necesita la Edge Function) ----------
 const MEALS_KEY = 'fitness_meals_v1';
-const ADVICE_KEY = 'fitness_nutri_advice_v1';
+localStorage.removeItem('fitness_nutri_advice_v1'); // resto de la versión con "Recomendación del día"
 const NUTRI_DEFAULT_TARGETS = { protein_g: 160, carbs_g: 220, fat_g: 70, fiber_g: 30 };
 const NUTRI_MACROS = [
   { k: 'protein_g', label: 'Proteína', short: 'P', color: '#35F58B' },
@@ -2766,12 +2900,31 @@ const NUTRI_MACROS = [
   { k: 'fat_g', label: 'Grasa', short: 'G', color: '#ffd166' },
   { k: 'fiber_g', label: 'Fibra', short: 'F', color: '#c792ff' },
 ];
+const RECUR_KEY = 'fitness_recurring_v1';
+const MEAL_TYPES = [
+  { k: 'breakfast', label: 'Desayuno', icon: '🥐' },
+  { k: 'lunch', label: 'Comida', icon: '🍽️' },
+  { k: 'dinner', label: 'Cena', icon: '🌙' },
+  { k: 'other', label: 'Otros', icon: '🍎' },
+];
 const nutriIso = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const nutriAddDays = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); return nutriIso(new Date(y, m - 1, d + n)); };
+const nutriMonday = (iso) => { const [y, m, d] = iso.split('-').map(Number); const dt = new Date(y, m - 1, d); return nutriAddDays(iso, dt.getDay() === 0 ? -6 : 1 - dt.getDay()); };
 const loadMeals = () => { try { return JSON.parse(localStorage.getItem(MEALS_KEY) || '[]'); } catch { return []; } };
 const saveMeals = (l) => localStorage.setItem(MEALS_KEY, JSON.stringify(l));
 const mealsOf = (dateIso) => loadMeals().filter((m) => m.date === dateIso);
+const loadRecurring = () => { try { return JSON.parse(localStorage.getItem(RECUR_KEY) || '[]'); } catch { return []; } };
+const saveRecurring = (l) => localStorage.setItem(RECUR_KEY, JSON.stringify(l));
+// Bloque por defecto según la hora
+function defaultMealType() {
+  const h = new Date().getHours() + new Date().getMinutes() / 60;
+  if (h < 5) return 'dinner';
+  if (h < 11.5) return 'breakfast';
+  if (h < 16.5) return 'lunch';
+  if (h < 18.5) return 'other';
+  return 'dinner';
+}
 // Objetivos: del plan (goals.nutrition, ajustable por el Personal Trainer) o defaults
 const nutriTargets = () => ({ ...NUTRI_DEFAULT_TARGETS, ...((window.ROUTINES?.goals || {}).nutrition || {}) });
 const nutriTotals = (meals) => {
@@ -2783,8 +2936,40 @@ const nutriTotals = (meals) => {
 
 async function pullMeals() {
   const since = nutriAddDays(nutriIso(), -30);
-  const { data, error } = await sb.from('meals').select('*').gte('date', since).order('created_at');
+  const [{ data, error }, { data: recs, error: e2 }] = await Promise.all([
+    sb.from('meals').select('*').gte('date', since).order('created_at'),
+    sb.from('recurring_meals').select('*'),
+  ]);
   if (!error && data) saveMeals(data);
+  if (!e2 && recs) saveRecurring(recs);
+}
+
+// Materializa las comidas periódicas activas en `meals` (una fila por día,
+// horizonte 14 días hacia atrás; el índice único recurring_id+date evita duplicados
+// aunque materialicen dos dispositivos a la vez)
+async function materializeRecurring() {
+  const recs = loadRecurring();
+  if (!recs.length) return;
+  const today = nutriIso();
+  const horizon = nutriAddDays(today, -14);
+  const have = new Set(loadMeals().filter((m) => m.recurring_id).map((m) => m.recurring_id + '|' + m.date));
+  const rows = [];
+  recs.forEach((r) => {
+    const end = (r.end_date && r.end_date < today) ? r.end_date : today;
+    for (let d = (r.start_date > horizon ? r.start_date : horizon); d <= end; d = nutriAddDays(d, 1)) {
+      if (!have.has(r.id + '|' + d)) {
+        rows.push({
+          date: d, description: r.description, meal_type: r.meal_type || 'other',
+          protein_g: r.protein_g, carbs_g: r.carbs_g, fat_g: r.fat_g, fiber_g: r.fiber_g,
+          kcal: r.kcal, source: 'recurring', recurring_id: r.id,
+        });
+      }
+    }
+  });
+  if (!rows.length) return;
+  const { data, error } = await sb.from('meals')
+    .upsert(rows, { onConflict: 'recurring_id,date', ignoreDuplicates: true }).select();
+  if (!error && data?.length) saveMeals(loadMeals().concat(data));
 }
 
 function renderNutriDaily() {
@@ -2808,73 +2993,159 @@ function renderNutriDaily() {
   $('nutriKcal').textContent = meals.length
     ? `${meals.length} ${meals.length === 1 ? 'comida' : 'comidas'} · ${Math.round(totals.kcal)} kcal`
     : 'Nada registrado aún — dale al +';
-  // Lista de comidas
-  $('mealList').innerHTML = meals.length ? meals.map((m) => `
-    <div class="meal-item">
+  // Lista en 4 bloques: desayuno / comida / cena / otros
+  const mealRow = (m) => `
+    <div class="meal-item" data-meal="${m.id}">
       <div class="meal-top">
-        <span class="meal-name">${m.source === 'photo' ? '📷 ' : ''}${m.description}</span>
+        <span class="meal-name">${m.source === 'photo' ? '📷 ' : ''}${m.recurring_id ? '🔁 ' : ''}${m.description}</span>
         <span class="meal-kcal">${Math.round(m.kcal || 0)} kcal</span>
-        <button type="button" class="meal-del" data-del="${m.id}" aria-label="Borrar">×</button>
       </div>
       <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
         `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}</div>
-    </div>`).join('')
-    : '<div class="nutri-empty">Registra lo que comes con el botón <b>+</b>: escríbelo, díctalo o hazle una foto.</div>';
-  refreshAdvice();
+    </div>`;
+  $('mealList').innerHTML = MEAL_TYPES.map((t) => {
+    const items = meals.filter((m) => (m.meal_type || 'other') === t.k);
+    const kcal = Math.round(items.reduce((a, m) => a + (Number(m.kcal) || 0), 0));
+    return `<div class="mt-block">
+      <div class="mt-head"><span>${t.icon} ${t.label}</span><small>${items.length ? kcal + ' kcal' : ''}</small></div>
+      ${items.length ? items.map(mealRow).join('') : '<div class="nutri-empty">—</div>'}
+    </div>`;
+  }).join('');
 }
 
-let adviceBusy = false;
-async function refreshAdvice() {
-  const el = $('nutriAdvice');
+// ===== Chat nutricionista (efímero: sesión + se vacía tras 30 min sin uso) =====
+let nchatHistory = [];
+let nchatLastTs = 0;
+const NCHAT_TTL_MS = 30 * 60 * 1000;
+function nchatBubble(cls, text) {
+  const d = document.createElement('div');
+  d.className = 'nchat-msg ' + cls;
+  d.textContent = text;
+  $('nchatLog').appendChild(d);
+  $('nchatLog').scrollTop = $('nchatLog').scrollHeight;
+  return d;
+}
+function renderNChat() {
+  const log = $('nchatLog');
+  log.innerHTML = '';
+  if (!nchatHistory.length) {
+    log.innerHTML = '<div class="nchat-empty">Pregúntame lo que quieras: cómo vas hoy, qué cenar para cerrar el día, dudas de nutrición…</div>';
+    return;
+  }
+  nchatHistory.forEach((m) => nchatBubble(m.role === 'user' ? 'user' : 'bot', m.content));
+}
+function nchatContext() {
   const today = nutriIso();
   const meals = mealsOf(today);
-  if (!meals.length) { el.textContent = 'Registra lo que comes y te diré cómo vas.'; el.classList.add('muted'); return; }
-  const sig = today + '|' + meals.map((m) => m.id).join(',');
-  let cached = null;
-  try { cached = JSON.parse(localStorage.getItem(ADVICE_KEY) || 'null'); } catch { cached = null; }
-  if (cached?.sig === sig) { el.textContent = cached.text; el.classList.remove('muted'); return; }
-  if (adviceBusy || !navigator.onLine) return;
+  const week = [];
+  const monday = nutriMonday(today);
+  for (let i = 0; i < 7; i++) {
+    const dIso = nutriAddDays(monday, i);
+    if (dIso > today) break;
+    week.push({ fecha: dIso, ...nutriTotals(mealsOf(dIso)) });
+  }
+  return {
+    hoy: {
+      totales: nutriTotals(meals),
+      comidas: meals.map((m) => `${(MEAL_TYPES.find((t) => t.k === (m.meal_type || 'other')) || {}).label}: ${m.description}`),
+    },
+    objetivos_diarios: nutriTargets(),
+    esta_semana: week,
+  };
+}
+async function sendNChat(text) {
+  if (!text || $('nchatSend').disabled) return;
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) return;
-  adviceBusy = true;
-  el.textContent = 'Pensando…'; el.classList.add('muted');
+  if (!session) { showLogin(); return; }
+  nchatLastTs = Date.now();
+  nchatHistory.push({ role: 'user', content: text });
+  if (nchatHistory.length > 24) nchatHistory = nchatHistory.slice(-24);
+  renderNChat();
+  const typing = nchatBubble('bot typing', 'Pensando…');
+  $('nchatSend').disabled = true;
   try {
     const { data, error } = await sb.functions.invoke('nutrition', {
-      body: { mode: 'advice', totals: nutriTotals(meals), targets: nutriTargets(), meals: meals.map((m) => m.description) },
+      body: { mode: 'chat', messages: nchatHistory.map((m) => ({ role: m.role, content: m.content })), context: nchatContext() },
     });
-    if (error || data?.error) throw new Error(data?.error || error?.message);
-    const text = String(data.advice || '').replace(/\*\*/g, '').trim();
-    if (text) localStorage.setItem(ADVICE_KEY, JSON.stringify({ sig, text }));
-    el.textContent = text || 'Sin recomendación ahora mismo.';
-    el.classList.remove('muted');
-  } catch {
-    el.textContent = 'No pude generar la recomendación (¿sin conexión?). Se reintentará.';
-    el.classList.add('muted');
-  } finally { adviceBusy = false; }
+    typing.remove();
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
+    nchatHistory.push({ role: 'assistant', content: data.reply || '(sin respuesta)' });
+    renderNChat();
+  } catch (err) {
+    typing.remove();
+    nchatBubble('bot', '⚠️ ' + (err?.message || err));
+  } finally { $('nchatSend').disabled = false; }
 }
+$('nchatForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = $('nchatText').value.trim();
+  if (!text) return;
+  $('nchatText').value = '';
+  sendNChat(text);
+});
+renderNChat();
 
+// ===== Semanal: navegación por semanas + barras horizontales por día =====
+let nutriWeekStart = nutriMonday(nutriIso());
+async function ensureWeekData(weekStart) {
+  const since = nutriAddDays(nutriIso(), -30);
+  if (weekStart >= since || !navigator.onLine) return;
+  const { data } = await sb.from('meals').select('*')
+    .gte('date', weekStart).lte('date', nutriAddDays(weekStart, 6));
+  if (data?.length) {
+    const known = new Set(loadMeals().map((m) => String(m.id)));
+    const fresh = data.filter((m) => !known.has(String(m.id)));
+    if (fresh.length) saveMeals(loadMeals().concat(fresh));
+  }
+}
 function renderNutriWeekly() {
   const targets = nutriTargets();
   const today = nutriIso();
-  const d = new Date();
-  const monday = nutriAddDays(today, d.getDay() === 0 ? -6 : 1 - d.getDay());
-  const LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-  $('weekMacros').innerHTML = LETTERS.map((lt, i) => {
-    const dateIso = nutriAddDays(monday, i);
+  const curMonday = nutriMonday(today);
+  const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const MESES_N = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const fmt = (iso) => { const p = iso.split('-').map(Number); return `${p[2]} ${MESES_N[p[1]]}`; };
+  $('nwTitle').textContent = nutriWeekStart === curMonday
+    ? 'Esta semana' : `${fmt(nutriWeekStart)} — ${fmt(nutriAddDays(nutriWeekStart, 6))}`;
+  $('nwNext').disabled = nutriWeekStart >= curMonday;
+  $('nwNext').style.opacity = nutriWeekStart >= curMonday ? .35 : 1;
+  $('weekMacros').innerHTML = DAYS.map((name, i) => {
+    const dateIso = nutriAddDays(nutriWeekStart, i);
     const totals = nutriTotals(mealsOf(dateIso));
-    const bars = NUTRI_MACROS.map((m) => {
-      const pct = Math.min(1, (totals[m.k] || 0) / (targets[m.k] || 1));
-      const h = Math.max(pct > 0 ? 6 : 3, Math.round(pct * 64));
-      return `<div class="wm-bar" style="height:${h}px;${pct > 0 ? `background:${m.color}` : ''}"></div>`;
+    const segs = NUTRI_MACROS.map((m) => {
+      const pct = (totals[m.k] || 0) / (targets[m.k] || 1);
+      const met = pct >= 1;
+      const width = Math.min(100, Math.round(pct * 100));
+      // cumplido = color vivo; incompleto = mismo color más oscuro hasta su %
+      const color = met ? m.color : `color-mix(in srgb, ${m.color} 45%, #0B0E11)`;
+      return `<div class="nw-seg"><div class="nw-fill" style="width:${width}%;background:${color}"></div></div>`;
     }).join('');
-    const cls = 'wm-day' + (dateIso === today ? ' today' : '') + (dateIso > today ? ' future' : '');
-    return `<div class="${cls}"><div class="wm-bars">${bars}</div><span class="wm-d">${lt}</span></div>`;
+    const cls = 'nw-row' + (dateIso === today ? ' today' : '') + (dateIso > today ? ' future' : '');
+    return `<div class="${cls}"><div class="nw-day">${name}<small>${fmt(dateIso)}</small></div><div class="nw-bar">${segs}</div></div>`;
   }).join('');
   $('weekLegend').innerHTML = NUTRI_MACROS.map((m) =>
     `<div class="nl-item"><span class="nl-dot" style="background:${m.color}"></span>${m.label}</div>`).join('');
 }
+$('nwPrev').addEventListener('click', async () => {
+  nutriWeekStart = nutriAddDays(nutriWeekStart, -7);
+  await ensureWeekData(nutriWeekStart);
+  renderNutriWeekly();
+});
+$('nwNext').addEventListener('click', () => {
+  const curMonday = nutriMonday(nutriIso());
+  if (nutriWeekStart >= curMonday) return;
+  nutriWeekStart = nutriAddDays(nutriWeekStart, 7);
+  renderNutriWeekly();
+});
 
-function renderNutrition() { renderNutriDaily(); renderNutriWeekly(); }
+function renderNutrition() {
+  if (nchatHistory.length && Date.now() - nchatLastTs > NCHAT_TTL_MS) {
+    nchatHistory = [];
+    renderNChat();
+  }
+  renderNutriDaily();
+  renderNutriWeekly();
+}
 
 // --- Alta de comidas: texto / dictado (teclado iOS) / foto ---
 function nsStatus(msg, isErr) {
@@ -2883,17 +3154,33 @@ function nsStatus(msg, isErr) {
   el.classList.toggle('err', !!isErr);
 }
 function nsBusy(busy) { $('nsSend').disabled = busy; $('nsPhoto').disabled = busy; }
-function openNutriSheet() {
+// Varias hojas comparten el backdrop
+const NUTRI_SHEETS = ['nutriSheet', 'maSheet', 'editSheet'];
+function openSheet(id) {
   $('nsBackdrop').style.display = 'block';
-  $('nutriSheet').classList.add('open');
-  nsStatus('');
-  setTimeout(() => $('nsText').focus(), 250);
+  NUTRI_SHEETS.forEach((s) => $(s).classList.toggle('open', s === id));
 }
-function closeNutriSheet() {
+function closeSheets() {
   $('nsBackdrop').style.display = 'none';
-  $('nutriSheet').classList.remove('open');
+  NUTRI_SHEETS.forEach((s) => $(s).classList.remove('open'));
   $('nsText').blur();
 }
+// Chips de bloque (alta y edición)
+let nsType = 'other', edType = 'other';
+function renderTypeChips(containerId, active, onPick) {
+  $(containerId).innerHTML = MEAL_TYPES.map((t) =>
+    `<button type="button" class="ns-type ${t.k === active ? 'active' : ''}" data-t="${t.k}"><span>${t.icon}</span>${t.label}</button>`).join('');
+  $(containerId).querySelectorAll('.ns-type').forEach((b) =>
+    b.addEventListener('click', () => { onPick(b.dataset.t); renderTypeChips(containerId, b.dataset.t, onPick); }));
+}
+function openNutriSheet() {
+  nsType = defaultMealType();
+  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; });
+  nsStatus('');
+  openSheet('nutriSheet');
+  setTimeout(() => $('nsText').focus(), 250);
+}
+const closeNutriSheet = closeSheets;
 
 function fileToBase64Jpeg(file, maxSide = 1100) {
   return new Promise((resolve, reject) => {
@@ -2926,6 +3213,7 @@ async function analyzeAndAdd({ text, imageB64 }) {
   const rows = items.map((it) => ({
     date: nutriIso(),
     description: it.description,
+    meal_type: nsType,
     protein_g: it.protein_g, carbs_g: it.carbs_g, fat_g: it.fat_g, fiber_g: it.fiber_g, kcal: it.kcal,
     source: imageB64 ? 'photo' : 'text',
   }));
@@ -2954,7 +3242,7 @@ async function nsSubmit(imageB64) {
 }
 
 $('nutriAdd').addEventListener('click', openNutriSheet);
-$('nsBackdrop').addEventListener('click', closeNutriSheet);
+$('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
 $('nsPhoto').addEventListener('click', () => $('nsFile').click());
 $('nsFile').addEventListener('change', async (e) => {
@@ -2971,15 +3259,97 @@ $('nsFile').addEventListener('change', async (e) => {
     nsBusy(false);
   }
 });
-$('mealList').addEventListener('click', async (e) => {
-  const btn = e.target.closest('[data-del]');
-  if (!btn) return;
-  const id = btn.dataset.del;
-  const meal = loadMeals().find((m) => String(m.id) === id);
+
+// ===== Menú de acciones de un alimento: editar / periódico / eliminar =====
+let maMealId = null;
+const activeRecurringOf = (meal) => meal?.recurring_id
+  ? loadRecurring().find((r) => r.id === meal.recurring_id && !r.end_date) : null;
+
+$('mealList').addEventListener('click', (e) => {
+  const row = e.target.closest('[data-meal]');
+  if (!row) return;
+  const meal = loadMeals().find((m) => String(m.id) === row.dataset.meal);
+  if (!meal) return;
+  maMealId = meal.id;
+  $('maTitle').textContent = meal.description;
+  $('maRecur').textContent = activeRecurringOf(meal) ? '🔁 Quitar periódico' : '🔁 Hacer periódico';
+  openSheet('maSheet');
+});
+
+$('maDelete').addEventListener('click', async () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
   if (!meal || !confirm(`¿Borrar "${meal.description}"?`)) return;
-  const { error } = await sb.from('meals').delete().eq('id', id);
+  const { error } = await sb.from('meals').delete().eq('id', meal.id);
   if (error) { alert('No se pudo borrar: ' + error.message); return; }
-  saveMeals(loadMeals().filter((m) => String(m.id) !== id));
+  saveMeals(loadMeals().filter((m) => m.id !== meal.id));
+  closeSheets();
+  renderNutrition();
+});
+
+$('maRecur').addEventListener('click', async () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  if (!meal) return;
+  const active = activeRecurringOf(meal);
+  try {
+    if (active) {
+      // Desactivar: deja de añadirse a partir de mañana; lo ya materializado se queda
+      const today = nutriIso();
+      const { error } = await sb.from('recurring_meals').update({ end_date: today }).eq('id', active.id);
+      if (error) throw error;
+      saveRecurring(loadRecurring().map((r) => (r.id === active.id ? { ...r, end_date: today } : r)));
+    } else {
+      // Activar: desde el día de ese alimento, todos los días
+      const { data, error } = await sb.from('recurring_meals').insert({
+        description: meal.description, meal_type: meal.meal_type || 'other',
+        protein_g: meal.protein_g, carbs_g: meal.carbs_g, fat_g: meal.fat_g, fiber_g: meal.fiber_g,
+        kcal: meal.kcal, start_date: meal.date,
+      }).select().single();
+      if (error) throw error;
+      saveRecurring(loadRecurring().concat(data));
+      // Vincula la fila origen para que la materialización no la duplique
+      await sb.from('meals').update({ recurring_id: data.id }).eq('id', meal.id);
+      saveMeals(loadMeals().map((m) => (m.id === meal.id ? { ...m, recurring_id: data.id } : m)));
+      await materializeRecurring();
+    }
+    if (navigator.vibrate) navigator.vibrate(30);
+    closeSheets();
+    renderNutrition();
+  } catch (err) { alert('No se pudo cambiar lo periódico: ' + (err?.message || err)); }
+});
+
+// ===== Editor =====
+$('maEdit').addEventListener('click', () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  if (!meal) return;
+  edType = meal.meal_type || 'other';
+  renderTypeChips('editTypes', edType, (t) => { edType = t; });
+  $('edDesc').value = meal.description;
+  $('edP').value = meal.protein_g ?? 0;
+  $('edC').value = meal.carbs_g ?? 0;
+  $('edF').value = meal.fat_g ?? 0;
+  $('edFi').value = meal.fiber_g ?? 0;
+  $('edK').value = meal.kcal ?? 0;
+  $('edStatus').textContent = '';
+  openSheet('editSheet');
+});
+
+$('edSave').addEventListener('click', async () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  if (!meal) return;
+  const num = (id) => Math.max(0, parseFloat(String($(id).value).replace(',', '.')) || 0);
+  const patch = {
+    description: $('edDesc').value.trim() || meal.description,
+    meal_type: edType,
+    protein_g: num('edP'), carbs_g: num('edC'), fat_g: num('edF'), fiber_g: num('edFi'), kcal: num('edK'),
+  };
+  $('edSave').disabled = true;
+  $('edStatus').textContent = 'Guardando…';
+  const { error } = await sb.from('meals').update(patch).eq('id', meal.id);
+  $('edSave').disabled = false;
+  if (error) { $('edStatus').textContent = 'Error: ' + error.message; return; }
+  saveMeals(loadMeals().map((m) => (m.id === meal.id ? { ...m, ...patch } : m)));
+  if (navigator.vibrate) navigator.vibrate(30);
+  closeSheets();
   renderNutrition();
 });
 document.querySelectorAll('#nutriTabs .seg-btn').forEach((btn) => {
@@ -3020,42 +3390,30 @@ $('loginSkip').addEventListener('click', () => {
 
 // ---------- Chat entrenador (Edge Function "chat") ----------
 const chatLog = $('chatLog'), chatForm = $('chatForm'), chatText = $('chatText'), chatSend = $('chatSend');
-// El chat arranca siempre vacío: la conversación vive solo mientras la app está abierta
+// El chat arranca siempre vacío: vive solo en la sesión y se vacía tras un rato sin usarse
 let chatHistory = [];
+let chatLastTs = 0;
+const CHAT_TTL_MS = 30 * 60 * 1000;
 localStorage.removeItem('fitness_chat_history_v1'); // limpia restos de la versión con historial
 
 function chatBubble(cls, text) {
   const d = document.createElement('div');
   d.className = 'chat-msg ' + cls;
-  d.textContent = text;
+  d.textContent = String(text).replace(/\*\*/g, ''); // sin negritas markdown en burbujas
   chatLog.appendChild(d);
-  d.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  const box = $('chatBox');
+  if (box) box.scrollTop = box.scrollHeight;
   return d;
 }
 function renderChat() {
   chatLog.innerHTML = '';
-  const sugs = document.getElementById('chatSugs');
   if (!chatHistory.length) {
     const d = document.createElement('div');
     d.className = 'chat-empty';
-    d.innerHTML = 'Soy tu entrenador. Puedo <b>modificarte la semana</b>, <b>crear rutinas</b> y responder con <b>tus datos reales</b>. Escríbeme, o toca una idea 👇';
+    d.innerHTML = 'Pregúntame o pídeme cambios de tu semana, tus entrenos o tu programa.';
     chatLog.appendChild(d);
-    sugs.innerHTML = '';
-    [
-      ['🏗️', 'Quiero crear un entreno nuevo'],
-      ['🧳', 'Estoy fuera esta semana, dame alternativas de ejercicio'],
-      ['🔎', 'Dame info sobre un ejercicio concreto'],
-    ].forEach(([icon, q]) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chat-sug';
-      b.innerHTML = `<span>${icon}</span><span>${q}</span>`;
-      b.addEventListener('click', () => sendChat(q));
-      sugs.appendChild(b);
-    });
     return;
   }
-  sugs.innerHTML = '';
   chatHistory.forEach((m) => {
     chatBubble(m.role === 'user' ? 'user' : 'bot', m.content);
     (m.actions || []).forEach((a) => {
@@ -3073,6 +3431,7 @@ async function sendChat(text) {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showLogin(); return; }
 
+  chatLastTs = Date.now();
   chatHistory.push({ role: 'user', content: text });
   if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
@@ -3107,6 +3466,30 @@ chatForm.addEventListener('submit', (e) => {
   chatText.value = '';
   sendChat(text);
 });
+// Al volver al chat tras un rato inactivo, la conversación se vacía
+document.querySelector('[data-go="chat"]')?.addEventListener('click', () => {
+  if (chatHistory.length && Date.now() - chatLastTs > CHAT_TTL_MS) {
+    chatHistory = [];
+    renderChat();
+  }
+  const box = $('chatBox');
+  if (box) box.scrollTop = box.scrollHeight;
+});
+
+// Crear un entreno nuevo desde Trainer→Entrenos con la IA del chat
+window.cloudCreateRoutine = async (text) => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { showLogin(); throw new Error('Necesitas iniciar sesión'); }
+  const { data, error } = await sb.functions.invoke('chat', {
+    body: { messages: [{
+      role: 'user',
+      content: `Créame un entrenamiento NUEVO a partir de esto que quiero hacer: "${text}". Crea la rutina con upsert_routine (id kebab-case nuevo que no pise los existentes, tag corto de máximo 5 caracteres, notes técnicas breves por ejercicio). Comprueba el catálogo con list_exercises y usa add_exercise solo si falta algo. NO toques el calendario semanal. Termina respondiendo en 2-3 líneas con el resumen del entreno creado.`,
+    }] },
+  });
+  if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
+  if (await pullProgram()) window.appRerender?.();
+  return data;
+};
 
 // ---------- Arranque ----------
 let rt = null, pullTimer = null;
@@ -3127,6 +3510,7 @@ async function boot(loggedIn) {
   await pullHistory();
   await pullBodyWeight();
   await pullMeals();
+  await materializeRecurring();
   renderNutrition();
   if (ok) window.appRerender?.();
   rt?.unsubscribe?.();
