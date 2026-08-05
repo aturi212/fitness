@@ -1344,6 +1344,14 @@
     </button>
   </nav>
 
+  <!-- Historial de conversaciones -->
+  <div class="hs-backdrop" id="chHistBackdrop"></div>
+  <div class="hsheet" id="chHistSheet">
+    <div class="hs-title">Historial de chats</div>
+    <div class="hs-sub">Las conversaciones se archivan solas 10 minutos después de hablar</div>
+    <div id="chHistBody"></div>
+  </div>
+
   <!-- Sheet de la tira semanal (Home) -->
   <div class="hs-backdrop" id="hsBackdrop"></div>
   <div class="hsheet" id="homeSheet">
@@ -3637,7 +3645,7 @@ function renderNutriDaily() {
 // ===== Chat nutricionista (efímero: sesión + se vacía tras 30 min sin uso) =====
 let nchatHistory = [];
 let nchatLastTs = 0;
-const NCHAT_TTL_MS = 30 * 60 * 1000;
+let nchatIdleTimer = null;
 function nchatBubble(cls, text) {
   const d = document.createElement('div');
   d.className = 'nchat-msg ' + cls;
@@ -3695,7 +3703,19 @@ async function sendNChat(text) {
   } catch (err) {
     typing.remove();
     nchatBubble('bot', (err?.message || err));
-  } finally { $('nchatSend').disabled = false; }
+  } finally {
+    $('nchatSend').disabled = false;
+    nchatLastTs = Date.now();
+    saveLive('nutrition', nchatHistory, nchatLastTs);
+    clearTimeout(nchatIdleTimer);
+    nchatIdleTimer = setTimeout(async () => {
+      if (!nchatHistory.length) return;
+      await archiveThread('nutrition', nchatHistory, nchatLastTs);
+      saveLive('nutrition', [], 0);
+      nchatHistory = [];
+      renderNChat();
+    }, CHAT_IDLE_MS);
+  }
 }
 $('nchatForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -3760,7 +3780,9 @@ $('nwNext').addEventListener('click', () => {
 });
 
 function renderNutrition() {
-  if (nchatHistory.length && Date.now() - nchatLastTs > NCHAT_TTL_MS) {
+  if (nchatHistory.length && Date.now() - nchatLastTs > CHAT_IDLE_MS) {
+    archiveThread('nutrition', nchatHistory, nchatLastTs);
+    saveLive('nutrition', [], 0);
     nchatHistory = [];
     renderNChat();
   }
@@ -4009,12 +4031,56 @@ $('loginSkip').addEventListener('click', () => {
   hideLogin();
 });
 
+// ---------- Historial de conversaciones (tabla chat_threads) ----------
+// La conversación en curso vive en memoria y se respalda en localStorage por si
+// cierras la app. A los 10 minutos sin usarla se archiva en Supabase y el chat
+// vuelve a arrancar vacío. El Personal Trainer las lee con `db.sh get-chats`.
+const CHAT_IDLE_MS = 10 * 60 * 1000;
+const LIVE_KEY = 'fitness_chat_live_v1';
+
+const loadLive = () => { try { return JSON.parse(localStorage.getItem(LIVE_KEY) || 'null'); } catch { return null; } };
+const saveLive = (kind, msgs, ts) => {
+  const all = loadLive() || {};
+  if (msgs.length) all[kind] = { msgs, ts };
+  else delete all[kind];
+  localStorage.setItem(LIVE_KEY, JSON.stringify(all));
+};
+
+async function archiveThread(kind, msgs, endedTs) {
+  const clean = (msgs || []).filter((m) => m && m.content);
+  if (clean.length < 2) return false; // hace falta al menos una ida y vuelta
+  const firstUser = clean.find((m) => m.role === 'user');
+  const row = {
+    kind,
+    title: (firstUser?.content || '').slice(0, 120),
+    messages: clean.map((m) => ({ role: m.role, content: m.content })),
+    started_at: new Date(endedTs - 1000).toISOString(),
+    ended_at: new Date(endedTs).toISOString(),
+  };
+  const { error } = await sb.from('chat_threads').insert(row);
+  if (error) { console.warn('No se pudo archivar la conversación:', error.message); return false; }
+  return true;
+}
+
+// Al arrancar: si quedó una conversación a medias y ya pasaron 10 min, se archiva
+async function flushStaleThreads() {
+  const all = loadLive();
+  if (!all) return;
+  const now = Date.now();
+  for (const [kind, t] of Object.entries(all)) {
+    if (!t || !t.msgs?.length) continue;
+    if (now - (t.ts || 0) < CHAT_IDLE_MS) continue;
+    const ok = await archiveThread(kind, t.msgs, t.ts || now);
+    if (ok || (t.msgs.length < 2)) saveLive(kind, [], 0);
+  }
+}
+
 // ---------- Chat entrenador (Edge Function "chat") ----------
 const chatLog = $('chatLog'), chatForm = $('chatForm'), chatText = $('chatText'), chatSend = $('chatSend');
-// El chat arranca siempre vacío: vive solo en la sesión y se vacía tras un rato sin usarse
+// El chat arranca siempre vacío: vive solo en la sesión y se archiva tras 10 min sin uso
 let chatHistory = [];
 let chatLastTs = 0;
-const CHAT_TTL_MS = 30 * 60 * 1000;
+let chatIdleTimer = null;
 localStorage.removeItem('fitness_chat_history_v1'); // limpia restos de la versión con historial
 
 function chatBubble(cls, text) {
@@ -4077,7 +4143,22 @@ async function sendChat(text) {
     chatBubble('bot', (err?.message || err));
   } finally {
     chatSend.disabled = false;
+    chatLastTs = Date.now();
+    saveLive('coach', chatHistory, chatLastTs);
+    scheduleChatArchive();
   }
+}
+
+// A los 10 minutos sin escribir, la conversación se archiva y el chat se vacía
+function scheduleChatArchive() {
+  clearTimeout(chatIdleTimer);
+  chatIdleTimer = setTimeout(async () => {
+    if (!chatHistory.length) return;
+    await archiveThread('coach', chatHistory, chatLastTs);
+    saveLive('coach', [], 0);
+    chatHistory = [];
+    renderChat();
+  }, CHAT_IDLE_MS);
 }
 
 chatForm.addEventListener('submit', (e) => {
@@ -4087,15 +4168,62 @@ chatForm.addEventListener('submit', (e) => {
   chatText.value = '';
   sendChat(text);
 });
-// Al volver al chat tras un rato inactivo, la conversación se vacía
-document.querySelector('[data-go="chat"]')?.addEventListener('click', () => {
-  if (chatHistory.length && Date.now() - chatLastTs > CHAT_TTL_MS) {
+// Al volver al chat tras un rato inactivo, la conversación se archiva y se vacía
+document.querySelector('[data-go="chat"]')?.addEventListener('click', async () => {
+  if (chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
+    await archiveThread('coach', chatHistory, chatLastTs);
+    saveLive('coach', [], 0);
     chatHistory = [];
     renderChat();
   }
   const box = $('chatBox');
   if (box) box.scrollTop = box.scrollHeight;
 });
+
+// ---------- Hoja de historial ----------
+async function openChatHistory() {
+  const body = $('chHistBody');
+  $('chHistBackdrop').style.display = 'block';
+  $('chHistSheet').classList.add('open');
+  body.innerHTML = '<div class="nutri-empty">Cargando…</div>';
+  const { data, error } = await sb.from('chat_threads')
+    .select('id, kind, title, messages, ended_at')
+    .order('ended_at', { ascending: false }).limit(50);
+  if (error) { body.innerHTML = `<div class="nutri-empty">No se pudo cargar: ${error.message}</div>`; return; }
+  if (!data?.length) {
+    body.innerHTML = '<div class="nutri-empty">Aún no hay conversaciones archivadas. Se guardan solas 10 minutos después de hablar con el coach.</div>';
+    return;
+  }
+  const MESES_H = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  body.innerHTML = data.map((t) => {
+    const d = new Date(t.ended_at);
+    const fecha = `${String(d.getDate()).padStart(2, '0')} ${MESES_H[d.getMonth() + 1].toUpperCase()} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `<div class="row ch-thread" data-thread="${t.id}">
+      <span class="idx">${(t.messages || []).length}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.title || 'Conversación'}</div>
+        <div class="data-sm" style="margin-top:5px">${fecha}${t.kind === 'nutrition' ? ' · NUTRICIÓN' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  body.querySelectorAll('[data-thread]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const t = data.find((x) => x.id === el.dataset.thread);
+      if (!t) return;
+      body.innerHTML = `<button type="button" class="hs-opt" id="chBack" style="justify-content:center;margin-bottom:12px">‹ Volver al historial</button>` +
+        (t.messages || []).map((m) =>
+          `<div class="chat-msg ${m.role === 'user' ? 'user' : 'bot'}" style="margin-bottom:16px">${
+            String(m.content).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</div>`).join('');
+      $('chBack').addEventListener('click', openChatHistory);
+    });
+  });
+}
+function closeChatHistory() {
+  $('chHistBackdrop').style.display = 'none';
+  $('chHistSheet').classList.remove('open');
+}
+$('chatMenu').addEventListener('click', openChatHistory);
+$('chHistBackdrop').addEventListener('click', closeChatHistory);
 
 // Crear un entreno nuevo desde Trainer→Entrenos con la IA del chat
 window.cloudCreateRoutine = async (text) => {
@@ -4132,6 +4260,7 @@ async function boot(loggedIn) {
   await pullBodyWeight();
   await pullMeals();
   await materializeRecurring();
+  await flushStaleThreads();
   renderNutrition();
   if (ok) window.appRerender?.();
   rt?.unsubscribe?.();
