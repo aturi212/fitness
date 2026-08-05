@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#050505" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -111,6 +111,10 @@
 
   html { color-scheme: dark; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* App fija: se permite desplazar, nunca hacer zoom con dos dedos ni con
+     doble toque. (Se aparta de la §10, que prohíbe bloquear el zoom;
+     decisión expresa de Adrián: la app debe sentirse fija.) */
+  html, body { touch-action: pan-x pan-y; }
   html, body {
     margin: 0; padding: 0;
     background: var(--bg); color: var(--text);
@@ -274,26 +278,30 @@
   .recent-item .info span { font-size: 12px; color: var(--muted); }
   .recent-item .chev { color: var(--muted); }
 
+  /* §5.7 · Píldora flotante. Sin botón Home elevado: rompía la rejilla. */
   nav.bottom {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: rgba(15,20,25,.92);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-top: 1px solid var(--line);
+    position: fixed; left: 14px; right: 14px; z-index: 50;
+    bottom: calc(var(--nav-gap) + env(safe-area-inset-bottom));
+    height: var(--nav-h); border-radius: var(--r-7);
+    background: rgba(12,12,13,.9);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--line-2); box-shadow: var(--sh-float);
     display: grid; grid-template-columns: repeat(5, 1fr);
-    overflow: visible;
-    z-index: 50;
+    align-items: center; padding: 0 6px;
+    max-width: calc(var(--maxw) - 28px); margin: 0 auto;
   }
   nav.bottom button {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    color: var(--muted); font-size: 11px; font-weight: 500;
-    transition: color var(--t-base) linear;
+    height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: none; border: 0; border-radius: var(--r-5); color: var(--ghost);
+    transition: color var(--t-base) linear, background var(--t-base) var(--ease);
   }
-  nav.bottom button svg { width: 22px; height: 22px; }
-  nav.bottom button.active { color: var(--accent); }
-  nav.bottom button.active svg { stroke: var(--accent); }
+  nav.bottom button svg { width: 21px; height: 21px; flex-shrink: 0; }
+  /* Solo la activa lleva etiqueta */
+  nav.bottom button span { display: none; font: 700 11px/1 var(--f-display); letter-spacing: .04em; }
+  nav.bottom button.active { background: var(--hot); color: var(--hot-ink); }
+  nav.bottom button.active svg { width: 19px; height: 19px; }
+  nav.bottom button.active span { display: inline; }
 
   .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
   .day { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 4px; text-align: center; }
@@ -619,11 +627,6 @@
 
   /* §5.7 · Nav — único bloque naranja de la pantalla
      (la píldora flotante de 5 columnas es el bloque 3 del checklist) */
-  nav.bottom { background: rgba(12,12,13,.92); border-top: 1px solid var(--line-2); }
-  nav.bottom button { color: var(--ghost); font: 600 10px/1 var(--f-ui); letter-spacing: .06em; }
-  nav.bottom button svg { width: 21px; height: 21px; stroke-width: 1.7; }
-  nav.bottom button.active { color: var(--hot-text); }
-  nav.bottom button.active svg { stroke: var(--hot-text); }
 
   /* Chat y campos: el acento como tinta, nunca como relleno decorativo */
   .chat-msg.user, .nchat-msg.user { background: var(--s4) !important; color: var(--text) !important; border: 1px solid var(--line); }
@@ -876,16 +879,22 @@
 
     <!-- =========== ESTADÍSTICAS =========== -->
     <section class="screen" data-screen="chat">
-      <div class="topbar">
-        <div>
-          <div class="greet">Entrenador IA</div>
-          <h1>Chat</h1>
-        </div>
+      <div class="glow" aria-hidden="true"></div>
+
+      <!-- §8.3 · Cabecera: logo + chip de estado + menú -->
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <span class="status-chip" id="chatStatus"><i class="dot"></i>EN LÍNEA</span>
+        <button type="button" class="btn-icon" id="chatMenu" aria-label="Historial de chats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
+        </button>
       </div>
 
+      <h1 class="title scr-title chat-title">COACH</h1>
+
       <div class="seg" id="chatTabs">
-        <button type="button" class="seg-btn active" data-ctab="chat">Entrenador</button>
-        <button type="button" class="seg-btn" data-ctab="prog">Programa</button>
+        <button type="button" class="seg-btn active" data-ctab="chat">ENTRENADOR</button>
+        <button type="button" class="seg-btn" data-ctab="prog">PROGRAMA</button>
       </div>
 
       <div id="chatPane">
@@ -895,37 +904,107 @@
       </div>
 
       <div id="progPane" style="display:none">
-        <div class="section-title">Plan macro</div>
+        <div class="ticker prog-ticker">
+          <span class="tag">AHORA</span>
+          <span class="vals" id="progTicker"></span>
+        </div>
+        <div class="sec-head">
+          <span class="label">Plan macro</span>
+          <span class="rule"></span>
+          <span class="data-sm" id="planCount"></span>
+        </div>
         <div id="planBlocks"></div>
       </div>
 
       <form class="chat-input" id="chatForm">
-        <input id="chatText" type="text" placeholder="Pregunta o pide un cambio…" autocomplete="off" enterkeyhint="send">
-        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
+        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
       </form>
     </section>
 
     <style>
-      /* ---------- Chat entrenador ---------- */
+      /* ════════ CHAT · DESIGN.md §8.3 y §5.8 ════════ */
+
+      /* Cabecera común de pantalla: logo + chip + botón de icono */
+      .scr-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;
+                  padding-top: calc(env(safe-area-inset-top) + 4px); }
+      .status-chip { height: 30px; display: inline-flex; align-items: center; gap: 8px; padding: 0 13px;
+                     border-radius: 999px; background: var(--s2); border: 1px solid var(--line-2);
+                     font: 500 9.5px/1 var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+      .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hot-solid); }
+      .scr-head .btn-icon { margin-left: auto; }
+      .scr-title { margin: 22px 0 20px; font-size: 40px; line-height: .9; }
+
+      /* §5.8 · El hilo vive dentro de una caja: tiene forma incluso vacío */
       .chat-box {
-        background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-lg);
-        padding: 14px; overflow-y: auto; box-shadow: var(--shadow);
-        height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 262px);
-        min-height: 180px;
+        background: #0A0A0B; border: 1px solid var(--line); border-radius: var(--r-8);
+        padding: 16px 14px; overflow-y: auto; box-shadow: var(--sh-card);
+        height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 340px);
+        min-height: 200px;
       }
-      .chat-log { display: flex; flex-direction: column; gap: 10px; }
-      .chat-msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; font-size: 14.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: break-word; }
-      .chat-msg.user { align-self: flex-end; background: var(--accent); color: var(--white-ink); border-bottom-right-radius: 5px; }
-      .chat-msg.bot { align-self: flex-start; background: var(--bg-elev, #14161a); border: 1px solid var(--line, #23262c); border-bottom-left-radius: 5px; }
-      .chat-msg.typing { color: var(--muted, #8a8f98); font-style: italic; }
-      .chat-action { align-self: flex-start; font-size: 12px; color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); padding: 5px 11px; border-radius: 999px; }
-      .chat-empty { color: var(--muted, #8a8f98); font-size: 13.5px; line-height: 1.6; padding: 10px 4px; }
-      .chat-empty b { color: var(--text, #fff); }
-      .chat-input { position: fixed; left: 14px; right: 14px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px); display: flex; gap: 8px; z-index: 40; }
-      .chat-input input { flex: 1; background: var(--bg-elev, #14161a); border: 1px solid var(--line, #2a2d33); color: var(--text, #fff); border-radius: 14px; padding: 13px 15px; font-size: 16px; }
-      .chat-input input:focus { outline: none; border-color: var(--accent); }
-      .chat-input button { width: 50px; border-radius: 14px; background: var(--accent); color: var(--white-ink); border: none; font-size: 17px; flex-shrink: 0; }
-      .chat-input button:disabled { opacity: .5; }
+      .chat-log { display: flex; flex-direction: column; gap: 18px; }
+
+      /* Tú: burbuja a la derecha */
+      .chat-msg.user { align-self: flex-end; max-width: 82%; padding: 11px 14px;
+        background: var(--s4); border: 1px solid var(--line); border-radius: 16px 16px 6px 16px;
+        font-size: 14.5px; line-height: 1.45; color: var(--text);
+        white-space: pre-wrap; overflow-wrap: break-word; }
+      /* El coach: sin burbuja, filete degradado a la izquierda */
+      .chat-msg.bot { align-self: stretch; max-width: 100%; padding: 0 0 0 12px;
+        border-left: 2px solid transparent;
+        border-image: linear-gradient(180deg,#FF7A1F,rgba(255,59,18,.15)) 1;
+        background: none; font-size: 14.5px; line-height: 1.5; color: var(--text-2);
+        white-space: pre-wrap; overflow-wrap: break-word; }
+      .chat-msg.bot::before { content: 'COACH'; display: block; margin-bottom: 7px;
+        font: 600 9px/1 var(--f-mono); letter-spacing: .22em; color: var(--hot-text); }
+      .chat-msg.typing { color: var(--ghost); }
+      .chat-action { align-self: flex-start; margin-left: 12px; font: 500 9px/1 var(--f-mono);
+        letter-spacing: .14em; text-transform: uppercase; color: var(--hot-text);
+        background: var(--hot-soft); border: 1px solid var(--hot-line); padding: 7px 11px; border-radius: var(--r-2); }
+      .chat-empty { color: var(--dim); font-size: 13.5px; line-height: 1.6; padding: 4px 2px; }
+      .chat-empty b { color: var(--text); }
+
+      /* §5.8 · Composer fijo sobre la nav, con desvanecido */
+      .chat-input { position: fixed; left: 16px; right: 16px; display: flex; gap: 10px; z-index: 40;
+        bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 12px);
+        max-width: calc(var(--maxw) - 32px); margin: 0 auto; }
+      .chat-input::before { content: ''; position: absolute; left: -16px; right: -16px; bottom: -22px; top: -26px;
+        background: linear-gradient(180deg, transparent, #050505 26%); z-index: -1; pointer-events: none; }
+      .chat-input input { flex: 1; min-width: 0; height: 46px; background: #111214;
+        border: 1px solid var(--line-2); color: var(--text); border-radius: 23px; padding: 0 18px; font-size: 16px; }
+      .chat-input input:focus { outline: none; border-color: var(--hot-line); }
+      .chat-input button { width: 46px; height: 46px; border-radius: var(--r-6); background: var(--hot);
+        color: var(--hot-ink); border: none; display: grid; place-items: center; flex-shrink: 0; }
+      .chat-input button:disabled { background: var(--s3); color: var(--off); }
+
+      /* §8.8 · Programa: plan macro como línea de tiempo */
+      .prog-ticker { margin: 0 calc(var(--gutter) * -1) 4px; }
+      .block-item { display: flex; flex-direction: column; gap: 0; padding: 14px 0; background: none; border: none;
+        border-bottom: 1px solid var(--line); border-radius: 0; margin: 0; align-items: flex-start; }
+      .block-item:last-child { border-bottom: none; }
+      .block-item .b-head { display: flex; align-items: baseline; gap: 11px; width: 100%; }
+      .block-item .b-num { width: 9px; height: 9px; border-radius: 50%; background: #26282A;
+        flex-shrink: 0; align-self: flex-start; margin-top: 5px; font-size: 0; padding: 0; border: none; }
+      .block-item.done .b-num { background: #4E5155; }
+      .block-item.current .b-num { background: var(--hot-solid); }
+      .block-item .b-idx { font: 500 9px/1 var(--f-mono); color: var(--ghost-2); flex-shrink: 0; }
+      .block-item.current .b-idx { color: var(--hot-text); }
+      .block-item .b-name { font: 500 15px/1.2 var(--f-ui); color: var(--ghost-2); }
+      .block-item.done .b-name { color: var(--dim); }
+      .block-item.current .b-name { color: var(--text); }
+      .block-item .b-weeks { margin-left: auto; font: 500 10px/1 var(--f-mono); letter-spacing: .12em;
+        text-transform: uppercase; color: var(--ghost); white-space: nowrap; }
+      .block-item .b-chev { display: none; }
+      .block-item .b-detail { display: none; width: 100%; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+      .block-item.open .b-detail { display: block; }
+      .b-line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 0; font-size: 14px; }
+      .b-line span { color: var(--dim); }
+      .b-line b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-weight: 700;
+        font-size: 13px; letter-spacing: .04em; text-align: right; color: var(--text); white-space: nowrap; }
+      .b-prose { margin: 10px 0 2px; font: 400 13.5px/1.5 var(--f-ui); color: var(--dim); }
+      .block-timeline { position: relative; }
+      .block-timeline::before { content: ''; position: absolute; left: 4px; top: 20px; bottom: 20px;
+        width: 1px; background: var(--line); }
     </style>
 
     <section class="screen" data-screen="stats">
@@ -1241,26 +1320,27 @@
   </div>
 
   <!-- =========== BOTTOM NAV =========== -->
-  <nav class="bottom">
-    <button data-go="chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Chat
+  <!-- §5.7 · Píldora flotante de 5 columnas. Solo la activa lleva etiqueta. -->
+  <nav class="bottom" aria-label="Principal">
+    <button data-go="chat" aria-label="Chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>CHAT</span>
     </button>
-    <button data-go="trainer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      Trainer
+    <button data-go="trainer" aria-label="Trainer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span>PLAN</span>
     </button>
-    <button class="nav-home active" data-go="home">
-      <span class="home-bump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg></span>
-      <span class="home-lbl">Home</span>
+    <button class="active" data-go="home" aria-label="Home" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+      <span>HOME</span>
     </button>
-    <button data-go="nutrition">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-      Nutri
+    <button data-go="nutrition" aria-label="Nutrición">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span>NUTRI</span>
     </button>
-    <button data-go="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
-      Stats
+    <button data-go="stats" aria-label="Estadísticas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 7-8"/><path d="M14 8h5v5"/></svg>
+      <span>STATS</span>
     </button>
   </nav>
 
@@ -1273,17 +1353,6 @@
 
   <style>
     /* ---------- Nav: Home destacado con semicírculo ---------- */
-    nav.bottom button.nav-home { position: relative; justify-content: flex-end; padding-bottom: 11px; }
-    .nav-home .home-bump {
-      position: absolute; top: -19px; left: 50%; transform: translateX(-50%);
-      width: 52px; height: 52px; border-radius: 50%;
-      background: #0E1113; border: 1px solid var(--line);
-      display: grid; place-items: center;
-      box-shadow: 0 -5px 16px rgba(0,0,0,.45);
-    }
-    .nav-home .home-bump svg { width: 23px; height: 23px; }
-    .nav-home.active .home-bump { border-color: var(--accent); background: #101613; }
-    .nav-home .home-lbl { font-size: 11px; }
 
     /* ════════════════════════════════════════════════════════════
        HOME · DESIGN.md §8.1
@@ -1497,6 +1566,20 @@
 
 <script>
 (() => {
+  // ============ App fija: sin zoom ============
+  // En iOS, `user-scalable=no` no siempre basta; lo que corta el pellizco de
+  // verdad son los eventos `gesture*` de WebKit. Se bloquean aquí, junto al
+  // doble toque. El scroll normal no se toca.
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) =>
+    document.addEventListener(ev, (e) => e.preventDefault(), { passive: false })
+  );
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault(); // doble toque = zoom
+    lastTouchEnd = now;
+  }, { passive: false });
+
   // ============ Programa desde caché cloud (si existe) ============
   // El módulo cloud (final del archivo) descarga catálogo+rutinas de
   // Supabase y los cachea. Se aplican ANTES de construir la UI para que
@@ -2141,35 +2224,89 @@
         </div>`).join('');
 
     // Plan macro (bloques)
+    renderProgramTab();
+  }
+
+  // ===== §8.8 · Chat › Programa: el plan macro como línea de tiempo =====
+  function renderProgramTab() {
     const planBlocks = document.getElementById('planBlocks');
+    if (!planBlocks) return;
     const macro = window.ROUTINES.plan;
-    if (macro && macro.blocks) {
-      const todayIso = new Date().toISOString().slice(0, 10);
-      planBlocks.innerHTML = macro.blocks.map((b, i) => {
-        const status = todayIso > b.endDate ? 'done' : (todayIso >= b.startDate ? 'current' : '');
-        return `
-          <div class="block-item ${status}" data-block="${i}">
-            <div class="b-head">
-              <div class="b-num">${i+1}</div>
-              <div class="b-info">
-                <div class="b-name">${b.name}</div>
-                <div class="b-dates">${b.startDate} → ${b.endDate} · ${b.weeks} sem</div>
-              </div>
-              <svg class="b-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-            <div class="b-detail">
-              <div class="b-line"><span>Esquema</span><b>${b.scheme}</b></div>
-              <div class="b-line"><span>Enfoque</span><b>${b.focus}</b></div>
-              <div class="b-line"><span>Duración</span><b>${b.weeks} semanas</b></div>
-            </div>
-          </div>`;
-      }).join('');
-      planBlocks.querySelectorAll('.block-item').forEach(el =>
-        el.addEventListener('click', () => el.classList.toggle('open'))
-      );
-    } else {
-      planBlocks.innerHTML = '<div class="muted" style="font-size:12px;padding:8px 0">Sin plan macro definido todavía.</div>';
+    const todayIso = wsIso(new Date());
+    const asDate = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+    const weeksBetween = (aIso, bIso) => Math.floor((asDate(bIso) - asDate(aIso)) / 604800000);
+
+    // Semana dentro del plan, para el chip de la cabecera y la cinta
+    const blocks = (macro && macro.blocks) || [];
+    const cur = blocks.find(b => todayIso >= b.startDate && todayIso <= b.endDate);
+    const totalWeeks = blocks.reduce((a, b) => a + (Number(b.weeks) || 0), 0);
+    const weekNo = blocks.length ? Math.max(1, weeksBetween(blocks[0].startDate, todayIso) + 1) : 0;
+    const chip = document.getElementById('chatStatus');
+    if (chip) chip.dataset.week = totalWeeks ? `SEM ${String(Math.min(weekNo, totalWeeks)).padStart(2,'0')} / ${totalWeeks}` : '';
+
+    // Cinta: AHORA | BLOQUE / SEM x DE y / n SESIONES
+    const ticker = document.getElementById('progTicker');
+    if (ticker) {
+      if (cur) {
+        const wIn = Math.max(1, weeksBetween(cur.startDate, todayIso) + 1);
+        const sesiones = getWeeklyTarget();
+        const corto = cur.name.replace(/^Bloque\s*\d+\s*—\s*/i, '').split(/\s*[+·]\s*/)[0].trim();
+        ticker.innerHTML = [
+          `<b>${corto.toUpperCase()}</b>`,
+          `SEM ${wIn} DE ${cur.weeks}`,
+          `${sesiones} SESIONES`,
+        ].join('<i>/</i>');
+      } else {
+        ticker.innerHTML = '<b>SIN BLOQUE ACTIVO</b>';
+      }
     }
+    const count = document.getElementById('planCount');
+    if (count) count.textContent = blocks.length ? `${blocks.length} BLOQUES` : '';
+
+    if (!blocks.length) {
+      planBlocks.innerHTML = '<div class="nutri-empty">Sin plan macro definido todavía.</div>';
+      return;
+    }
+    // Semanas acumuladas para el rango «SEM 3–6»
+    let acc = 0;
+    planBlocks.className = 'block-timeline';
+    planBlocks.innerHTML = blocks.map((b, i) => {
+      const from = acc + 1, to = acc + (Number(b.weeks) || 0);
+      acc = to;
+      const status = todayIso > b.endDate ? 'done' : (todayIso >= b.startDate ? 'current open' : '');
+      // Pares clave/valor: solo datos CORTOS (van en mono a la derecha).
+      // La prosa del bloque va debajo como párrafo, en tipografía de lectura.
+      const tags = [...new Set(Object.values(window.ROUTINES.weeklySchedule || {})
+        .filter(isObligatoryRoutine)
+        .map(id => (window.ROUTINES.routines[id]?.tag) || id))];
+      const rows = [
+        ['Sesiones por semana', getWeeklyTarget()],
+        ['Duración', `${b.weeks} SEM`],
+        ['Entrenos', tags.join(' · ')],
+      ].filter(([, v]) => v != null && v !== '');
+      const prosa = [b.scheme, b.focus].filter(Boolean).join(' ');
+      return `
+        <div class="block-item ${status}" data-block="${i}">
+          <div class="b-head">
+            <span class="b-num"></span>
+            <span class="b-idx">${String(i + 1).padStart(2, '0')}</span>
+            <span class="b-name">${b.name.replace(/^Bloque\s*\d+\s*—\s*/i, '')}</span>
+            <span class="b-weeks">SEM ${from}–${to}</span>
+          </div>
+          <div class="b-detail">
+            ${rows.map(([k, v]) => `<div class="b-line"><span>${k}</span><b>${v}</b></div>`).join('')}
+            ${prosa ? `<p class="b-prose">${prosa}</p>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+    // Tocar un bloque lo expande y colapsa el anterior: nunca hay dos abiertos
+    planBlocks.querySelectorAll('.block-item').forEach(el =>
+      el.addEventListener('click', () => {
+        const open = el.classList.contains('open');
+        planBlocks.querySelectorAll('.block-item').forEach(o => o.classList.remove('open'));
+        el.classList.toggle('open', !open);
+      })
+    );
   }
 
   function getWorkoutsForWeek(startIso, endIso) {
@@ -2673,7 +2810,11 @@
   navBtns.forEach(btn => btn.addEventListener('click', () => {
     const target = btn.dataset.go;
     screens.forEach(s => s.classList.toggle('active', s.dataset.screen === target));
-    navBtns.forEach(b => b.classList.toggle('active', b === btn));
+    navBtns.forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
     window.scrollTo(0, 0);
     // El slider de ejercicios se construye con la pantalla oculta (anchos 0):
     // re-centrar el chip activo cuando Perfil se hace visible
@@ -2775,6 +2916,12 @@
       document.getElementById('chatPane').style.display = prog ? 'none' : '';
       document.getElementById('progPane').style.display = prog ? '' : 'none';
       document.getElementById('chatForm').style.display = prog ? 'none' : 'flex';
+      // §8.3/§8.2: el chip de la cabecera cambia con la pestaña
+      const chip = document.getElementById('chatStatus');
+      chip.classList.toggle('is-week', prog);
+      chip.innerHTML = prog
+        ? (chip.dataset.week || 'PLAN')
+        : '<i class="dot"></i>EN LÍNEA';
     });
   });
 
