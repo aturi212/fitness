@@ -289,7 +289,7 @@
   nav.bottom button {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     color: var(--muted); font-size: 11px; font-weight: 500;
-    transition: color .15s ease;
+    transition: color var(--t-base) linear;
   }
   nav.bottom button svg { width: 22px; height: 22px; }
   nav.bottom button.active { color: var(--accent); }
@@ -441,7 +441,7 @@
   /* ==== Tracker overlay ==== */
   .tracker {
     position: fixed; inset: 0; background: var(--bg); z-index: 100;
-    transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.7,.2,1);
+    transform: translateY(100%); transition: transform var(--t-slow) var(--ease);
     display: flex; flex-direction: column;
     padding-top: env(safe-area-inset-top);
   }
@@ -509,13 +509,13 @@
   /* ==== Swap modal (bottom sheet) ==== */
   .sheet-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 150;
-    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    opacity: 0; pointer-events: none; transition: opacity var(--t-base) linear;
   }
   .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
   .sheet {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 160;
     background: var(--bg-elev); border-radius: 20px 20px 0 0;
-    transform: translateY(100%); transition: transform .25s cubic-bezier(.2,.7,.2,1);
+    transform: translateY(100%); transition: transform var(--t-slow) var(--ease);
     max-height: 80vh; display: flex; flex-direction: column;
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -649,10 +649,87 @@
     font-family: var(--f-mono); letter-spacing: .18em; text-transform: uppercase;
   }
 
+  /* ════════════════════════════════════════════════════════════
+     §4 · MOVIMIENTO — «sin esto la app se siente web»
+     ════════════════════════════════════════════════════════════ */
+
+  /* §4.1 · Todo lo tocable responde en <120ms: hundido + subida de superficie.
+     El tap-highlight de Safari está desactivado en `*`, así que ESTE es el
+     único acuse de recibo que recibe el dedo (§10). */
+  button, .card, .tile, .stat-card, .row, .chip, .seg-btn, .ws-cell, .cal-day,
+  .routine-item, .recent-item, .meal-item, .block-item, .day-row, .swap-item,
+  .hs-opt, .sheet-option, .ex-chip, .check-week, .goal-row, .pr-item, .btn-icon,
+  [data-act], [data-go], [data-rid], [data-meal], [data-block], [data-ex] {
+    transition: transform var(--t-fast) var(--ease),
+                background-color var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease),
+                opacity var(--t-fast) var(--ease);
+  }
+  button:active, .card:active, .tile:active, .stat-card:active, .chip:active,
+  .seg-btn:active, .ws-cell:active, .routine-item:active, .recent-item:active,
+  .meal-item:active, .block-item:active, .day-row:active, .swap-item:active,
+  .hs-opt:active, .sheet-option:active, .ex-chip:active, .btn-icon:active,
+  [data-act]:active, [data-rid]:active, [data-meal]:active {
+    transform: scale(.98);
+  }
+  /* Subida de superficie --s2 → --s4 en lo que tiene fondo propio */
+  .tile:active, .stat-card:active, .chip:active, .btn-icon:active, .ws-nav:active,
+  .routine-item:active, .swap-item:active, .hs-opt:active, .sheet-option:active,
+  .ex-chip:active, .cal-btn:active, .ns-photo:active, .ma-btns button:active {
+    background-color: var(--s4);
+  }
+  /* Las filas con filete no tienen fondo: su acuse es la opacidad (§5.1C) */
+  .row:active, .recent-item:active, .meal-item:active, .pr-item:active, .goal-row:active { opacity: .6; }
+  /* La nav no se hunde: es un ancla fija */
+  nav.bottom button:active { transform: none; }
+
+  /* §4.4 · Barras, anillos y líneas animan su GEOMETRÍA al entrar la pantalla,
+     una sola vez. Los números no hacen count-up (§4.5): cambian de golpe. */
+  /* Rellenos horizontales crecen desde la izquierda… */
+  .screen.active .op-fill,
+  .screen.active .nw-fill { animation: grow-x 400ms var(--ease-out) both; }
+  @keyframes grow-x { from { transform: scaleX(0); } to { transform: none; } }
+  .op-fill, .nw-fill { transform-origin: left center; }
+  /* …y las barras verticales desde abajo */
+  .screen.active .wm-bar,
+  .screen.active .bar { animation: grow-y 400ms var(--ease-out) both; }
+  @keyframes grow-y { from { transform: scaleY(0); } to { transform: none; } }
+  .wm-bar, .bar { transform-origin: center bottom; }
+
+  .screen.active #weekRing,
+  .screen.active #nutriRings circle[stroke-dasharray],
+  .screen.active .line-chart path,
+  .screen.active #progChart circle { animation: draw-in 400ms var(--ease-out) both; }
+  @keyframes draw-in { from { opacity: 0; } to { opacity: 1; } }
+
+  /* §4.6 · Check de serie */
+  @keyframes check-pop { from { transform: scale(.8); } to { transform: none; } }
+  table.sets td.done button.checked { animation: check-pop 160ms var(--ease-out); }
+
+  /* §4.7 · Fin de entreno: una sola celebración de 600ms, sin confeti */
+  @keyframes finish-in { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+  .finish-btn.show { animation: finish-in 600ms var(--ease-out) both; }
+
+  /* §4.8 · Nada en bucle. Los tres puntos del coach son la única excepción
+     tolerada y viven solo mientras se espera respuesta. */
+  @keyframes dots { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  .chat-msg.typing, .nchat-msg.typing { animation: dots 1.2s ease-in-out infinite; }
+
+  /* §4.9 · Respeto al ajuste de accesibilidad de iOS */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+    *:active { transform: none !important; }
+  }
+
   /* Trainer: bloques del plan macro */
   .block-item { flex-direction: column; cursor: pointer; }
   .block-item .b-head { display: flex; align-items: center; gap: 10px; width: 100%; }
-  .block-item .b-chev { width: 18px; height: 18px; color: var(--muted); margin-left: auto; transition: transform .2s ease; flex-shrink: 0; }
+  .block-item .b-chev { width: 18px; height: 18px; color: var(--muted); margin-left: auto; transition: transform var(--t-base) var(--ease); flex-shrink: 0; }
   .block-item.open .b-chev { transform: rotate(180deg); }
   .block-item .b-detail { display: none; width: 100%; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
   .block-item.open .b-detail { display: block; }
@@ -918,7 +995,7 @@
         .ex-slider { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 12px -18px; padding: 2px 0 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .ex-slider::-webkit-scrollbar { display: none; }
         .ex-slider::before, .ex-slider::after { content: ''; flex: 0 0 calc(50% - 70px); }
-        .ex-chip { flex: 0 0 auto; scroll-snap-align: center; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 15px; font-size: 13px; white-space: nowrap; transition: color .15s, border-color .15s; }
+        .ex-chip { flex: 0 0 auto; scroll-snap-align: center; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 15px; font-size: 13px; white-space: nowrap; transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
         .ex-chip.active { color: var(--accent); border-color: var(--accent); font-weight: 600; }
         #progChart { touch-action: none; }
         .prog-readout { text-align: center; margin-top: 10px; min-height: 40px; }
@@ -962,7 +1039,7 @@
         .op-head span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
         .op-head b { font-size: 19px; color: var(--accent); }
         .op-bar { height: 10px; border-radius: 99px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); overflow: hidden; }
-        .op-fill { height: 100%; border-radius: 99px; background: var(--hot); transition: width .4s ease; }
+        .op-fill { height: 100%; border-radius: 99px; background: var(--hot); transition: width 400ms var(--ease-out); }
         .op-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
         .op-mini { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
 
@@ -1315,7 +1392,7 @@
     /* ---------- Sheet de la tira ---------- */
     .hs-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 90; display: none; }
     .hs-backdrop.open { display: block; }
-    .hsheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); z-index: 91; transform: translateY(105%); transition: transform .22s ease; max-height: 72dvh; overflow: auto; }
+    .hsheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); z-index: 91; transform: translateY(105%); transition: transform var(--t-slow) var(--ease); max-height: 84dvh; overflow: auto; }
     .hsheet.open { transform: none; }
     .hs-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .hs-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
@@ -2805,7 +2882,7 @@
     tr.classList.toggle('completed', btn.classList.contains('checked'));
     if (btn.classList.contains('checked')) {
       autofillSet(tr);
-      if (navigator.vibrate) navigator.vibrate(30);
+      navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
       startRest(restSec);
     }
   };
