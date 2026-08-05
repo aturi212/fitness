@@ -1,26 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <!-- ONIX · icono de la PWA — DESIGN.md §9 (opción 14b)
+       Cuadrado y SIN transparencia: iOS aplica su propia máscara squircle;
+       si entregamos la esquina redondeada se ve doble.
+       Dentro de un SVG las referencias van con url(#id), nunca %23 (§12.2). -->
   <defs>
-    <linearGradient id="d1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7DFFC1"/>
-      <stop offset="0.5" stop-color="#35F58B"/>
-      <stop offset="1" stop-color="#0F5132"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.62" y2="1">
+      <stop offset="0" stop-color="#1A1B1D"/>
+      <stop offset="0.46" stop-color="#0A0A0B"/>
+      <stop offset="1" stop-color="#141517"/>
     </linearGradient>
-    <linearGradient id="d2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7DFFC1"/>
-      <stop offset="0.5" stop-color="#35F58B"/>
-      <stop offset="1" stop-color="#1B7E48"/>
+    <radialGradient id="glow" cx="0.82" cy="0.14" r="0.74">
+      <stop offset="0" stop-color="#FF5A1A" stop-opacity="0.4"/>
+      <stop offset="0.55" stop-color="#FF3B12" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#FF3B12" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="0.1" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFB259"/>
+      <stop offset="0.55" stop-color="#FF5A1A"/>
+      <stop offset="1" stop-color="#D6280A"/>
     </linearGradient>
-    <linearGradient id="d3" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6BFFB6"/>
-      <stop offset="0.5" stop-color="#35F58B"/>
-      <stop offset="1" stop-color="#15703E"/>
-    </linearGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0A0C0E"/>
-  <circle cx="256" cy="256" r="210" fill="url(#d1)"/>
-  <circle cx="256" cy="256" r="172" fill="#0A0C0E"/>
-  <circle cx="256" cy="256" r="148" fill="url(#d2)"/>
-  <circle cx="256" cy="256" r="118" fill="#0A0C0E"/>
-  <circle cx="256" cy="256" r="100" fill="url(#d3)"/>
-  <circle cx="256" cy="256" r="50" fill="#0A0C0E"/>
+
+  <rect width="100" height="100" fill="url(#bg)"/>
+  <rect width="100" height="100" fill="url(#glow)"/>
+  <rect width="100" height="100" filter="url(#grain)" opacity="0.16" style="mix-blend-mode:overlay"/>
+
+  <!-- Marca: la «O» -->
+  <circle cx="50" cy="50" r="27" fill="none" stroke="url(#mark)" stroke-width="13"/>
+  <!-- Reflejo desplazado (+3,−3) -->
+  <circle cx="53" cy="47" r="27" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5"/>
 </svg>
