@@ -822,6 +822,71 @@
   .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
   .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
 
+  /* ════════ NUTRICIÓN · §8.5 y §8.9 ════════ */
+  .nk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .nk-kcal { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+  .nk-kcal small { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; color: var(--faint); margin-right: 8px; }
+  .nk-kcal b { font-size: 20px; font-weight: 700; }
+  .nk-kcal i { font-style: normal; font-size: 13px; color: var(--ghost-2); }
+
+  .nutri-rings-wrap { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+  #nutriRings { width: 44%; max-width: 150px; flex-shrink: 0; }
+  .nutri-legend { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+  .nl-row { min-width: 0; }
+  .nl-top { display: flex; align-items: center; gap: 8px; }
+  .nl-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .nl-name { font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .nl-val { margin-left: auto; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+            font-size: 12px; color: var(--ghost-2); white-space: nowrap; }
+  .nl-val b { font-size: 14px; font-weight: 700; color: var(--text); }
+  .nl-bar { height: 5px; border-radius: 3px; background: #1C1D1F; margin-top: 7px; overflow: hidden; }
+  .nl-fill { height: 100%; border-radius: 3px; }
+
+  /* Bloques desplegables de comidas */
+  .mt-block { border-bottom: 1px solid var(--line); }
+  .mt-block:last-child { border-bottom: none; }
+  .mt-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 15px 0; background: none; border: none; text-align: left; }
+  .mt-chev { width: 15px; height: 15px; color: var(--ghost-2); flex-shrink: 0; transition: transform var(--t-base) var(--ease); }
+  .mt-block.closed .mt-chev { transform: rotate(-90deg); }
+  .mt-name { font: 600 10px/1 var(--f-ui); letter-spacing: .24em; text-transform: uppercase; color: var(--text); }
+  .mt-count { font: 500 9px/1 var(--f-mono); color: var(--ghost-2); }
+  .mt-kcal { margin-left: auto; font: 500 9.5px/1 var(--f-mono); letter-spacing: .12em; color: var(--ghost); }
+  .mt-body { overflow: hidden; padding-bottom: 6px; }
+  .mt-block.closed .mt-body { display: none; }
+  .meal-item { padding: 11px 0 12px; border-bottom: 1px solid var(--line); }
+  .mt-body .meal-item:last-child { border-bottom: none; }
+  .meal-top { display: flex; align-items: baseline; gap: 10px; }
+  .meal-name { font: 500 14.5px/1.3 var(--f-ui); flex: 1; min-width: 0; }
+  .meal-kcal { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px;
+               font-weight: 700; color: var(--text); }
+  .meal-macros { display: flex; gap: 12px; margin-top: 5px; font: 500 9.5px/1 var(--f-mono); letter-spacing: .08em; }
+
+  /* Semanal */
+  .nw-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .nw-row:last-child { border-bottom: none; }
+  .nw-day { width: 46px; flex-shrink: 0; display: flex; align-items: baseline; gap: 7px;
+            font: 700 12px/1 var(--f-mono); color: var(--muted); }
+  .nw-day small { font: 500 10px/1 var(--f-mono); color: var(--ghost-2); }
+  .nw-row.today .nw-day { color: var(--hot-text); }
+  .nw-row.future { opacity: .4; }
+  .nw-kcal { width: 42px; text-align: right; flex-shrink: 0; font-family: var(--f-mono);
+             font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ghost); }
+  .nw-row.today .nw-kcal { color: var(--text); font-weight: 700; }
+  .nw-avg { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+            margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .nw-avg b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 17px; font-weight: 700; }
+  .nw-avg b small { font-size: 9px; font-weight: 500; color: var(--ghost); margin-left: 5px; }
+  .wa-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .wa-row:last-child { border-bottom: none; }
+  .wa-name { font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .wa-val { margin-left: auto; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+            font-size: 12px; color: var(--ghost-2); }
+  .wa-val b { font-size: 14px; font-weight: 700; color: var(--text); }
+
+  /* Chips de bloque en la hoja: solo palabras */
+  .ns-type { flex-direction: row; justify-content: center; font: 600 10px/1 var(--f-ui);
+             letter-spacing: .12em; text-transform: uppercase; padding: 11px 2px; }
+
   /* ════════ Hoja de cambiar ejercicio (§5.10) ════════
      Misma estética que el resto: filas con filete, todas del mismo alto. */
   .sheet { background: var(--s1); border-radius: 20px 20px 0 0; max-height: 84dvh; box-shadow: var(--sh-float); }
@@ -1300,56 +1365,71 @@
 
     <!-- =========== NUTRICIÓN =========== -->
     <section class="screen" data-screen="nutrition">
-      <div class="topbar">
-        <div>
-          <div class="greet">Alimentación</div>
-          <h1>Nutrición</h1>
-        </div>
+      <div class="glow" aria-hidden="true"></div>
+
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <span class="status-chip" id="nutriChip"></span>
+        <button type="button" class="btn-icon" id="nutriAdd" aria-label="Registrar comida">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
       </div>
 
+      <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+
       <div class="seg" id="nutriTabs">
-        <button type="button" class="seg-btn active" data-ntab="daily">Diario</button>
-        <button type="button" class="seg-btn" data-ntab="weekly">Semanal</button>
+        <button type="button" class="seg-btn active" data-ntab="daily">DIARIO</button>
+        <button type="button" class="seg-btn" data-ntab="weekly">SEMANAL</button>
       </div>
 
       <div id="nutriDaily">
         <div class="card">
-          <h3 style="margin:0 0 6px;font-size:15px">Macros de hoy</h3>
-          <div class="sub" id="nutriKcal"></div>
+          <div class="nk-head">
+            <span class="label">Macros del día</span>
+            <span class="nk-kcal"><small>KCAL</small><b id="nutriKcal">0</b><i id="nutriKcalGoal"></i></span>
+          </div>
           <div class="nutri-rings-wrap">
-            <svg id="nutriRings" viewBox="0 0 200 200"></svg>
+            <svg id="nutriRings" viewBox="0 0 160 160"></svg>
             <div class="nutri-legend" id="nutriLegend"></div>
           </div>
         </div>
 
-        <div class="card">
-          <h3 style="margin:0 0 10px;font-size:15px">Comidas de hoy</h3>
-          <div id="mealList"></div>
-        </div>
+        <button type="button" class="btn btn--primary" id="mealAddBtn" style="margin-top:18px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          REGISTRAR COMIDA
+        </button>
 
-        <div class="card">
-          <h3 style="margin:0 0 8px;font-size:15px">Nutricionista</h3>
-          <div class="nchat-log" id="nchatLog"></div>
-          <form class="nchat-input" id="nchatForm">
-            <input id="nchatText" type="text" placeholder="Pregúntame cómo rematar el día…" autocomplete="off" enterkeyhint="send">
-            <button type="submit" id="nchatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex-shrink:0"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
-          </form>
+        <div class="sec-head">
+          <span class="label">Comidas</span>
+          <span class="rule"></span>
+          <span class="data-sm" id="mealCount"></span>
         </div>
+        <div id="mealList"></div>
       </div>
 
       <div id="nutriWeekly" style="display:none">
         <div class="card">
           <div class="cal-head" style="margin-top:0">
-            <button type="button" class="cal-btn" id="nwPrev">‹</button>
+            <button type="button" class="cal-btn" id="nwPrev" aria-label="Semana anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
             <div class="cal-title" id="nwTitle"></div>
-            <button type="button" class="cal-btn" id="nwNext">›</button>
+            <button type="button" class="cal-btn" id="nwNext" aria-label="Semana siguiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
           </div>
           <div id="weekMacros"></div>
-          <div class="nutri-legend wm-legend" id="weekLegend"></div>
+          <div class="nw-avg"><span class="label" id="nwAvgLabel">Media</span><b id="nwAvgKcal">—</b></div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <div class="nk-head">
+            <span class="label">Media por macro</span>
+            <span class="data-sm">VS OBJETIVO</span>
+          </div>
+          <div id="weekAvgMacros"></div>
         </div>
       </div>
-
-      <button type="button" class="nutri-fab" id="nutriAdd" aria-label="Registrar comida">+</button>
 
       <div class="hs-backdrop" id="nsBackdrop"></div>
 
@@ -1357,8 +1437,9 @@
         <div class="ns-title">Registrar comida</div>
         <div class="ns-types" id="nsTypes"></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
-        <div class="ns-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg><span>Para dictarlo, toca el campo y usa el micrófono del teclado</span></div>
+
         <div class="ns-actions">
+          <button type="button" class="ns-photo" id="nsMic" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg></button>
           <button type="button" class="ns-photo" id="nsPhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></svg> Foto</button>
           <button type="button" class="ns-send" id="nsSend">Analizar y añadir</button>
         </div>
@@ -4028,7 +4109,11 @@ function defaultMealType() {
   return 'dinner';
 }
 // Objetivos: del plan (goals.nutrition, ajustable por el Personal Trainer) o defaults
-const nutriTargets = () => ({ ...NUTRI_DEFAULT_TARGETS, ...((window.ROUTINES?.goals || {}).nutrition || {}) });
+const nutriTargets = () => {
+  const t = { ...NUTRI_DEFAULT_TARGETS, ...((window.ROUTINES?.goals || {}).nutrition || {}) };
+  if (!t.kcal) t.kcal = Math.round(t.protein_g * 4 + t.carbs_g * 4 + t.fat_g * 9);
+  return t;
+};
 const nutriTotals = (meals) => {
   const t = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0 };
   meals.forEach((m) => { Object.keys(t).forEach((k) => { t[k] += Number(m[k]) || 0; }); });
@@ -4074,33 +4159,64 @@ async function materializeRecurring() {
   if (!error && data?.length) saveMeals(loadMeals().concat(data));
 }
 
+// Día que se está viendo/editando en la pestaña Diario. Se puede retroceder
+// para apuntar lo de ayer cuando ya ha pasado la medianoche.
+let nutriDay = nutriIso();
+const MESES_N2 = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+const DOW_N2 = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+function nutriDayLabel(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const hoy = nutriIso();
+  if (iso === hoy) return `HOY · ${String(d).padStart(2, '0')} ${MESES_N2[m]}`;
+  if (iso === nutriAddDays(hoy, -1)) return `AYER · ${String(d).padStart(2, '0')} ${MESES_N2[m]}`;
+  return `${DOW_N2[new Date(y, m - 1, d).getDay()]} ${String(d).padStart(2, '0')} ${MESES_N2[m]}`;
+}
+
+// Bloques que el usuario ha plegado (se recuerda entre renders)
+const mealCollapsed = new Set();
+
 function renderNutriDaily() {
-  const meals = mealsOf(nutriIso());
+  const meals = mealsOf(nutriDay);
   const totals = nutriTotals(meals);
   const targets = nutriTargets();
-  // Anillos concéntricos
-  const radii = [86, 70, 54, 38];
+
+  $('nutriChip').textContent = nutriDayLabel(nutriDay);
+
+  // Anillos concéntricos con el CENTRO VACÍO (§5.5): el total vive en la cabecera
+  const radii = [70, 56, 42, 28];
   $('nutriRings').innerHTML = NUTRI_MACROS.map((m, i) => {
     const r = radii[i], circ = 2 * Math.PI * r;
     const pct = Math.min(1, (totals[m.k] || 0) / (targets[m.k] || 1));
-    return `<circle cx="100" cy="100" r="${r}" fill="none" stroke="#191d22" stroke-width="13"/>` +
-      (pct > 0 ? `<circle cx="100" cy="100" r="${r}" fill="none" stroke="${m.color}" stroke-width="13" stroke-linecap="round"
-        stroke-dasharray="${(pct * circ).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 100 100)"/>` : '');
+    return `<circle cx="80" cy="80" r="${r}" fill="none" stroke="#1C1D1F" stroke-width="8"/>` +
+      (pct > 0 ? `<circle cx="80" cy="80" r="${r}" fill="none" stroke="${m.color}" stroke-width="8" stroke-linecap="round"
+        stroke-dasharray="${(pct * circ).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 80 80)"/>` : '');
   }).join('');
+
+  // Filas de macro: muestra, nombre, valor/objetivo y barra
   $('nutriLegend').innerHTML = NUTRI_MACROS.map((m) => {
     const v = totals[m.k] || 0, t = targets[m.k] || 0;
-    return `<div class="nl-item"><span class="nl-dot" style="background:${m.color}"></span>
-      ${m.label} <b>${Math.round(v)}</b>/${Math.round(t)} g <small>${t ? Math.round((v / t) * 100) : 0}%</small></div>`;
+    const pct = t ? Math.min(100, (v / t) * 100) : 0;
+    const pasado = t && v > t;
+    return `<div class="nl-row">
+      <div class="nl-top">
+        <span class="nl-dot" style="background:${m.color}"></span>
+        <span class="nl-name">${m.label}</span>
+        <span class="nl-val"><b>${Math.round(v)}</b>/${Math.round(t)}</span>
+      </div>
+      <div class="nl-bar"><div class="nl-fill" style="width:${pct}%;background:${pasado ? 'var(--warn)' : m.color}"></div></div>
+    </div>`;
   }).join('');
-  $('nutriKcal').textContent = meals.length
-    ? `${meals.length} ${meals.length === 1 ? 'comida' : 'comidas'} · ${Math.round(totals.kcal)} kcal`
-    : 'Nada registrado aún — dale al +';
-  // Lista en 4 bloques: desayuno / comida / cena / otros
+
+  $('nutriKcal').textContent = Math.round(totals.kcal);
+  $('nutriKcalGoal').textContent = targets.kcal ? `/${Math.round(targets.kcal)}` : '';
+  $('mealCount').textContent = meals.length ? String(meals.length).padStart(2, '0') : '';
+
+  // Cuatro desplegables: desayuno, comida, cena y otros
   const mealRow = (m) => `
     <div class="meal-item" data-meal="${m.id}">
       <div class="meal-top">
         <span class="meal-name">${m.description}</span>
-        <span class="meal-kcal">${Math.round(m.kcal || 0)} kcal</span>
+        <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
       </div>
       <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
         `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}</div>
@@ -4108,96 +4224,52 @@ function renderNutriDaily() {
   $('mealList').innerHTML = MEAL_TYPES.map((t) => {
     const items = meals.filter((m) => (m.meal_type || 'other') === t.k);
     const kcal = Math.round(items.reduce((a, m) => a + (Number(m.kcal) || 0), 0));
-    return `<div class="mt-block">
-      <div class="mt-head"><span>${t.icon} ${t.label}</span><small>${items.length ? kcal + ' kcal' : ''}</small></div>
-      ${items.length ? items.map(mealRow).join('') : '<div class="nutri-empty">—</div>'}
+    const plegado = mealCollapsed.has(t.k);
+    return `<div class="mt-block ${plegado ? 'closed' : ''}" data-block="${t.k}">
+      <button type="button" class="mt-head" data-toggle="${t.k}">
+        <svg class="mt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="mt-name">${t.label}</span>
+        <span class="mt-count">${items.length ? String(items.length).padStart(2, '0') : '—'}</span>
+        <span class="mt-kcal">${items.length ? kcal + ' KCAL' : ''}</span>
+      </button>
+      <div class="mt-body">
+        ${items.length ? items.map(mealRow).join('') : '<div class="nutri-empty">Nada registrado en este bloque.</div>'}
+      </div>
     </div>`;
   }).join('');
+  $('mealList').querySelectorAll('[data-toggle]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const k = b.dataset.toggle;
+      if (mealCollapsed.has(k)) mealCollapsed.delete(k); else mealCollapsed.add(k);
+      b.closest('.mt-block').classList.toggle('closed', mealCollapsed.has(k));
+    });
+  });
 }
 
-// ===== Chat nutricionista (efímero: sesión + se vacía tras 30 min sin uso) =====
-let nchatHistory = [];
-let nchatLastTs = 0;
-let nchatIdleTimer = null;
-function nchatBubble(cls, text) {
-  const d = document.createElement('div');
-  d.className = 'nchat-msg ' + cls;
-  d.textContent = text;
-  $('nchatLog').appendChild(d);
-  $('nchatLog').scrollTop = $('nchatLog').scrollHeight;
-  return d;
+// Deslizar sobre la pestaña Diario cambia de día (no se puede ir al futuro)
+(() => {
+  const zona = document.getElementById('nutriDaily');
+  if (!zona) return;
+  let x0 = null, y0 = null;
+  zona.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  zona.addEventListener('touchend', (e) => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > 45) return;
+    cambiarDia(dx > 0 ? -1 : 1);
+  });
+})();
+function cambiarDia(n) {
+  const destino = nutriAddDays(nutriDay, n);
+  if (destino > nutriIso()) return;      // no se apunta en el futuro
+  nutriDay = destino;
+  renderNutriDaily();
 }
-function renderNChat() {
-  const log = $('nchatLog');
-  log.innerHTML = '';
-  if (!nchatHistory.length) {
-    log.innerHTML = '<div class="nchat-empty">Pregúntame lo que quieras: cómo vas hoy, qué cenar para cerrar el día, dudas de nutrición…</div>';
-    return;
-  }
-  nchatHistory.forEach((m) => nchatBubble(m.role === 'user' ? 'user' : 'bot', m.content));
-}
-function nchatContext() {
-  const today = nutriIso();
-  const meals = mealsOf(today);
-  const week = [];
-  const monday = nutriMonday(today);
-  for (let i = 0; i < 7; i++) {
-    const dIso = nutriAddDays(monday, i);
-    if (dIso > today) break;
-    week.push({ fecha: dIso, ...nutriTotals(mealsOf(dIso)) });
-  }
-  return {
-    hoy: {
-      totales: nutriTotals(meals),
-      comidas: meals.map((m) => `${(MEAL_TYPES.find((t) => t.k === (m.meal_type || 'other')) || {}).label}: ${m.description}`),
-    },
-    objetivos_diarios: nutriTargets(),
-    esta_semana: week,
-  };
-}
-async function sendNChat(text) {
-  if (!text || $('nchatSend').disabled) return;
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { showLogin(); return; }
-  nchatLastTs = Date.now();
-  nchatHistory.push({ role: 'user', content: text });
-  if (nchatHistory.length > 24) nchatHistory = nchatHistory.slice(-24);
-  renderNChat();
-  const typing = nchatBubble('bot typing', 'Pensando…');
-  $('nchatSend').disabled = true;
-  try {
-    const { data, error } = await sb.functions.invoke('nutrition', {
-      body: { mode: 'chat', messages: nchatHistory.map((m) => ({ role: m.role, content: m.content })), context: nchatContext() },
-    });
-    typing.remove();
-    if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
-    nchatHistory.push({ role: 'assistant', content: data.reply || '(sin respuesta)' });
-    renderNChat();
-  } catch (err) {
-    typing.remove();
-    nchatBubble('bot', (err?.message || err));
-  } finally {
-    $('nchatSend').disabled = false;
-    nchatLastTs = Date.now();
-    saveLive('nutrition', nchatHistory, nchatLastTs);
-    clearTimeout(nchatIdleTimer);
-    nchatIdleTimer = setTimeout(async () => {
-      if (!nchatHistory.length) return;
-      await archiveThread('nutrition', nchatHistory, nchatLastTs);
-      saveLive('nutrition', [], 0);
-      nchatHistory = [];
-      renderNChat();
-    }, CHAT_IDLE_MS);
-  }
-}
-$('nchatForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = $('nchatText').value.trim();
-  if (!text) return;
-  $('nchatText').value = '';
-  sendNChat(text);
-});
-renderNChat();
+
+// El chat del nutricionista se retiró de esta pantalla (decisión de Adrián).
+// La Edge Function `nutrition` conserva el modo chat por si vuelve.
 
 // ===== Semanal: navegación por semanas + barras horizontales por día =====
 let nutriWeekStart = nutriMonday(nutriIso());
@@ -4223,9 +4295,12 @@ function renderNutriWeekly() {
     ? 'Esta semana' : `${fmt(nutriWeekStart)} — ${fmt(nutriAddDays(nutriWeekStart, 6))}`;
   $('nwNext').disabled = nutriWeekStart >= curMonday;
   $('nwNext').style.opacity = nutriWeekStart >= curMonday ? .35 : 1;
+  const conDatos = [];
   $('weekMacros').innerHTML = DAYS.map((name, i) => {
     const dateIso = nutriAddDays(nutriWeekStart, i);
-    const totals = nutriTotals(mealsOf(dateIso));
+    const dayMeals = mealsOf(dateIso);
+    const totals = nutriTotals(dayMeals);
+    if (dayMeals.length) conDatos.push(totals);
     const segs = NUTRI_MACROS.map((m) => {
       const pct = (totals[m.k] || 0) / (targets[m.k] || 1);
       const met = pct >= 1;
@@ -4235,10 +4310,24 @@ function renderNutriWeekly() {
       return `<div class="nw-seg"><div class="nw-fill" style="width:${width}%;background:${color}"></div></div>`;
     }).join('');
     const cls = 'nw-row' + (dateIso === today ? ' today' : '') + (dateIso > today ? ' future' : '');
-    return `<div class="${cls}"><div class="nw-day">${name}<small>${fmt(dateIso)}</small></div><div class="nw-bar">${segs}</div></div>`;
+    return `<div class="${cls}">
+      <div class="nw-day">${name.slice(0, 1)}<small>${String(+fmt(dateIso).split(' ')[0]).padStart(2, '0')}</small></div>
+      <div class="nw-bar">${segs}</div>
+      <span class="nw-kcal">${dayMeals.length ? Math.round(totals.kcal) : '—'}</span>
+    </div>`;
   }).join('');
-  $('weekLegend').innerHTML = NUTRI_MACROS.map((m) =>
-    `<div class="nl-item"><span class="nl-dot" style="background:${m.color}"></span>${m.label}</div>`).join('');
+
+  // La media se hace SOLO sobre los días en los que apuntó algo
+  const n = conDatos.length;
+  const media = (k) => (n ? conDatos.reduce((acc, t) => acc + (t[k] || 0), 0) / n : 0);
+  $('nwAvgLabel').textContent = n ? `Media ${n} ${n === 1 ? 'día' : 'días'}` : 'Sin registros';
+  $('nwAvgKcal').innerHTML = n ? `${Math.round(media('kcal'))}<small>KCAL</small>` : '—';
+  $('weekAvgMacros').innerHTML = NUTRI_MACROS.map((m) => `
+    <div class="wa-row">
+      <span class="nl-dot" style="background:${m.color}"></span>
+      <span class="wa-name">${m.label}</span>
+      <span class="wa-val"><b>${n ? Math.round(media(m.k)) : '—'}</b> / ${Math.round(targets[m.k] || 0)}</span>
+    </div>`).join('');
 }
 $('nwPrev').addEventListener('click', async () => {
   nutriWeekStart = nutriAddDays(nutriWeekStart, -7);
@@ -4253,12 +4342,6 @@ $('nwNext').addEventListener('click', () => {
 });
 
 function renderNutrition() {
-  if (nchatHistory.length && Date.now() - nchatLastTs > CHAT_IDLE_MS) {
-    archiveThread('nutrition', nchatHistory, nchatLastTs);
-    saveLive('nutrition', [], 0);
-    nchatHistory = [];
-    renderNChat();
-  }
   renderNutriDaily();
   renderNutriWeekly();
 }
@@ -4285,7 +4368,7 @@ function closeSheets() {
 let nsType = 'other', edType = 'other';
 function renderTypeChips(containerId, active, onPick) {
   $(containerId).innerHTML = MEAL_TYPES.map((t) =>
-    `<button type="button" class="ns-type ${t.k === active ? 'active' : ''}" data-t="${t.k}"><span>${t.icon}</span>${t.label}</button>`).join('');
+    `<button type="button" class="ns-type ${t.k === active ? 'active' : ''}" data-t="${t.k}">${t.label}</button>`).join('');
   $(containerId).querySelectorAll('.ns-type').forEach((b) =>
     b.addEventListener('click', () => { onPick(b.dataset.t); renderTypeChips(containerId, b.dataset.t, onPick); }));
 }
@@ -4327,7 +4410,7 @@ async function analyzeAndAdd({ text, imageB64 }) {
   const items = data?.items || [];
   if (!items.length) throw new Error('No he reconocido comida ahí. Prueba a describirlo de otra forma.');
   const rows = items.map((it) => ({
-    date: nutriIso(),
+    date: nutriDay,
     description: it.description,
     meal_type: nsType,
     protein_g: it.protein_g, carbs_g: it.carbs_g, fat_g: it.fat_g, fiber_g: it.fiber_g, kcal: it.kcal,
@@ -4358,9 +4441,16 @@ async function nsSubmit(imageB64) {
 }
 
 $('nutriAdd').addEventListener('click', openNutriSheet);
+$('mealAddBtn').addEventListener('click', openNutriSheet);
 $('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
 $('nsPhoto').addEventListener('click', () => $('nsFile').click());
+$('nsMic').addEventListener('click', () => {
+  // iOS no deja abrir el dictado por código: se enfoca el campo y el micrófono
+  // del teclado queda a un toque.
+  $('nsText').focus();
+  nsStatus('Toca el micrófono del teclado para dictar');
+});
 $('nsFile').addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   e.target.value = '';
