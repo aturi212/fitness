@@ -89,7 +89,10 @@
     --gutter: 20px;
     --maxw: 520px;
     --nav-h: 62px;
-    --nav-gap: 24px;
+    /* §5.7 dice 24px de separación y 14px a los lados; Adrián la quiere algo
+       más baja y un poco más ancha, que el hueco negro cantaba en el 15 Pro Max */
+    --nav-gap: 12px;
+    --nav-side: 10px;
     --tap: 44px;
 
     /* ─── Puente con el CSS heredado (se migra pantalla a pantalla) ───
@@ -280,7 +283,7 @@
 
   /* §5.7 · Píldora flotante. Sin botón Home elevado: rompía la rejilla. */
   nav.bottom {
-    position: fixed; left: 14px; right: 14px; z-index: 50;
+    position: fixed; left: var(--nav-side); right: var(--nav-side); z-index: 50;
     bottom: calc(var(--nav-gap) + env(safe-area-inset-bottom));
     height: var(--nav-h); border-radius: var(--r-7);
     background: rgba(12,12,13,.9);
@@ -289,7 +292,7 @@
     border: 1px solid var(--line-2); box-shadow: var(--sh-float);
     display: grid; grid-template-columns: repeat(5, 1fr);
     align-items: center; padding: 0 6px;
-    max-width: calc(var(--maxw) - 28px); margin: 0 auto;
+    max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
   }
   nav.bottom button {
     height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -729,6 +732,50 @@
     *:active { transform: none !important; }
   }
 
+  /* ════════ TRAINER · §8.2 y §8.7 ════════ */
+  .rt-row { align-items: center; }
+  .rt-info { flex: 1; min-width: 0; }
+  .rt-name { font: 600 16px/1.2 var(--f-ui); display: flex; align-items: center; gap: 9px; }
+  .rt-hoy { font: 700 9px/1 var(--f-mono); letter-spacing: .14em; background: var(--hot);
+            color: var(--hot-ink); padding: 4px 7px; border-radius: var(--r-1); }
+  .rt-meta { margin-top: 6px; font: 500 10px/1 var(--f-mono); letter-spacing: .14em;
+             text-transform: uppercase; color: var(--ghost); }
+  .rt-chev { width: 17px; height: 17px; color: var(--ghost-2); flex-shrink: 0; }
+
+  /* Objetivos: fila con nombre, %, barra y meta */
+  .goal-row { display: block; padding: 15px 0; border-bottom: 1px solid var(--line); }
+  .goal-row:last-child { border-bottom: none; }
+  .goal-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .goal-name { font: 600 15px/1.25 var(--f-ui); color: var(--text); }
+  .goal-val { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text); }
+  .goal-val b { font-size: 19px; font-weight: 700; }
+  .goal-val small { font-size: 10px; color: var(--ghost); margin-left: 3px; }
+  .goal-val.ok { color: var(--ok); }
+  .goal-val.low { color: var(--warn); }
+  .goal-bar { height: 6px; border-radius: 3px; background: #1C1D1F; margin: 11px 0 9px; overflow: hidden; }
+  .goal-fill { height: 100%; border-radius: 3px; background: var(--hot); }
+  .goal-fill.ok { background: linear-gradient(90deg,#4FE0A6,#2FA87A); }
+  .goal-fill.low { background: linear-gradient(90deg,#E0A64A,#C2802A); }
+  .goal-foot { display: flex; align-items: baseline; gap: 10px; font: 500 9.5px/1.35 var(--f-mono);
+               letter-spacing: .12em; color: var(--ghost-2); }
+  .goal-foot b { color: var(--muted); font-weight: 500; text-transform: uppercase; }
+
+  /* Vista previa de un entreno */
+  .routine-view { position: fixed; inset: 0; z-index: 95; background: var(--bg);
+    display: flex; flex-direction: column; transform: translateY(100%);
+    transition: transform var(--t-slow) var(--ease); }
+  .routine-view.open { transform: none; }
+  .rv-head { display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    padding: calc(env(safe-area-inset-top) + 12px) var(--gutter) 12px; border-bottom: 1px solid var(--line); }
+  .rv-body { flex: 1; overflow-y: auto; padding: 20px var(--gutter) 24px; }
+  .rv-title { font-size: 46px; line-height: .9; margin: 0 0 14px; }
+  .rv-title .out { -webkit-text-stroke-width: 1.5px; }
+  .rv-foot { flex-shrink: 0; padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 14px);
+    border-top: 1px solid var(--line); background: var(--bg); }
+  .rv-foot .btn { height: 60px; }
+  .rv-foot .btn svg { width: 15px; height: 15px; }
+  .rv-ex { align-items: center; }
+
   /* Trainer: bloques del plan macro */
   .block-item { flex-direction: column; cursor: pointer; }
   .block-item .b-head { display: flex; align-items: center; gap: 10px; width: 100%; }
@@ -834,46 +881,46 @@
       <div id="recentList"></div>
     </section>
 
-    <!-- =========== PERSONAL TRAINER =========== -->
+    <!-- =========== TRAINER · DESIGN.md §8.2 y §8.7 =========== -->
     <section class="screen" data-screen="trainer">
-      <div class="topbar">
-        <div>
-          <div class="greet">Tu plan</div>
-          <h1>Personal Trainer</h1>
-        </div>
+      <div class="glow" aria-hidden="true"></div>
+
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <span class="status-chip" id="trainerChip"></span>
+        <button type="button" class="btn-icon" id="trainerAdd" aria-label="Añadir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
       </div>
 
+      <h1 class="title scr-title" id="trainerTitle"></h1>
+
       <div class="seg" id="trainerTabs">
-        <button class="seg-btn active" data-tab="entrenos">Entrenos</button>
-        <button class="seg-btn" data-tab="obj">Objetivos</button>
+        <button class="seg-btn active" data-tab="entrenos">ENTRENOS</button>
+        <button class="seg-btn" data-tab="obj">OBJETIVOS</button>
       </div>
 
       <div class="tab-panel active" data-panel="entrenos">
-        <div class="section-title">Tus entrenos</div>
         <div id="routineList"></div>
-        <button type="button" class="hs-opt" id="aiRoutineBtn" style="justify-content:center;margin-top:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex-shrink:0"><path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9z"/></svg> Crear entreno con IA</button>
-        <div class="muted" style="font-size:12px;padding:10px 2px;line-height:1.5">Toca un entreno para verlo o empezarlo. Los que crees con la IA aparecen aquí y podrás asignarlos a cualquier día desde la semana de Home.</div>
       </div>
 
       <div class="tab-panel" data-panel="obj">
-        <div class="seg" id="goalsSeg" style="margin-bottom:14px">
-          <button class="seg-btn active" data-goals="shortTerm">Corto plazo</button>
-          <button class="seg-btn" data-goals="longTerm">Largo plazo</button>
+        <div class="seg" id="goalsSeg" style="margin-bottom:16px">
+          <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
+          <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
         </div>
         <div id="goalsPanel"></div>
 
-        <div class="card chart-card" style="margin-top:20px">
-          <h3>Métricas</h3>
-          <div class="sub" id="weightSub" style="margin-bottom:8px">Aún sin métricas — añade las de hoy</div>
-          <svg class="line-chart" id="weightChart" viewBox="0 0 300 110" preserveAspectRatio="none" style="display:none"></svg>
-          <div class="chart-range" id="weightRange"></div>
-          <button type="button" class="hs-opt" id="metricsAddBtn" style="justify-content:center;margin:4px 0 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg> Añadir nuevas métricas</button>
-          <form class="weight-form" id="weightForm" style="display:none">
-            <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)" style="flex:0 0 104px">
-            <input id="metricsNote" type="text" placeholder="Otras: % grasa, cintura…">
-            <button type="submit">Guardar</button>
-          </form>
+        <div class="sec-head">
+          <span class="label">Métricas</span>
+          <span class="rule"></span>
         </div>
+        <button type="button" class="hs-opt" id="metricsAddBtn" style="justify-content:center;margin:10px 0 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg> Añadir nuevas métricas</button>
+        <form class="weight-form" id="weightForm" style="display:none">
+          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)" style="flex:0 0 104px">
+          <input id="metricsNote" type="text" placeholder="Otras: % grasa, cintura…">
+          <button type="submit">Guardar</button>
+        </form>
       </div>
     </section>
 
@@ -988,20 +1035,24 @@
       .block-item.done .b-num { background: #4E5155; }
       .block-item.current .b-num { background: var(--hot-solid); }
       .block-item .b-idx { font: 500 9px/1 var(--f-mono); color: var(--ghost-2); flex-shrink: 0; }
-      .block-item.current .b-idx { color: var(--hot-text); }
-      .block-item .b-name { font: 500 15px/1.2 var(--f-ui); color: var(--ghost-2); }
-      .block-item.done .b-name { color: var(--dim); }
-      .block-item.current .b-name { color: var(--text); }
+      /* Los nombres se leen en blanco siempre; el gris + naranja distingue al abierto */
+      .block-item .b-name { font: 500 15px/1.2 var(--f-ui); color: var(--text); }
       .block-item .b-weeks { margin-left: auto; font: 500 10px/1 var(--f-mono); letter-spacing: .12em;
         text-transform: uppercase; color: var(--ghost); white-space: nowrap; }
+      .block-item.open { background: var(--s2); border-radius: var(--r-6);
+        margin: 0 calc(var(--gutter) * -0.5); padding-left: calc(var(--gutter) * 0.5); padding-right: calc(var(--gutter) * 0.5); }
+      .block-item.open .b-num { background: var(--hot-solid); }
+      .block-item.open .b-idx { color: var(--hot-text); }
       .block-item .b-chev { display: none; }
-      .block-item .b-detail { display: none; width: 100%; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+      /* El detalle se sangra para no pisar el filete de la línea de tiempo */
+      .block-item .b-detail { display: none; width: 100%; margin-top: 12px; padding: 12px 0 2px 26px;
+        border-top: 1px solid var(--line); }
       .block-item.open .b-detail { display: block; }
       .b-line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 0; font-size: 14px; }
-      .b-line span { color: var(--dim); }
+      .b-line span { color: var(--muted); }
       .b-line b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-weight: 700;
         font-size: 13px; letter-spacing: .04em; text-align: right; color: var(--text); white-space: nowrap; }
-      .b-prose { margin: 10px 0 2px; font: 400 13.5px/1.5 var(--f-ui); color: var(--dim); }
+      .b-prose { margin: 12px 0 2px; font: 400 13.5px/1.55 var(--f-ui); color: var(--muted); }
       .block-timeline { position: relative; }
       .block-timeline::before { content: ''; position: absolute; left: 4px; top: 20px; bottom: 20px;
         width: 1px; background: var(--line); }
@@ -1343,6 +1394,28 @@
       <span>STATS</span>
     </button>
   </nav>
+
+  <!-- Vista previa de un entreno (§8.2): se abre como si fueras a hacerlo -->
+  <div class="routine-view" id="routineView">
+    <div class="rv-head">
+      <button type="button" class="btn-icon" id="rvBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span class="label-sm">Vista previa</span>
+    </div>
+    <div class="rv-body">
+      <h1 class="title rv-title" id="rvTitle"></h1>
+      <div class="home-stats" id="rvMeta"></div>
+      <div class="sec-head"><span class="label">Ejercicios</span><span class="rule"></span></div>
+      <div id="rvList"></div>
+    </div>
+    <div class="rv-foot">
+      <button type="button" class="btn btn--primary" id="rvStart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        INICIAR ENTRENAMIENTO
+      </button>
+    </div>
+  </div>
 
   <!-- Historial de conversaciones -->
   <div class="hs-backdrop" id="chHistBackdrop"></div>
@@ -2100,22 +2173,52 @@
   }
 
   // Ver/empezar un entreno desde la lista de Trainer→Entrenos
+  // Vista previa del entreno: se abre como si fueras a hacerlo, con el botón de
+  // iniciar abajo. Salir no registra nada.
   function openRoutineView(rid) {
     const r = window.ROUTINES.routines[rid];
     if (!r) return;
-    hsCtx = { rid, dow: null, date: null };
-    openHs(r.name,
-      (r.exercises || []).map((ex) =>
-        `<div class="hs-ex"><span>${getExercise(ex.exerciseId).name}</span><span style="color:var(--muted)">${ex.sets}×${ex.repsTarget}</span></div>`).join('') +
-      `<button type="button" class="hs-opt" data-act="start" style="margin-top:12px;justify-content:center;background:var(--accent);color:var(--white-ink);font-weight:700">▶&nbsp; Hacer entrenamiento</button>`);
+    const sets = (r.exercises || []).reduce((a, e) => a + (e.sets || 0), 0);
+    document.getElementById('rvTitle').innerHTML =
+      (() => { const w = r.name.trim().split(/\s+/); if (w.length === 1) return `<span>${w[0]}</span>`;
+               const last = w.pop(); return `<span class="out">${w.join(' ')}</span> <span>${last}</span>`; })();
+    document.getElementById('rvMeta').innerHTML =
+      `<span>${r.exercises.length} EJ</span><i></i><span>${sets} SERIES</span><i></i><span>${routineMins(r)} MIN</span>`;
+    document.getElementById('rvList').innerHTML = (r.exercises || []).map((ex, i) => {
+      const e = getExercise(ex.exerciseId);
+      return `<div class="row rv-ex">
+        <span class="idx">${String(i + 1).padStart(2, '0')}</span>
+        <div class="rt-info">
+          <div class="rt-name">${e.name}</div>
+          <div class="rt-meta">${ex.sets} × ${ex.repsTarget}${ex.restSec ? ` · DESC ${ex.restSec}"` : ''}</div>
+        </div>
+        <span class="metric-sm" style="color:var(--ghost)">${getPrev(ex.exerciseId)}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('rvStart').dataset.rid = rid;
+    document.getElementById('routineView').classList.add('open');
   }
+  function closeRoutineView() { document.getElementById('routineView').classList.remove('open'); }
+  document.getElementById('rvBack').addEventListener('click', closeRoutineView);
+  document.getElementById('rvStart').addEventListener('click', (e) => {
+    const rid = e.currentTarget.dataset.rid;
+    closeRoutineView();
+    if (rid) startSession(rid);
+  });
   document.getElementById('routineList').addEventListener('click', (e) => {
     const item = e.target.closest('[data-rid]');
     if (item) openRoutineView(item.dataset.rid);
   });
 
   // Crear entreno con IA (usa la Edge Function del chat, que tiene las herramientas)
-  document.getElementById('aiRoutineBtn').addEventListener('click', () => {
+  // El «+» de la cabecera cambia según la pestaña: crear entreno / añadir métricas
+  document.getElementById('trainerAdd').addEventListener('click', () => {
+    const enObjetivos = document.querySelector('#trainerTabs .seg-btn.active')?.dataset.tab === 'obj';
+    if (enObjetivos) { document.getElementById('metricsAddBtn').click(); return; }
+    openAiRoutineSheet();
+  });
+
+  function openAiRoutineSheet() {
     hsCtx = { rid: null };
     openHs('Crear entreno con IA', `
       <div class="hs-sub">Cuéntame qué quieres entrenar hoy (objetivo, material, tiempo…) y te monto el entreno.</div>
@@ -2139,7 +2242,7 @@
         btn.disabled = false;
       }
     });
-  });
+  }
 
   function openWorkoutSheet(cell) {
     hsCtx = { dow: +cell.dataset.dow, date: cell.dataset.date, rid: cell.dataset.rid };
@@ -2211,28 +2314,68 @@
   renderHome();
 
   // ============ Render Trainer screen ============
+  // §8.2 · Los entrenos se agrupan por LUGAR. No hay campo `place` en la BD, así
+  // que se deduce del material: si usa barra, máquina o polea es de gimnasio.
+  // Si algún día falla, lo robusto es añadir `place` a la tabla routines.
+  const GYM_EQUIP = new Set(['barbell', 'machine', 'cable']);
+  function routinePlace(id, r) {
+    if (/gym/i.test(r.tag || '') || /gym/i.test(r.name || '')) return 'gym';
+    const usaGym = (r.exercises || []).some((ex) => GYM_EQUIP.has(getExercise(ex.exerciseId).equipment));
+    return usaGym ? 'gym' : 'home';
+  }
+  // Minutos estimados: 2,5 min por serie (igual que en Home)
+  const routineMins = (r) => Math.round((r.exercises || []).reduce((a, e) => a + (e.sets || 0), 0) * 2.5);
+
   function renderTrainer() {
-    // Objetivos (pestaña Objetivos) + peso corporal
+    // Título y chip cambian con la pestaña
+    const enObjetivos = document.querySelector('#trainerTabs .seg-btn.active')?.dataset.tab === 'obj';
+    document.getElementById('trainerTitle').innerHTML =
+      `<span class="out">TUS</span> <span>${enObjetivos ? 'OBJETIVOS' : 'ENTRENOS'}</span>`;
+
     renderGoals();
     renderWeight();
 
-    // Rutinas
+    // ── Entrenos agrupados por lugar ──
     const list = document.getElementById('routineList');
-    list.innerHTML = Object.entries(window.ROUTINES.routines)
+    const todayRid = getEffectiveSchedule(getWeekRange().start)[new Date().getDay()];
+    const grupos = { gym: [], home: [] };
+    Object.entries(window.ROUTINES.routines)
       .filter(([id, r]) => id !== 'rest' && r.exercises && r.exercises.length)
-      .map(([id, r]) => `
-        <div class="routine-item" data-rid="${id}">
-          <div>
-            <b>${r.name}</b>
-            <div class="muted" style="font-size:12px;margin-top:2px">
-              ${r.muscleGroups.join(' · ')} · ${r.exercises.length} ej.
-            </div>
-          </div>
-          <span class="tag ${id}">${r.tag}</span>
-        </div>`).join('');
+      .forEach(([id, r]) => grupos[routinePlace(id, r)].push([id, r]));
 
-    // Plan macro (bloques)
+    const bloque = (titulo, items) => {
+      if (!items.length) return '';
+      return `
+        <div class="sec-head">
+          <span class="label">${titulo}</span>
+          <span class="rule"></span>
+          <span class="data-sm">${String(items.length).padStart(2, '0')}</span>
+        </div>` +
+        items.map(([id, r], i) => {
+          const esHoy = id === todayRid;
+          return `
+          <div class="row rt-row" data-rid="${id}">
+            <span class="idx ${esHoy ? 'idx--now' : ''}">${String(i + 1).padStart(2, '0')}</span>
+            <div class="rt-info">
+              <div class="rt-name">${r.name}${esHoy ? '<span class="rt-hoy">HOY</span>' : ''}</div>
+              <div class="rt-meta">${[
+                (r.muscleGroups || []).slice(0, 2).join(' · '),
+                `${r.exercises.length} EJ`,
+                // La estimación (2,5 min/serie) no aplica a sesiones de una pieza como HIKING
+                routineMins(r) >= 10 ? `${routineMins(r)} MIN` : null,
+              ].filter(Boolean).join(' · ')}</div>
+            </div>
+            <svg class="rt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>`;
+        }).join('');
+    };
+    list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home);
+
+    // Plan macro (bloques) — vive en Chat › Programa
     renderProgramTab();
+    const chip = document.getElementById('trainerChip');
+    const chatChip = document.getElementById('chatStatus');
+    if (chip) chip.textContent = chatChip?.dataset.week || 'PLAN';
   }
 
   // ===== §8.8 · Chat › Programa: el plan macro como línea de tiempo =====
@@ -2717,20 +2860,33 @@
     }
     const pcts = (g.targets || []).map((t) => Math.max(0, Math.min(100, Number(t.progress) || 0)));
     const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+    const cumplidos = pcts.filter((p) => p >= 100).length;
+    // §8.7 · Una fila por objetivo: nombre + % · meta · barra. Sin párrafos.
     wrap.innerHTML = `
       <div class="card op-card">
         <div class="op-head"><span>Progreso · ${goalsView === 'shortTerm' ? 'corto plazo' : 'largo plazo'}</span><b>${avg}%</b></div>
         <div class="op-bar"><div class="op-fill" style="width:${avg}%"></div></div>
-        <div class="op-note">Media de tus ${pcts.length} objetivos · se actualiza con tus entrenos y las métricas que registres cada mes</div>
+        <div class="op-note">Media de tus ${pcts.length} objetivos${cumplidos ? ` · ${cumplidos} cumplidos` : ''}</div>
       </div>
-      <div class="card goals-card">
-        <div class="horizon">${g.horizon} · objetivo ${g.deadline}</div>
-        ${g.targets.map((t) => `
-          <div class="goal-row">
-            <div class="gname">${t.metric}<small>${t.notes || ''}</small></div>
-            <div class="gval">${t.target}</div>
-          </div>`).join('')}
-      </div>`;
+
+      <div class="sec-head">
+        <span class="label">${(g.horizon || '').split('(')[0].trim() || (goalsView === 'shortTerm' ? 'Corto plazo' : 'Largo plazo')}</span>
+        <span class="rule"></span>
+        <span class="data-sm">${g.deadline ? fmtD(g.deadline).toUpperCase() : ''}</span>
+      </div>
+      ${(g.targets || []).map((t) => {
+        const p = Math.max(0, Math.min(100, Number(t.progress) || 0));
+        const estado = p >= 100 ? 'ok' : (p >= 40 ? '' : 'low');
+        return `
+        <div class="goal-row">
+          <div class="goal-top">
+            <span class="goal-name">${t.metric}</span>
+            <span class="goal-val ${estado}"><b>${p}</b><small>%</small></span>
+          </div>
+          <div class="goal-bar"><div class="goal-fill ${estado}" style="width:${p}%"></div></div>
+          <div class="goal-foot"><span>META</span><b>${t.target || ''}</b></div>
+        </div>`;
+      }).join('')}`;
   }
   document.querySelectorAll('#goalsSeg .seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -2932,6 +3088,10 @@
         : '<i class="dot"></i>EN LÍNEA';
     });
   });
+
+  // El título de Trainer cambia con la pestaña (ENTRENOS / OBJETIVOS)
+  document.querySelectorAll('#trainerTabs .seg-btn').forEach(b =>
+    b.addEventListener('click', () => setTimeout(renderTrainer, 0)));
 
   document.querySelectorAll('#trainerTabs .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
