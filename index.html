@@ -89,10 +89,11 @@
     --gutter: 20px;
     --maxw: 520px;
     --nav-h: 62px;
-    /* §5.7 dice 24px de separación y 14px a los lados; Adrián la quiere algo
-       más baja y un poco más ancha, que el hueco negro cantaba en el 15 Pro Max */
-    --nav-gap: 12px;
-    --nav-side: 10px;
+    /* §5.7 dice 24px de separación y 14px a los lados; Adrián la quiere pegada
+       abajo y algo más ancha, que el hueco negro cantaba en el 15 Pro Max.
+       El safe-area del iPhone ya deja aire suficiente bajo la barra. */
+    --nav-gap: 4px;
+    --nav-side: 8px;
     --tap: 44px;
 
     /* ─── Puente con el CSS heredado (se migra pantalla a pantalla) ───
@@ -148,15 +149,18 @@
     opacity: .10; mix-blend-mode: overlay;
   }
 
-  /* ════════ §1.7B · Bloque de calor (solo Home y tracker) ════════ */
-  .heat { position: absolute; inset: 0; height: 520px; background: var(--hot-field); opacity: .88; }
+  /* ════════ §1.7B · Bloque de calor (solo Home y tracker) ════════
+     Las capas siguen la altura del contenedor: en Home esa altura se adapta a
+     la pantalla para que quepa todo sin desplazar (§8.1 la fija en 520px, pero
+     dejaba un hueco muerto enorme sobre el titular en el 15 Pro Max). */
+  .heat { position: absolute; inset: 0; background: var(--hot-field); opacity: .88; }
   .heat-grain {
-    position: absolute; inset: 0; height: 520px; opacity: .18; mix-blend-mode: overlay;
+    position: absolute; inset: 0; opacity: .18; mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23h)'/%3E%3C/svg%3E");
     background-size: 140px 140px;
   }
-  .heat-wash { position: absolute; inset: 0; height: 520px; background: linear-gradient(198deg, rgba(255,150,60,.12), transparent 44%); }
-  .heat-fade { position: absolute; left: 0; right: 0; top: 430px; height: 90px; background: linear-gradient(180deg, rgba(5,5,5,0), var(--bg)); }
+  .heat-wash { position: absolute; inset: 0; background: linear-gradient(198deg, rgba(255,150,60,.12), transparent 44%); }
+  .heat-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, rgba(5,5,5,0), var(--bg)); }
   .glow { position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none;
           background: radial-gradient(100% 70% at 92% 0%, rgba(255,90,26,.18), rgba(255,59,18,.05) 44%, transparent 74%); }
 
@@ -732,6 +736,92 @@
     *:active { transform: none !important; }
   }
 
+  /* ════════════════════════════════════════════════════════════
+     TRACKER · DESIGN.md §5.9 — la pantalla que se usa con las manos
+     ocupadas: objetivos táctiles reales y el peso anterior siempre visible.
+     ════════════════════════════════════════════════════════════ */
+  .tracker { padding-top: 0; }
+  .tk-heat { position: absolute; left: 0; right: 0; top: 0; height: 330px; overflow: hidden; pointer-events: none; }
+  .tk-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    padding: calc(env(safe-area-inset-top) + 10px) var(--gutter) 12px; }
+  .tk-title { flex: 1; min-width: 0; text-align: center; }
+  .tk-name { font: 700 13px/1.2 var(--f-display); letter-spacing: .06em; color: #fff; }
+  .tk-sub { margin-top: 4px; font: 500 9px/1 var(--f-mono); letter-spacing: .14em;
+            text-transform: uppercase; color: rgba(255,255,255,.7); }
+  .tk-progress { position: relative; z-index: 2; height: 3px; background: rgba(0,0,0,.3); flex-shrink: 0; }
+  .tk-progress-fill { height: 100%; background: #fff; width: 0; transition: width var(--t-base) var(--ease); }
+
+  /* Baraja horizontal: un panel por ejercicio o superserie */
+  .tk-deck { position: relative; z-index: 2; flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
+             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tk-deck::-webkit-scrollbar { display: none; }
+  .tk-panel { flex: 0 0 100%; scroll-snap-align: start; overflow-y: auto;
+              padding: 14px var(--gutter) 20px; }
+
+  .tk-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .tk-kicker .rule { flex: 1; height: 1px; background: rgba(255,255,255,.18); }
+  .tk-exname { font: 700 46px/.92 var(--f-display); letter-spacing: -.045em; margin: 0 0 16px;
+               transform: scaleY(1.12); transform-origin: left top; color: #fff;
+               text-transform: uppercase; }
+  /* Nombres largos bajan de cuerpo para no partirse en tres líneas */
+  .tk-exname.len-m { font-size: 36px; }
+  .tk-exname.len-l { font-size: 29px; letter-spacing: -.035em; }
+  .tk-exname .out { color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.9); }
+  .tk-exname.len-l .out { -webkit-text-stroke-width: 1.2px; }
+  .tk-chips { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .tk-chips-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+  .tk-chips-scroll::-webkit-scrollbar { display: none; }
+  .tk-chip { height: 34px; display: inline-flex; align-items: center; padding: 0 13px; border-radius: var(--r-3);
+             background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.24);
+             font: 500 10px/1 var(--f-mono); letter-spacing: .12em; color: #fff; white-space: nowrap; }
+  .tk-chip--swap { margin-left: auto; display: inline-flex; gap: 7px; }
+  .tk-chip--swap svg { width: 13px; height: 13px; }
+
+  /* Superserie: un único bloque, los ejercicios uno debajo del otro */
+  .tk-ss-head { display: flex; align-items: center; gap: 9px; margin-bottom: 14px;
+    padding-left: 10px; border-left: 2px solid rgba(255,90,43,.6);
+    font: 600 9px/1.5 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; color: var(--hot-text); }
+  .tk-panel .exercise-card { background: none; border: none; border-radius: 0; padding: 0; margin: 0 0 26px; }
+  .tk-panel .exercise-card:last-of-type { margin-bottom: 0; }
+
+  /* Tabla de series */
+  .tracker table.sets th { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; color: var(--faint);
+                           text-transform: uppercase; padding: 0 4px 10px; }
+  .tracker table.sets td { padding: 5px 4px; }
+  .tracker table.sets td.set-n { font: 500 13px/1 var(--f-mono); color: var(--ghost-2); }
+  .tracker tr.current td.set-n { color: var(--hot-text); }
+  .tracker table.sets td.prev-val { font: 500 11px/1 var(--f-mono); color: var(--ghost); text-align: left; }
+  .tracker table.sets input { width: 100%; max-width: 74px; height: 42px; padding: 0 6px; border-radius: var(--r-4);
+    background: var(--s3); border: 1px solid var(--line); color: var(--text);
+    font: 700 15px/1 var(--f-mono); font-variant-numeric: tabular-nums; text-align: center; }
+  .tracker table.sets input:focus { outline: none; border: 1.5px solid var(--hot-line); }
+  .tracker table.sets td.done button { width: 36px; height: 36px; border-radius: 50%;
+    background: var(--s3); border: 1px solid var(--line-2); color: var(--ghost-2); }
+  .tracker table.sets td.done button svg { width: 17px; height: 17px; stroke-width: 3.2; }
+
+  /* Nota persistente del ejercicio */
+  .ex-note-box { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; padding: 11px 13px;
+    border: 1px dashed rgba(255,255,255,.14); border-radius: var(--r-4); }
+  .ex-note-box svg { width: 14px; height: 14px; color: var(--ghost-2); flex-shrink: 0; margin-top: 2px; }
+  .ex-note-box textarea { flex: 1; min-width: 0; background: none; border: none; resize: none; color: var(--muted);
+    font: 400 13px/1.45 var(--f-ui); padding: 0; }
+  .ex-note-box textarea:focus { outline: none; color: var(--text); }
+  .ex-note-box textarea::placeholder { color: var(--ghost-2); }
+
+  /* Barra inferior: pausar → reanudar / finalizar */
+  .tk-foot { position: relative; z-index: 3; flex-shrink: 0; background: var(--bg);
+    border-top: 1px solid var(--line);
+    padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 12px); }
+  .tk-foot .btn { height: 56px; font-size: 13px; letter-spacing: .06em; }
+  .tk-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Temporizador de descanso: contorno, nunca relleno a pantalla completa */
+  .rest-timer { left: var(--gutter); right: var(--gutter); bottom: 96px; height: 70px; padding: 0 16px; z-index: 110; }
+  .rest-timer .lbl { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
+  .rest-timer .t { font-size: 26px; margin-top: 5px; }
+  .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
+  .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
+
   /* ════════ TRAINER · §8.2 y §8.7 ════════ */
   .rt-row { align-items: center; }
   .rt-info { flex: 1; min-width: 0; }
@@ -748,6 +838,7 @@
   .goal-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
   .goal-name { font: 600 15px/1.25 var(--f-ui); color: var(--text); }
   .goal-val { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text); }
+  .goal-val { text-align: right; }
   .goal-val b { font-size: 19px; font-weight: 700; }
   .goal-val small { font-size: 10px; color: var(--ghost); margin-left: 3px; }
   .goal-val.ok { color: var(--ok); }
@@ -756,9 +847,11 @@
   .goal-fill { height: 100%; border-radius: 3px; background: var(--hot); }
   .goal-fill.ok { background: linear-gradient(90deg,#4FE0A6,#2FA87A); }
   .goal-fill.low { background: linear-gradient(90deg,#E0A64A,#C2802A); }
-  .goal-foot { display: flex; align-items: baseline; gap: 10px; font: 500 9.5px/1.35 var(--f-mono);
-               letter-spacing: .12em; color: var(--ghost-2); }
+  .goal-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+               font: 500 9.5px/1.35 var(--f-mono); letter-spacing: .12em; color: var(--ghost-2); }
   .goal-foot b { color: var(--muted); font-weight: 500; text-transform: uppercase; }
+  .goal-foot .gf-from { flex: 0 1 auto; min-width: 0; }
+  .goal-foot .gf-to { flex: 1 1 auto; text-align: right; min-width: 0; }
 
   /* Vista previa de un entreno */
   .routine-view { position: fixed; inset: 0; z-index: 95; background: var(--bg);
@@ -812,7 +905,7 @@
         <div class="home-hero">
           <h1 class="title home-title" id="homeTitle"></h1>
           <div class="home-stats" id="homeStats"></div>
-          <button type="button" class="btn btn--onheat home-cta" id="homeCta">
+          <button type="button" class="btn btn--primary home-cta" id="homeCta">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
             <span id="homeCtaText">EMPEZAR SESIÓN</span>
           </button>
@@ -1440,15 +1533,17 @@
        ════════════════════════════════════════════════════════════ */
     [data-screen="home"] { padding-top: 0; position: relative; }
 
-    /* Bloque de calor a sangre: rompe el gutter de .screen */
-    .home-heat { position: relative; height: 520px; margin: 0 calc(var(--gutter) * -1) 0;
+    /* Bloque de calor a sangre: rompe el gutter de .screen.
+       Altura adaptable para que Home quepa entera sin desplazar. */
+    .home-heat { position: relative; height: clamp(320px, 41dvh, 430px);
+                 margin: 0 calc(var(--gutter) * -1) 0;
                  padding: env(safe-area-inset-top) var(--gutter) 0; overflow: hidden;
                  display: flex; flex-direction: column; }
     .home-heat > .heat, .home-heat > .heat-wash,
     .home-heat > .heat-grain, .home-heat > .heat-fade { pointer-events: none; }
 
     /* Cabecera: logo + píldora de fecha + «+» */
-    .home-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; padding-top: 18px; }
+    .home-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; padding-top: 10px; }
     .logo { display: inline-flex; gap: 4px; width: 26px; height: 14px; flex-shrink: 0; }
     .logo i { flex: 1; background: var(--metal-bar, linear-gradient(0deg,#F2F4F6,#9CA1A6 55%,#5C6167));
               border-radius: 1px; transform: skewX(-16deg); }
@@ -1490,23 +1585,23 @@
     .home-mini .hm-cta svg { width: 12px; height: 12px; }
 
     /* Cinta pegada al bloque de calor */
-    .home-ticker { margin: 0 calc(var(--gutter) * -1) 18px; }
+    .home-ticker { margin: 0 calc(var(--gutter) * -1) 12px; }
 
     /* Tiles: racha y sesiones */
     .home-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
-    .home-tiles .tile { height: 112px; }
+    .home-tiles .tile { height: 98px; }
     .tile-val { display: flex; align-items: baseline; gap: 6px; }
     .tile-ring { display: flex; align-items: center; gap: 11px; }
     .tile-ring svg { width: 46px; height: 46px; flex-shrink: 0; }
 
     /* Tira de días: 7 celdas de 56px (§8.1) */
-    .wstrip-card { margin-top: 18px; }
+    .wstrip-card { margin-top: 12px; }
     .wstrip-head { margin-top: 0; margin-bottom: 10px; }
     .ws-nav { width: 28px; height: 28px; border-radius: var(--r-3); background: var(--s3);
               border: 1px solid var(--line); color: var(--dim); display: grid; place-items: center; flex-shrink: 0; }
     .ws-nav svg { width: 13px; height: 13px; }
     .wstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-    .ws-cell { height: 56px; border-radius: var(--r-3); display: flex; flex-direction: column;
+    .ws-cell { height: 52px; border-radius: var(--r-3); display: flex; flex-direction: column;
                align-items: center; justify-content: center; gap: 6px; background: var(--s2);
                border: 1px solid var(--line); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .ws-cell .ws-d { font: 600 9px/1 var(--f-mono); letter-spacing: .14em; color: var(--ghost-2); }
@@ -1524,8 +1619,11 @@
     .ws-cell.drag { transform: scale(1.12); border-color: var(--line-3); box-shadow: var(--sh-float); position: relative; z-index: 5; }
     .ws-cell.drop { border-color: var(--hot-line); background: var(--s4); }
 
+    /* Home cabe de una pantalla: ritmo vertical más apretado que el general */
+    [data-screen="home"] .sec-head { margin-top: 14px; }
+
     /* Últimos entrenamientos: filas con filete (§5.1C) */
-    .recent-item { display: flex; align-items: center; gap: 13px; padding: 13px 0;
+    .recent-item { display: flex; align-items: center; gap: 13px; padding: 11px 0;
                    border: none; border-bottom: 1px solid var(--line);
                    background: none; border-radius: 0; }
     .recent-item + .recent-item { margin-top: 0; }
@@ -1562,24 +1660,46 @@
 
   <!-- =========== TRACKER OVERLAY =========== -->
   <div class="tracker" id="tracker">
-    <div class="tracker-header">
-      <button class="close" id="closeTracker">‹ Salir</button>
-      <div class="title"><span id="trackerName">—</span><small id="trackerTime">00:00</small></div>
-      <button class="close" style="visibility:hidden">·</button>
+    <!-- §5.9 · Bloque de calor de 330px tras la cabecera -->
+    <div class="tk-heat" aria-hidden="true">
+      <div class="heat"></div><div class="heat-wash"></div><div class="heat-grain"></div><div class="heat-fade"></div>
     </div>
-    <div class="tracker-body" id="trackerBody"></div>
+
+    <div class="tk-head">
+      <button type="button" class="btn-icon btn-icon--onheat" id="closeTracker" aria-label="Salir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="tk-title">
+        <div class="tk-name" id="trackerName">—</div>
+        <div class="tk-sub"><span id="trackerTime">00:00</span> · <span id="trackerPos">EJ 1 DE 1</span></div>
+      </div>
+      <button type="button" class="btn-icon btn-icon--onheat" id="tkMenu" aria-label="Opciones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+      </button>
+    </div>
+    <div class="tk-progress"><div class="tk-progress-fill" id="tkProgress"></div></div>
+
+    <!-- Un panel por ejercicio (o por superserie). Se pasa deslizando. -->
+    <div class="tk-deck" id="trackerBody"></div>
+
     <div class="rest-timer" id="restTimer">
       <div>
         <div class="lbl">Descanso</div>
         <div class="t" id="restT">02:00</div>
       </div>
-      <div style="display:flex;gap:6px">
-        <button onclick="adjustRest(-15)">−15s</button>
-        <button onclick="adjustRest(15)">+15s</button>
-        <button onclick="stopRest()">Saltar</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="adjustRest(30)">+30&Prime;</button>
+        <button class="rt-skip" onclick="stopRest()">SALTAR</button>
       </div>
     </div>
-    <button class="finish-btn" id="finishBtn">Finalizar entrenamiento</button>
+
+    <div class="tk-foot">
+      <button type="button" class="btn btn--sec tk-wide" id="tkPause">PAUSAR ENTRENAMIENTO</button>
+      <div class="tk-split" id="tkSplit" style="display:none">
+        <button type="button" class="btn btn--sec" id="tkResume">REANUDAR</button>
+        <button type="button" class="btn btn--primary" id="finishBtn">FINALIZAR</button>
+      </div>
+    </div>
   </div>
 
   <!-- =========== SWAP BOTTOM SHEET =========== -->
@@ -1881,12 +2001,12 @@
     document.getElementById('todayPill').textContent =
       `${DOW3[dNow.getDay()]} ${String(dNow.getDate()).padStart(2,'0')} ${months[dNow.getMonth()].toUpperCase()}`;
 
-    // ── Sesión de hoy: la del día, y si no, la siguiente pendiente ──
+    // ── Sesión de hoy. Si hoy no toca nada, Home dice DESCANSO: no se adelanta
+    //    el entreno de otro día, que confundía sobre lo que toca de verdad. ──
     const todayIso = wsIso(dNow);
     const schedToday = getEffectiveSchedule(getWeekRange().start)[dNow.getDay()];
     const doneToday = getAllWorkouts().some(w => w.date === todayIso);
-    let heroId = (schedToday && schedToday !== 'rest') ? schedToday : null;
-    if (!heroId || doneToday) heroId = planned.find(p => !doneIds.has(p.id))?.id || heroId;
+    const heroId = (schedToday && schedToday !== 'rest') ? schedToday : null;
     const r = heroId ? window.ROUTINES.routines[heroId] : null;
 
     const titleEl = document.getElementById('homeTitle');
@@ -1909,8 +2029,9 @@
       document.getElementById('miniTitle').innerHTML = homeTitleHtml(r.name);
       document.getElementById('homeMini').dataset.rid = heroId;
     } else {
-      titleEl.innerHTML = homeTitleHtml('DÍA LIBRE');
-      statsEl.innerHTML = '<span>SIN SESIÓN PLANIFICADA</span>';
+      titleEl.innerHTML = homeTitleHtml('DESCANSO');
+      const hechos = week.length;
+      statsEl.innerHTML = `<span>HOY NO TOCA</span><i></i><span>${hechos} DE ${target} ESTA SEMANA</span>`;
       ctaEl.style.display = 'none';
       delete ctaEl.dataset.rid;
       document.getElementById('miniTitle').textContent = '';
@@ -1931,8 +2052,14 @@
         isOptionalRoutine(heroId) ? 'OPCIONAL' : 'OBLIGATORIA',
       ].filter(Boolean).join('<i>/</i>');
     } else {
-      tag.textContent = 'SEMANA';
-      vals.innerHTML = `<b>${week.length} DE ${target}</b><i>/</i>DESCANSO HOY`;
+      // Día de descanso: la cinta dice cuándo vuelve a tocar
+      const sig = planned.find(p => !doneIds.has(p.id));
+      const rSig = sig ? window.ROUTINES.routines[sig.id] : null;
+      tag.textContent = 'DESCANSO';
+      vals.innerHTML = [
+        `<b>${week.length} DE ${target} ESTA SEMANA</b>`,
+        rSig ? `SIGUIENTE: ${(rSig.tag || rSig.name).toUpperCase()}` : 'SEMANA COMPLETADA',
+      ].join('<i>/</i>');
     }
 
     // ── Tiles: racha (cifra en --hot-num) + anillo de sesiones ──
@@ -1948,7 +2075,7 @@
     renderWeekStrip();
 
     // ── Últimos entrenamientos: filas con filete ──
-    const recent = getAllWorkouts().slice(0, 3);
+    const recent = getAllWorkouts().slice(0, 2);
     const list = document.getElementById('recentList');
     document.getElementById('recentCount').textContent = recent.length ? `${recent.length}` : '';
     if (!recent.length) {
@@ -2877,6 +3004,7 @@
       ${(g.targets || []).map((t) => {
         const p = Math.max(0, Math.min(100, Number(t.progress) || 0));
         const estado = p >= 100 ? 'ok' : (p >= 40 ? '' : 'low');
+        const { desde, meta } = goalOriginAndTarget(t);
         return `
         <div class="goal-row">
           <div class="goal-top">
@@ -2884,9 +3012,44 @@
             <span class="goal-val ${estado}"><b>${p}</b><small>%</small></span>
           </div>
           <div class="goal-bar"><div class="goal-fill ${estado}" style="width:${p}%"></div></div>
-          <div class="goal-foot"><span>META</span><b>${t.target || ''}</b></div>
+          <div class="goal-foot">
+            <span class="gf-from">${desde ? `DESDE <b>${desde}</b>` : ''}</span>
+            <span class="gf-to">META <b>${meta}</b></span>
+          </div>
         </div>`;
       }).join('')}`;
+  }
+
+  // De dónde sale el «desde» de cada objetivo. Solo se muestra cuando existe un
+  // dato real: escrito en la propia meta («20,9% → ~18,5%»), o sacado de su
+  // historial de entrenos / peso corporal. Nunca se inventa.
+  // Ojo: NADA de dominadas aquí. Son asistidas y su kg es la ayuda de la máquina;
+  // poner «DESDE 50 kg» en un objetivo de negativas se lee al revés de lo que es.
+  const GOAL_EXERCISE = [
+    [/sentadilla/i, 'back-squat'],
+    [/press\s*banca/i, 'bench-press-barbell'],
+    [/peso\s*muerto/i, 'romanian-deadlift'],
+    [/remo/i, 'barbell-row'],
+  ];
+  function goalOriginAndTarget(t) {
+    const target = String(t.target || '').trim();
+    // 1) La meta ya trae el origen: «20,9% → ~18,5%»
+    const flecha = target.split(/\s*(?:→|->)\s*/);
+    if (flecha.length === 2) return { desde: flecha[0].trim(), meta: flecha[1].trim() };
+
+    // 2) Peso corporal: primer registro guardado
+    if (/peso\s*corporal/i.test(t.metric)) {
+      const ws = loadWeights().slice().sort((a, b) => a.date.localeCompare(b.date));
+      if (ws.length) return { desde: `${fmtKg(ws[0].kg)} kg`, meta: target };
+    }
+
+    // 3) Fuerza: la mejor serie de su PRIMERA sesión registrada de ese ejercicio
+    const par = GOAL_EXERCISE.find(([re]) => re.test(t.metric));
+    if (par) {
+      const serie = topSetSeries(par[1]);
+      if (serie.length) return { desde: `${fmtKg(serie[0].kg)} kg`, meta: target };
+    }
+    return { desde: '', meta: target };
   }
   document.querySelectorAll('#goalsSeg .seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -3014,57 +3177,187 @@
     renderTracker();
     document.getElementById('tracker').classList.add('open');
     workoutStart = Date.now();
+    pausedMs = 0; pausedAt = null;
+    setPaused(false);
+    clearInterval(workoutTimer);
     workoutTimer = setInterval(updateWorkoutTime, 1000);
-    document.getElementById('finishBtn').classList.add('show');
+    updateWorkoutTime();
   }
+
+  // Pausar / reanudar / finalizar. El tiempo pausado no cuenta como entreno.
+  let pausedMs = 0, pausedAt = null;
+  function setPaused(on) {
+    document.getElementById('tkPause').style.display = on ? 'none' : '';
+    document.getElementById('tkSplit').style.display = on ? 'grid' : 'none';
+  }
+  document.getElementById('tkPause').addEventListener('click', () => {
+    pausedAt = Date.now();
+    setPaused(true);
+  });
+  document.getElementById('tkResume').addEventListener('click', () => {
+    if (pausedAt) { pausedMs += Date.now() - pausedAt; pausedAt = null; }
+    setPaused(false);
+  });
 
   const trackerBody = document.getElementById('trackerBody');
 
-  function renderCard(slotIdx) {
+  // Notas persistentes por ejercicio. Arrancan con la del entrenador (viene de
+  // routine_exercises.notes) y, si Adrián la edita, manda la suya. Si la borra,
+  // se borra: no vuelve a aparecer.
+  const EXNOTE_KEY = 'fitness_ex_notes_v1';
+  const loadExNotes = () => { try { return JSON.parse(localStorage.getItem(EXNOTE_KEY) || '{}'); } catch { return {}; } };
+  function exNoteFor(exId, fallback) {
+    const mine = loadExNotes()[exId];
+    return mine === undefined ? (fallback || '') : mine;
+  }
+  function saveExNote(exId, text) {
+    const all = loadExNotes();
+    all[exId] = text;
+    localStorage.setItem(EXNOTE_KEY, JSON.stringify(all));
+  }
+
+  // Superseries: el Personal Trainer las marca en las notas como «SUPERSERIE A1»,
+  // «A2», «B1»… Se agrupan por esa letra. (Lo robusto sería una columna
+  // superset_group en routine_exercises; mientras tanto, se lee la convención.)
+  function supersetKey(item) {
+    const m = /SUPERSERIE\s+([A-Z])\s*(\d)?/i.exec(item.notes || '');
+    return m ? m[1].toUpperCase() : null;
+  }
+  function buildPanels() {
+    const panels = [];
+    session.exercises.forEach((item, i) => {
+      const key = supersetKey(item);
+      const ultimo = panels[panels.length - 1];
+      if (key && ultimo && ultimo.ss === key) ultimo.slots.push(i);
+      else panels.push({ ss: key, slots: [i] });
+    });
+    return panels;
+  }
+
+  function renderCard(slotIdx, total) {
     const item = session.exercises[slotIdx];
     const ex = getExercise(item.exerciseId);
+    const nombre = (() => {
+      const w = ex.name.trim().split(/\s+/);
+      if (w.length === 1) return `<span>${w[0]}</span>`;
+      const last = w.pop();
+      return `<span class="out">${w.join(' ')}</span> <span>${last}</span>`;
+    })();
+    // La nota del entrenador sin el marcador de superserie, que ya se ve arriba
+    // Se quita la frase del marcador entera («SUPERSERIE A1 con hanging-leg-raise.»),
+    // no solo las dos primeras palabras, que dejaba la nota empezando a media frase.
+    const notaBase = (item.notes || '').replace(/^\s*SUPERSERIE\s+[A-Z]\d?[^.]*\.\s*/i, '').trim();
     return `
       <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}">
-        <div class="ex-head">
-          <div style="flex:1;min-width:0">
-            <h3>${slotIdx+1}. ${ex.name}${item.swapped ? '<span class="swapped-tag">cambiado</span>' : ''}</h3>
-            <div class="ex-meta">${groupLabel(ex.group)} · ${item.sets} × ${item.repsTarget} reps · ${item.restSec}s desc.</div>
-          </div>
-          <div class="ex-actions">
-            <span class="prev">Últ: ${getPrev(item.exerciseId)}</span>
-            <button class="swap-btn" onclick="openSwap(${slotIdx})">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
-              Cambiar
-            </button>
-          </div>
+        <div class="tk-kicker">
+          <span class="label-sm">Ejercicio ${String(slotIdx + 1).padStart(2, '0')}</span>
+          <span class="rule"></span>
+          <span class="label-sm">${groupLabel(ex.group)}</span>
         </div>
-        ${(item.notes && !item.swapped) ? `<div class="ex-note">${item.notes}</div>` : ''}
+        <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
+        <div class="tk-chips">
+          <div class="tk-chips-scroll">
+            <span class="tk-chip">${item.sets} SERIES · ${item.repsTarget}</span>
+            ${item.restSec ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
+          </div>
+          <button type="button" class="tk-chip tk-chip--swap" onclick="openSwap(${slotIdx})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
+            CAMBIAR
+          </button>
+        </div>
         <table class="sets">
           <thead>
-            <tr><th style="width:32px">SET</th><th>ANTERIOR</th><th>KG</th><th>REPS</th><th style="width:48px" aria-label="Hecha">OK</th></tr>
+            <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th><th>KG</th><th>REPS</th><th style="width:44px" aria-label="Hecha"></th></tr>
           </thead>
           <tbody>
             ${Array.from({length: item.sets}, (_, s) => {
               const prevSet = getLastSet(item.exerciseId, s);
-              const prevTxt = prevSet ? `${prevSet.kg || '—'} × ${prevSet.reps || '—'}` : '—';
+              const prevTxt = prevSet ? `${prevSet.kg ?? '—'} × ${prevSet.reps ?? '—'}` : '—';
               return `
               <tr data-set="${s}">
-                <td class="set-n">${s+1}</td>
+                <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
                 <td class="prev-val">${prevTxt}</td>
-                <td><input type="number" inputmode="decimal" placeholder="${prevSet?.kg ?? ''}" data-field="kg"></td>
-                <td><input type="number" inputmode="numeric" placeholder="${prevSet?.reps ?? ''}" data-field="reps"></td>
-                <td class="done"><button onclick="toggleSet(this, ${item.restSec})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button></td>
+                <td><input type="number" inputmode="decimal" placeholder="—" data-field="kg"></td>
+                <td><input type="number" inputmode="numeric" placeholder="—" data-field="reps"></td>
+                <td class="done"><button onclick="toggleSet(this, ${item.restSec})" aria-label="Marcar serie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button></td>
               </tr>`;
             }).join('')}
           </tbody>
         </table>
-        <textarea class="notes-input" rows="1" placeholder="Notas (técnica, sensaciones...)"></textarea>
+        <div class="ex-note-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
+          <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
+            placeholder="Nota del ejercicio…">${exNoteFor(item.exerciseId, notaBase)}</textarea>
+        </div>
       </div>`;
   }
 
   function renderTracker() {
-    trackerBody.innerHTML = session.exercises.map((_, i) => renderCard(i)).join('');
+    const panels = buildPanels();
+    session.panels = panels;
+    trackerBody.innerHTML = panels.map((p) => `
+      <section class="tk-panel" data-panel="${p.slots[0]}">
+        ${p.slots.length > 1 ? `<div class="tk-ss-head">Superserie · sin descanso</div>` : ''}
+        ${p.slots.map((i) => renderCard(i, session.exercises.length)).join('')}
+        ${nextUpHtml(p.slots[p.slots.length - 1])}
+      </section>`).join('');
     document.getElementById('trackerName').textContent = session.routineName;
+    // Notas: crecen con el texto y se guardan al salir del campo
+    trackerBody.querySelectorAll('.notes-input').forEach((ta) => {
+      const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+      fit();
+      ta.addEventListener('input', fit);
+      ta.addEventListener('blur', () => saveExNote(ta.dataset.ex, ta.value.trim()));
+    });
+    updateTrackerPos(0);
+    watchDeck();
+  }
+
+  // «A continuación»: los 2-3 siguientes, con su carga de la última vez
+  function nextUpHtml(fromSlot) {
+    const restantes = session.exercises.slice(fromSlot + 1, fromSlot + 4);
+    if (!restantes.length) return '';
+    return `
+      <div class="sec-head">
+        <span class="label">A continuación</span>
+        <span class="rule"></span>
+        <span class="data-sm">${session.exercises.length - fromSlot - 1} EJ MÁS</span>
+      </div>
+      ${restantes.map((it, k) => {
+        const e = getExercise(it.exerciseId);
+        return `<div class="row">
+          <span class="idx">${String(fromSlot + k + 2).padStart(2, '0')}</span>
+          <div class="rt-info"><div class="rt-name" style="font-size:15px">${e.name}</div></div>
+          <span class="data">${it.sets} × ${it.repsTarget}</span>
+        </div>`;
+      }).join('')}`;
+  }
+
+  // Posición actual (EJ n DE m) y barra de progreso.
+  // Se sigue con IntersectionObserver: el evento `scroll` no llega a dispararse
+  // de forma fiable en un contenedor con scroll-snap.
+  let deckRaf = null, deckLastSlot = -1;
+  function updateTrackerPos(slot) {
+    if (!session || slot == null) return;
+    const total = session.exercises.length;
+    document.getElementById('trackerPos').textContent = `EJ ${slot + 1} DE ${total}`;
+    document.getElementById('tkProgress').style.width = `${((slot + 1) / total) * 100}%`;
+  }
+  // Se vigila el desplazamiento con rAF mientras el tracker está abierto: en este
+  // contenedor con scroll-snap no llegan ni los eventos `scroll` ni el
+  // IntersectionObserver de forma fiable.
+  function watchDeck() {
+    clearInterval(deckRaf);
+    deckLastSlot = -1;
+    deckRaf = setInterval(() => {
+      if (!document.getElementById('tracker').classList.contains('open')) { clearInterval(deckRaf); deckRaf = null; return; }
+      const w = trackerBody.clientWidth;
+      if (!w) return;
+      const idx = Math.round(trackerBody.scrollLeft / w);
+      const panel = (session?.panels || [])[idx];
+      const slot = panel ? panel.slots[0] : 0;
+      if (slot !== deckLastSlot) { deckLastSlot = slot; updateTrackerPos(slot); }
+    }, 120);
   }
 
   document.getElementById('closeTracker').addEventListener('click', () => {
@@ -3148,7 +3441,7 @@
     saveHistory(hist);
     // Sincroniza la sesión en la nube (modelo workouts + workout_sets)
     if (sessionExercises.length) {
-      const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart) / 1000) : null;
+      const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart - pausedMs) / 1000) : null;
       const workout = {
         id: (crypto.randomUUID ? crypto.randomUUID() : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
         date: dateIso.slice(0, 10),
@@ -3179,11 +3472,12 @@
     document.getElementById('tracker').classList.remove('open');
     clearInterval(workoutTimer);
     stopRest();
-    document.getElementById('finishBtn').classList.remove('show');
+    setPaused(false);
   }
 
   function updateWorkoutTime() {
-    const s = Math.floor((Date.now() - workoutStart) / 1000);
+    const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
+    const s = Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000);
     const m = String(Math.floor(s / 60)).padStart(2, '0');
     const sec = String(s % 60).padStart(2, '0');
     document.getElementById('trackerTime').textContent = `${m}:${sec}`;
@@ -3191,44 +3485,28 @@
 
   // ============ Set tick + rest timer ============
   let restInterval = null, restRemaining = 0;
+  // Marcar una serie guarda EXACTAMENTE lo escrito. Nada de autorrelleno:
+  // heredar el valor anterior obligaba a corregir casilla por casilla.
+  // Si te equivocas, desmarcas, corriges y vuelves a marcar.
   window.toggleSet = function(btn, restSec) {
     btn.classList.toggle('checked');
     const tr = btn.closest('tr');
-    tr.classList.toggle('completed', btn.classList.contains('checked'));
-    if (btn.classList.contains('checked')) {
-      autofillSet(tr);
+    const marcada = btn.classList.contains('checked');
+    tr.classList.toggle('completed', marcada);
+    if (marcada) {
       navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
-      startRest(restSec);
+      // En una superserie el descanso solo va al terminar la última serie del grupo
+      const panel = tr.closest('.tk-panel');
+      const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
+      const esUltimaDelGrupo = !esSuperserie ||
+        (tr.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
+      if (esUltimaDelGrupo) startRest(restSec);
     }
   };
-
-  // Al marcar ✓ una serie con casillas vacías, hereda los valores:
-  // 1º de la serie más cercana de HOY que esté rellena (hacia arriba),
-  // 2º de la misma serie del último día. El valor queda escrito en la
-  // casilla (editable), así lo que se guarda siempre es visible.
-  function autofillSet(tr) {
-    const card = tr.closest('.exercise-card');
-    if (!card) return;
-    const slot = session.exercises[parseInt(card.dataset.slot, 10)];
-    if (!slot) return;
-    const rows = [...tr.parentElement.children];
-    const idx = rows.indexOf(tr);
-    ['kg', 'reps'].forEach((field) => {
-      const input = tr.querySelector(`input[data-field="${field}"]`);
-      if (!input || String(input.value).trim() !== '') return;
-      for (let i = idx - 1; i >= 0; i--) {
-        const v = rows[i].querySelector(`input[data-field="${field}"]`)?.value;
-        if (String(v ?? '').trim() !== '') { input.value = v; return; }
-      }
-      const prev = getLastSet(slot.exerciseId, idx);
-      if (prev && prev[field] != null) input.value = prev[field];
-    });
-  }
   function startRest(sec) {
     restRemaining = sec;
     updateRestUI();
     document.getElementById('restTimer').classList.add('show');
-    document.getElementById('finishBtn').classList.remove('show');
     clearInterval(restInterval);
     restInterval = setInterval(() => {
       restRemaining--;
@@ -3242,9 +3520,6 @@
   window.stopRest = function() {
     clearInterval(restInterval);
     document.getElementById('restTimer').classList.remove('show');
-    if (document.getElementById('tracker').classList.contains('open')) {
-      document.getElementById('finishBtn').classList.add('show');
-    }
   };
   window.adjustRest = function(delta) {
     restRemaining = Math.max(5, restRemaining + delta);
