@@ -822,6 +822,35 @@
   .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
   .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
 
+  /* ════════ STATS · §8.4 ════════ */
+  /* Check semanal: la semana cumplida en bloque naranja */
+  .check-grid { gap: 9px; margin-top: 14px; }
+  .check-week { padding: 13px 6px 12px; border-radius: var(--r-4); background: var(--s3); border: 1px solid var(--line); }
+  .check-week .wk-lbl { font: 500 9px/1 var(--f-mono); letter-spacing: .14em; color: var(--ghost); }
+  .check-week .wk-val { font-size: 19px; font-weight: 700; margin-top: 7px; color: var(--text); }
+  .check-week .wk-sub { display: none; }
+  .check-week.met { background: var(--hot); border-color: transparent; }
+  .check-week.met .wk-val { color: var(--hot-ink); }
+  .check-week.met .wk-lbl { color: rgba(21,3,0,.6); }
+  .check-week.partial .wk-val, .check-week.empty .wk-val { color: var(--ghost); }
+  .check-week.current { border-color: var(--line-3); }
+  .check-week.current .wk-val { color: var(--text); }
+
+  /* Calendario: un solo estado «hecho» — aro naranja; hoy, círculo relleno */
+  .cal-card-head { align-items: center; }
+  .cal-head { margin: 14px 0 10px; }
+  .cal-title { font: 500 12px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--text); }
+  .cal-btn { width: 30px; height: 30px; border-radius: var(--r-3); background: var(--s3);
+             border: 1px solid var(--line); color: var(--dim); display: grid; place-items: center; }
+  .cal-dows span { font: 500 9px/1 var(--f-mono); letter-spacing: .18em; color: var(--ghost-2); padding: 6px 0 10px; }
+  .cal-grid { gap: 5px; }
+  .cal-day { aspect-ratio: 1; background: none; border: none; display: grid; place-items: center; }
+  .cal-num { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+             font: 500 13px/1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ghost-2); border: 1.5px solid transparent; }
+  .cal-day.trained .cal-num { border-color: rgba(255,90,43,.85); color: var(--hot-text); }
+  .cal-day.today .cal-num { background: var(--hot-solid); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
+  .cal-day.out-month { visibility: hidden; }
+
   /* ════════ NUTRICIÓN · §8.5 y §8.9 ════════ */
   .nk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .nk-kcal { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
@@ -848,7 +877,7 @@
   .mt-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 15px 0; background: none; border: none; text-align: left; }
   .mt-chev { width: 15px; height: 15px; color: var(--ghost-2); flex-shrink: 0; transition: transform var(--t-base) var(--ease); }
   .mt-block.closed .mt-chev { transform: rotate(-90deg); }
-  .mt-name { font: 600 10px/1 var(--f-ui); letter-spacing: .24em; text-transform: uppercase; color: var(--text); }
+  .mt-name { font: 600 12.5px/1 var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--text); }
   .mt-count { font: 500 9px/1 var(--f-mono); color: var(--ghost-2); }
   .mt-kcal { margin-left: auto; font: 500 9.5px/1 var(--f-mono); letter-spacing: .12em; color: var(--ghost); }
   .mt-body { overflow: hidden; padding-bottom: 6px; }
@@ -1097,12 +1126,6 @@
           <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
         </div>
         <div id="goalsPanel"></div>
-
-        <form class="weight-form" id="weightForm" style="display:none">
-          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)" style="flex:0 0 104px">
-          <input id="metricsNote" type="text" placeholder="Otras: % grasa, cintura…">
-          <button type="submit">Guardar</button>
-        </form>
       </div>
     </section>
 
@@ -1241,22 +1264,29 @@
     </style>
 
     <section class="screen" data-screen="stats">
-      <div class="topbar">
-        <div>
-          <div class="greet">Tu progreso</div>
-          <h1>Estadísticas</h1>
-        </div>
+      <div class="glow" aria-hidden="true"></div>
+
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <span class="status-chip" id="statsChip"></span>
+        <button type="button" class="btn-icon" id="statsAdd" aria-label="Añadir métricas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
       </div>
 
+      <h1 class="title scr-title"><span class="out">TU</span> <span>PROGRESO</span></h1>
+
       <div class="card check-card">
-        <h3>Check semanal</h3>
-        <div class="sub">¿Cumples tu objetivo? Últimas 4 semanas</div>
+        <div class="nk-head">
+          <span class="label">Check semanal</span>
+          <span class="data-sm" id="checkGoal"></span>
+        </div>
         <div class="check-grid" id="weeklyCheck"></div>
       </div>
 
-      <div class="card">
+      <div class="card" style="margin-top:18px">
         <div class="cal-card-head">
-          <h3 style="margin:0;font-size:15px">Calendario de entrenos</h3>
+          <span class="label">Calendario</span>
           <div class="seg seg-mini" id="calSeg">
             <button type="button" class="seg-btn active" data-calview="month">Mes</button>
             <button type="button" class="seg-btn" data-calview="year">Año</button>
@@ -1277,9 +1307,9 @@
         </div>
       </div>
 
-      <div class="card chart-card">
+      <div class="card chart-card" style="margin-top:18px">
         <div class="prog-head">
-          <h3>Progresión por ejercicio</h3>
+          <span class="label">Progresión</span>
           <span class="pr-pill" id="progPr" style="display:none"></span>
         </div>
         <div class="ex-slider" id="exSlider"></div>
@@ -1287,6 +1317,29 @@
         <div class="prog-readout" id="progReadout"></div>
         <div class="sub" id="progSub"></div>
       </div>
+
+      <!-- Progresión física: peso, IMC y grasa -->
+      <div class="card chart-card" style="margin-top:18px">
+        <div class="prog-head">
+          <span class="label">Progresión física</span>
+          <span class="pr-pill" id="bodyDelta" style="display:none"></span>
+        </div>
+        <div class="ex-slider" id="bodySlider"></div>
+        <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="prog-readout" id="bodyReadout"></div>
+        <div class="sub" id="bodySub"></div>
+      </div>
+
+      <button type="button" class="btn btn--sec" id="metricsAddBtn" style="margin-top:18px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        AÑADIR MÉTRICAS
+      </button>
+      <form class="weight-form" id="weightForm" style="display:none">
+        <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
+        <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
+        <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
+        <button type="submit">Guardar</button>
+      </form>
 
       <style>
         /* ---------- Stats v2 ---------- */
@@ -1319,9 +1372,6 @@
         .cal-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--bg-elev); border: 1px solid var(--line); color: var(--text); font-size: 17px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-dows span { text-align: center; font-size: 9.5px; color: var(--muted); padding: 2px 0; letter-spacing: .1em; }
-        .cal-day { aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11.5px; background: var(--bg-elev); border: 1px solid transparent; }
-        .cal-day.out-month { background: transparent; }
-        .cal-day.today { border-color: var(--accent); }
         .cal-day .dot, .cal-legend .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .cal-day .spacer { height: 5px; }
         .dot.gym { background: var(--accent); }
@@ -1341,9 +1391,6 @@
         .yg-dot.done { background: var(--accent); border-color: var(--accent); }
         .yg-dot.cur { outline: 1.5px solid var(--accent); outline-offset: 2px; }
 
-        /* Calendario: número rodeado en verde al entrenar */
-        .cal-num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid transparent; }
-        .cal-day.trained .cal-num { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 
         /* Barra de progreso de objetivos */
         .op-card { margin-bottom: 14px; }
@@ -1994,6 +2041,17 @@
         byKey[key].totalSets += (rec.sets || []).length;
       });
     });
+    // Sesiones registradas SIN series (p. ej. la que no llegó a sincronizar
+    // entera): cuentan como entreno hecho para el calendario y la racha.
+    try {
+      JSON.parse(localStorage.getItem('fitness_sessions_v1') || '[]').forEach((s) => {
+        if (!s.date) return;
+        const key = `${s.date}__${s.routineId || '?'}`;
+        if (byKey[key]) return;
+        if (Object.values(byKey).some((w) => w.date === s.date)) return;
+        byKey[key] = { date: s.date, routineId: s.routineId || null, exerciseIds: new Set(), totalSets: 0 };
+      });
+    } catch {}
     return Object.values(byKey).sort((a, b) => b.date.localeCompare(a.date));
   }
 
@@ -2445,8 +2503,6 @@
   // Crear entreno con IA (usa la Edge Function del chat, que tiene las herramientas)
   // El «+» de la cabecera cambia según la pestaña: crear entreno / añadir métricas
   document.getElementById('trainerAdd').addEventListener('click', () => {
-    const enObjetivos = document.querySelector('#trainerTabs .seg-btn.active')?.dataset.tab === 'obj';
-    if (enObjetivos) { toggleWeightForm(); return; }
     openAiRoutineSheet();
   });
 
@@ -2574,7 +2630,6 @@
       `<span class="out">TUS</span> <span>${enObjetivos ? 'OBJETIVOS' : 'ENTRENOS'}</span>`;
 
     renderGoals();
-    renderWeight();
 
     // ── Entrenos agrupados por lugar ──
     const list = document.getElementById('routineList');
@@ -2843,6 +2898,9 @@
 
   // Render Stats (check semanal + objetivos)
   function renderStats() {
+    const totalSesiones = getAllWorkouts().length;
+    const chip = document.getElementById('statsChip');
+    if (chip) chip.textContent = `${totalSesiones} SESIONES`;
     // Check semanal — últimas 4 semanas. Cuenta SESIONES registradas contra los
     // días planificados (≠rest) de la semana efectiva (base + overrides).
     const grid = document.getElementById('weeklyCheck');
@@ -2879,6 +2937,7 @@
     renderYearGrid();
     renderCalendar();
     renderProgression();
+    renderBody();
   }
 
   // ============ Stats v2: progresión, calendario, peso, PRs ============
@@ -3064,29 +3123,96 @@
     grid.innerHTML = cells.join('');
   }
 
-  function renderWeight() {
-    const list = loadWeights().slice().sort((a, b) => a.date.localeCompare(b.date));
-    const sub = document.getElementById('weightSub');
-    const chart = document.getElementById('weightChart');
-    const range = document.getElementById('weightRange');
-    if (!sub || !chart) return;
-    const noteTxt = (w) => (w.note ? ` · ${w.note}` : '');
-    if (!list.length) {
-      sub.textContent = 'Aún sin métricas — añade las de hoy';
-      chart.innerHTML = ''; chart.style.display = 'none'; range.textContent = '';
+  // ===== Progresión física: peso, IMC y % de grasa =====
+  // El peso vive en body_weight; IMC y grasa se leen de la nota de cada día
+  // («IMC 24.1 · Grasa 20.9%»), que es donde caben sin cambiar el esquema.
+  const BODY_METRICS = [
+    { k: 'kg',  label: 'Peso',  unidad: 'kg' },
+    { k: 'bmi', label: 'IMC',   unidad: '' },
+    { k: 'fat', label: 'Grasa', unidad: '%' },
+  ];
+  let bodyMetric = 'kg';
+
+  function bodySeries(metric) {
+    return loadWeights().slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((w) => {
+        if (metric === 'kg') return { date: w.date, v: w.kg };
+        const re = metric === 'bmi' ? /IMC\s*([\d.,]+)/i : /grasa\s*([\d.,]+)/i;
+        const m = re.exec(w.note || '');
+        return { date: w.date, v: m ? parseFloat(m[1].replace(',', '.')) : null };
+      })
+      .filter((p) => p.v != null && !isNaN(p.v));
+  }
+
+  let bodyPoints = [];
+  function renderBody() {
+    const slider = document.getElementById('bodySlider');
+    if (!slider) return;
+    slider.innerHTML = BODY_METRICS.map((m) =>
+      `<button type="button" class="ex-chip ${m.k === bodyMetric ? 'active' : ''}" data-body="${m.k}">${m.label}</button>`).join('');
+    slider.querySelectorAll('[data-body]').forEach((b) =>
+      b.addEventListener('click', () => { bodyMetric = b.dataset.body; renderBody(); }));
+
+    const def = BODY_METRICS.find((m) => m.k === bodyMetric);
+    const serie = bodySeries(bodyMetric);
+    bodyPoints = serie;
+    const chart = document.getElementById('bodyChart');
+    const delta = document.getElementById('bodyDelta');
+    const sub = document.getElementById('bodySub');
+    const out = document.getElementById('bodyReadout');
+
+    if (!serie.length) {
+      chart.innerHTML = ''; out.innerHTML = ''; delta.style.display = 'none';
+      sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el botón de abajo.`;
       return;
     }
-    const first = list[0], last = list[list.length - 1];
-    if (list.length === 1) {
-      sub.textContent = `${last.kg} kg (${fmtD(last.date)})${noteTxt(last)}`;
-      chart.innerHTML = ''; chart.style.display = 'none'; range.textContent = '';
+    const first = serie[0], last = serie[serie.length - 1];
+    delta.style.display = '';
+    const dif = +(last.v - first.v).toFixed(1);
+    delta.textContent = `${dif >= 0 ? '+' : ''}${fmtKg(dif)} ${def.unidad}`.trim();
+    if (serie.length === 1) {
+      chart.innerHTML = '';
+      out.innerHTML = `<b>${fmtKg(last.v)} ${def.unidad}</b><span>${fmtD(last.date)}</span>`;
+      sub.textContent = 'Un solo registro. Con dos ya se ve la tendencia.';
       return;
     }
-    const diff = +(last.kg - first.kg).toFixed(1);
-    sub.textContent = `${last.kg} kg · ${diff >= 0 ? '+' : ''}${diff} kg desde ${fmtD(first.date)}${noteTxt(last)}`;
-    chart.style.display = '';
-    drawLine(chart, list.map((p) => p.kg), 'gWeight');
-    range.innerHTML = `<span>${fmtD(first.date)} · ${first.kg} kg</span><span>${fmtD(last.date)} · ${last.kg} kg</span>`;
+    drawLine(chart, serie.map((p) => p.v), 'gBody');
+    setBodyPoint(serie.length - 1);
+    sub.textContent = `${serie.length} registros · desde ${fmtD(first.date)}`;
+  }
+  function setBodyPoint(idx) {
+    if (!bodyPoints.length) return;
+    idx = Math.max(0, Math.min(bodyPoints.length - 1, idx));
+    const p = bodyPoints[idx];
+    const def = BODY_METRICS.find((m) => m.k === bodyMetric);
+    document.getElementById('bodyReadout').innerHTML =
+      `<b>${fmtKg(p.v)} ${def.unidad}</b><span>${fmtD(p.date)}</span>`;
+    document.getElementById('bodyChart').querySelectorAll('circle').forEach((c, i) => {
+      c.setAttribute('r', i === idx ? '4.5' : '3');
+      c.setAttribute('opacity', i === idx ? '1' : '.5');
+    });
+  }
+  (() => {
+    const el = document.getElementById('bodyChart');
+    if (!el) return;
+    const scrub = (e) => {
+      if (bodyPoints.length < 2) return;
+      if (e.pointerType === 'mouse' && e.type === 'pointermove' && !e.buttons) return;
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;
+      setBodyPoint(Math.round(((e.clientX - r.left) / r.width) * (bodyPoints.length - 1)));
+    };
+    el.addEventListener('pointerdown', scrub);
+    el.addEventListener('pointermove', scrub);
+  })();
+
+  // El formulario de métricas se abre desde el botón o desde el «+» de la cabecera
+  function toggleWeightForm() {
+    const f = document.getElementById('weightForm');
+    const show = f.style.display === 'none';
+    f.style.display = show ? 'flex' : 'none';
+    if (show) document.getElementById('weightInput').focus();
   }
 
   // ===== Objetivos (Trainer) con toggle corto/largo plazo =====
@@ -3218,30 +3344,44 @@
   document.getElementById('calNext').addEventListener('click', () => {
     calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar();
   });
-  // El formulario de métricas ya no tiene botón propio: lo abre el «+» de la cabecera
-  function toggleWeightForm() {
-    const f = document.getElementById('weightForm');
-    const show = f.style.display === 'none';
-    f.style.display = show ? 'flex' : 'none';
-    if (show) document.getElementById('weightInput').focus();
-  }
+  // Métricas: peso, IMC y % de grasa. El peso viaja a la nube (tabla body_weight);
+  // IMC y grasa se guardan en la nota de ese día, que es donde caben hoy.
+  document.getElementById('metricsAddBtn').addEventListener('click', toggleWeightForm);
+  document.getElementById('statsAdd').addEventListener('click', toggleWeightForm);
   document.getElementById('weightForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    const inp = document.getElementById('weightInput');
-    const noteInp = document.getElementById('metricsNote');
-    const kg = parseFloat(String(inp.value).replace(',', '.'));
-    if (isNaN(kg) || kg < 30 || kg > 250) return;
-    const note = noteInp.value.trim();
+    const num = (id) => {
+      const v = parseFloat(String(document.getElementById(id).value).replace(',', '.'));
+      return isNaN(v) ? null : v;
+    };
+    const kg = num('weightInput'), bmi = num('bmiInput'), fat = num('fatInput');
+    if (kg == null && bmi == null && fat == null) return;
+    if (kg != null && (kg < 30 || kg > 250)) return;
     const today = localIso();
+    const previo = loadWeights().find((w) => w.date === today) || {};
+    // El registro de la nube cuelga del peso: sin él, el IMC y la grasa se
+    // quedarían solo en este móvil. Mejor pedirlo que perderlo en silencio.
+    if (kg == null && previo.kg == null) {
+      document.getElementById('weightInput').focus();
+      document.getElementById('weightInput').placeholder = 'Pon también el peso';
+      return;
+    }
+    const nota = [
+      bmi != null ? `IMC ${bmi}` : null,
+      fat != null ? `Grasa ${fat}%` : null,
+    ].filter(Boolean).join(' · ') || (previo.note || '');
+    const registro = { date: today, kg: kg != null ? kg : (previo.kg ?? null), note: nota };
     const list = loadWeights().filter((w) => w.date !== today);
-    list.push({ date: today, kg, note });
+    if (registro.kg != null || nota) list.push(registro);
     localStorage.setItem(WEIGHT_KEY, JSON.stringify(list));
-    inp.value = ''; noteInp.value = '';
+    ['weightInput', 'bmiInput', 'fatInput'].forEach((id) => { document.getElementById(id).value = ''; });
     document.getElementById('weightForm').style.display = 'none';
-    if (window.cloudPushWeight) window.cloudPushWeight(today, kg, note);
-    else enqueue({ type: 'weight', date: today, kg, note });
-    if (navigator.vibrate) navigator.vibrate(30);
-    renderWeight();
+    if (registro.kg != null) {
+      if (window.cloudPushWeight) window.cloudPushWeight(today, registro.kg, nota);
+      else enqueue({ type: 'weight', date: today, kg: registro.kg, note: nota });
+    }
+    navigator.vibrate?.(10);
+    renderBody();
   });
   renderTrainer();
   renderStats();
@@ -4058,6 +4198,12 @@ async function pullHistory() {
     Object.values(hist).forEach(l => l.sort((a, b) => (a.date || '').localeCompare(b.date || '')));
     localStorage.setItem('fitness_history_v1', JSON.stringify(hist));
   }
+  // Lista de sesiones tal cual (fecha + rutina). El historial se arma a partir
+  // de las SERIES, así que una sesión sin series registradas no aparecería;
+  // esta lista permite que cuente igual para el calendario y la racha.
+  localStorage.setItem('fitness_sessions_v1', JSON.stringify(
+    w.data.map(wk => ({ date: wk.date, routineId: wk.routine_id, sets: (setsByWorkout[wk.id] || []).length }))
+  ));
 }
 
 // ---------- Bajada: peso corporal ----------
