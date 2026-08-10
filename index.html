@@ -1274,6 +1274,28 @@
         </button>
       </div>
 
+      <!-- Cabecera de perfil: foto (toca para cambiarla), nombre, peso y racha.
+           Debajo sigue "TU PROGRESO" tal cual estaba. -->
+      <div class="prof-head" id="profHead">
+        <button type="button" class="prof-ava" id="profAva" aria-label="Cambiar foto de perfil">
+          <span class="ini" id="profIni">·</span>
+          <span class="cam" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+        </button>
+        <div class="prof-id">
+          <div class="prof-name" id="profName">—</div>
+          <div class="prof-stats">
+            <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
+            <span class="prof-sep"></span>
+            <span class="prof-stat"><span class="v" id="profStreak">—</span><span class="u">de racha</span></span>
+          </div>
+        </div>
+        <button type="button" class="btn-icon" id="profAcct" aria-label="Tu cuenta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.6 20a7.6 7.6 0 0 1 14.8 0"/></svg>
+        </button>
+      </div>
+
       <h1 class="title scr-title"><span class="out">TU</span> <span>PROGRESO</span></h1>
 
       <div class="card check-card">
@@ -1808,6 +1830,92 @@
     .grid .stat-card .v { font-size: 17px; margin: 0; white-space: nowrap; }
     .grid .stat-card.on-fire { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-elev)); }
     .grid .stat-card.on-fire .v { color: var(--accent); }
+
+    /* ════════ ACCESO (entrar / crear cuenta) y BIENVENIDA ════════
+       Pantallas completas fuera del flujo de la app: se pintan sobre todo,
+       incluida la nav. Mismo lenguaje que el resto (§2.2 titular contorno +
+       macizo, §5.2 acción primaria blanca, naranja solo en el detalle). */
+    .auth-veil { position: fixed; inset: 0; z-index: 200; background: var(--bg);
+                 display: none; flex-direction: column; overflow-y: auto;
+                 padding: max(34px, env(safe-area-inset-top)) var(--gutter) calc(28px + env(safe-area-inset-bottom)); }
+    .auth-veil.open { display: flex; }
+    .auth-box { width: 100%; max-width: var(--maxw); margin: auto; }
+    .auth-logo { display: inline-flex; margin-bottom: 26px; }
+    .auth-title { font: 700 40px/.92 var(--f-display); letter-spacing: -.04em; margin: 0 0 10px;
+                  transform: scaleY(1.1); transform-origin: left top; }
+    .auth-sub { font-size: 13.5px; color: var(--muted); margin: 0 0 22px; max-width: 30ch; }
+    .auth-field { display: block; margin-bottom: 10px; }
+    .auth-field > span { display: block; margin-bottom: 7px; }
+    .auth-veil input[type="email"], .auth-veil input[type="password"],
+    .auth-veil input[type="text"], .auth-veil input[type="number"] {
+      width: 100%; background: var(--s2); border: 1px solid var(--line); color: var(--text);
+      border-radius: var(--r-5); padding: 14px 15px; font-size: 16px; /* 16px = iOS no hace zoom */
+      transition: border-color var(--t-fast) var(--ease);
+    }
+    .auth-veil input:focus { outline: none; border-color: var(--line-3); }
+    .auth-veil input.ok { border-color: var(--hot-line); }
+    .btn-primary { width: 100%; background: var(--white); color: var(--white-ink); font-weight: 700;
+                   border-radius: var(--r-5); padding: 15px; font-size: 15px; letter-spacing: -.01em;
+                   margin-top: 6px; transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease); }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary[disabled] { opacity: .42; }
+    .btn-ghost { width: 100%; background: var(--s2); border: 1px solid var(--line); color: var(--text);
+                 border-radius: var(--r-5); padding: 14px; font-size: 14.5px; }
+    .btn-ghost:active { transform: scale(.98); }
+    .auth-alt { margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted); }
+    .auth-alt button { color: var(--text); font-weight: 600; text-decoration: underline;
+                       text-underline-offset: 3px; padding: 6px; }
+    .auth-err { color: var(--off); font-size: 13px; min-height: 18px; margin-top: 10px; }
+    .auth-note { font-size: 11.5px; color: var(--faint); margin-top: 14px; line-height: 1.5; }
+    .auth-skip { display: block; margin: 20px auto 0; color: var(--faint); font-size: 12.5px;
+                 text-decoration: underline; text-underline-offset: 3px; padding: 8px; }
+
+    /* Bienvenida: pasos con barra de avance */
+    .onb-bar { display: flex; gap: 5px; margin-bottom: 26px; }
+    .onb-bar i { flex: 1; height: 3px; border-radius: 2px; background: var(--s3); }
+    .onb-bar i.on { background: var(--hot-solid); }
+    .onb-step { display: none; }
+    .onb-step.on { display: block; animation: screen-in var(--t-base) var(--ease-out); }
+    .onb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pick { display: grid; gap: 8px; margin-bottom: 6px; }
+    .pick button { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                   background: var(--s2); border: 1px solid var(--line); color: var(--text);
+                   border-radius: var(--r-5); padding: 15px 16px; font-size: 14.5px; text-align: left;
+                   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
+    .pick button:active { transform: scale(.98); }
+    .pick button.on { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
+    .pick.row-wrap { display: flex; flex-wrap: wrap; }
+    .pick.row-wrap button { flex: 1 1 30%; justify-content: center; }
+    /* Los días son 5: en rejilla fija, o la última fila se estira y desencaja */
+    .pick.cols { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .pick.cols button { justify-content: center; padding: 15px 6px; }
+    .onb-nav { display: flex; gap: 10px; margin-top: 18px; }
+    .onb-nav .btn-primary, .onb-nav .btn-ghost { margin-top: 0; }
+    .onb-nav .btn-ghost { width: 92px; flex-shrink: 0; }
+
+    /* ════════ Cabecera de perfil (Stats) ════════ */
+    .prof-head { display: flex; align-items: center; gap: 13px; margin: 16px 0 20px; }
+    .prof-ava { width: 58px; height: 58px; border-radius: 50%; flex-shrink: 0; position: relative;
+                background: var(--s3); border: 1px solid var(--line); display: grid; place-items: center;
+                overflow: hidden; padding: 0; transition: transform var(--t-fast) var(--ease); }
+    .prof-ava:active { transform: scale(.96); }
+    .prof-ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .prof-ava .ini { font: 700 21px/1 var(--f-display); color: var(--dim); letter-spacing: -.02em; }
+    .prof-ava .cam { position: absolute; right: -1px; bottom: -1px; width: 21px; height: 21px;
+                     border-radius: 50%; background: var(--hot-solid); color: var(--hot-ink);
+                     display: grid; place-items: center; border: 2px solid var(--bg); }
+    .prof-ava .cam svg { width: 10px; height: 10px; }
+    .prof-ava.busy { opacity: .5; }
+    .prof-id { flex: 1; min-width: 0; }
+    .prof-name { font: 700 22px/1.1 var(--f-display); letter-spacing: -.03em; margin: 0 0 6px;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prof-stats { display: flex; align-items: center; gap: 14px; }
+    .prof-stat { display: flex; align-items: baseline; gap: 5px; }
+    .prof-stat .v { font: 700 15px/1 var(--f-display); font-family: var(--f-mono);
+                    font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .prof-stat .u { font: 500 9px/1 var(--f-mono); letter-spacing: .14em;
+                    text-transform: uppercase; color: var(--ghost-2); }
+    .prof-sep { width: 1px; height: 13px; background: var(--line); }
   </style>
 
   <!-- =========== TRACKER OVERLAY =========== -->
@@ -1898,20 +2006,137 @@
     </div>
   </div>
 
-<!-- Login cloud sync (lo gestiona el módulo cloud del final) -->
-<div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:200; background:#0a0a0a; align-items:center; justify-content:center;">
-  <form id="loginForm" style="width:min(320px, 86vw); display:flex; flex-direction:column; gap:12px;">
-    <div style="font-size:22px; font-weight:700;">Sincronización</div>
-    <div style="color:#888; font-size:13px; margin-bottom:8px;">Inicia sesión una vez para sincronizar tus entrenos y rutinas.</div>
-    <input id="loginEmail" type="email" placeholder="Email" required autocomplete="username"
-      style="background:#161616; border:1px solid #2a2a2a; color:#fff; border-radius:10px; padding:12px 14px; font-size:15px;">
-    <input id="loginPass" type="password" placeholder="Contraseña" required autocomplete="current-password"
-      style="background:#161616; border:1px solid #2a2a2a; color:#fff; border-radius:10px; padding:12px 14px; font-size:15px;">
-    <button type="submit" style="background:#ff6b00; color:#000; font-weight:700; border:none; border-radius:10px; padding:13px; font-size:15px; cursor:pointer;">Entrar</button>
-    <div id="loginErr" style="color:#ff5252; font-size:13px; min-height:16px;"></div>
-    <button type="button" id="loginSkip" style="background:none; border:none; color:#666; font-size:13px; text-decoration:underline; cursor:pointer;">Seguir sin conexión</button>
-  </form>
+<!-- ============ ACCESO · entrar o crear cuenta (lo gestiona el módulo cloud del final) ============ -->
+<div class="auth-veil" id="loginOverlay">
+  <div class="auth-box">
+    <span class="logo auth-logo" aria-label="ONIX"><i></i><i></i></span>
+
+    <!-- ---- Entrar ---- -->
+    <form id="loginForm" data-mode="in">
+      <h1 class="auth-title"><span class="title-out">TU</span> CUENTA</h1>
+      <p class="auth-sub">Entra para sincronizar tus entrenos, tu nutrición y tu coach.</p>
+      <label class="auth-field">
+        <span class="label">Email</span>
+        <input id="loginEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
+      </label>
+      <label class="auth-field">
+        <span class="label">Contraseña</span>
+        <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+      </label>
+      <button type="submit" class="btn-primary">ENTRAR</button>
+      <div class="auth-err" id="loginErr"></div>
+      <div class="auth-alt">¿No tienes cuenta? <button type="button" id="goSignup">Crear una</button></div>
+      <button type="button" class="auth-skip" id="loginSkip">Seguir sin conexión</button>
+    </form>
+
+    <!-- ---- Crear cuenta (requiere código de invitación) ---- -->
+    <form id="signupForm" data-mode="up" style="display:none">
+      <h1 class="auth-title"><span class="title-out">CREAR</span> CUENTA</h1>
+      <p class="auth-sub">ONIX está en pruebas. Necesitas un código de invitación.</p>
+      <label class="auth-field">
+        <span class="label">Código de invitación</span>
+        <input id="suCode" type="text" required autocapitalize="characters" autocomplete="off"
+               spellcheck="false" placeholder="ONIX-XXXXX">
+      </label>
+      <label class="auth-field">
+        <span class="label">Tu nombre</span>
+        <input id="suName" type="text" required autocomplete="given-name" placeholder="Cómo quieres que te llame">
+      </label>
+      <label class="auth-field">
+        <span class="label">Email</span>
+        <input id="suEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
+      </label>
+      <label class="auth-field">
+        <span class="label">Contraseña</span>
+        <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+      </label>
+      <button type="submit" class="btn-primary">CREAR CUENTA</button>
+      <div class="auth-err" id="suErr"></div>
+      <div class="auth-alt">¿Ya tienes cuenta? <button type="button" id="goLogin">Entrar</button></div>
+    </form>
+  </div>
 </div>
+
+<!-- ============ BIENVENIDA · 4 pasos, rellena `profiles` ============ -->
+<div class="auth-veil" id="onbOverlay">
+  <div class="auth-box">
+    <div class="onb-bar" id="onbBar"><i class="on"></i><i></i><i></i><i></i></div>
+
+    <div class="onb-step on" data-step="1">
+      <h1 class="auth-title"><span class="title-out">HOLA,</span> <span id="onbHi">QUÉ TAL</span></h1>
+      <p class="auth-sub">Cuatro preguntas rápidas para que el coach sepa con quién habla. Treinta segundos.</p>
+      <label class="auth-field">
+        <span class="label">Tu nombre</span>
+        <input id="onbName" type="text" autocomplete="given-name" placeholder="Tu nombre">
+      </label>
+    </div>
+
+    <div class="onb-step" data-step="2">
+      <h1 class="auth-title"><span class="title-out">TUS</span> DATOS</h1>
+      <p class="auth-sub">Para calcular tus macros y ajustar las cargas. Puedes cambiarlos cuando quieras.</p>
+      <label class="auth-field">
+        <span class="label">Año de nacimiento</span>
+        <input id="onbYear" type="number" inputmode="numeric" min="1920" max="2020" placeholder="1995">
+      </label>
+      <div class="onb-grid2">
+        <label class="auth-field">
+          <span class="label">Altura (cm)</span>
+          <input id="onbHeight" type="number" inputmode="decimal" min="120" max="230" placeholder="178">
+        </label>
+        <label class="auth-field">
+          <span class="label">Peso (kg)</span>
+          <input id="onbWeight" type="number" inputmode="decimal" min="30" max="250" step="0.1" placeholder="84">
+        </label>
+      </div>
+    </div>
+
+    <div class="onb-step" data-step="3">
+      <h1 class="auth-title"><span class="title-out">QUÉ</span> BUSCAS</h1>
+      <p class="auth-sub">Marca tu objetivo principal. Es lo que guiará tus entrenos y tus macros.</p>
+      <div class="pick" id="onbGoal">
+        <button type="button" data-v="perder-grasa">Perder grasa</button>
+        <button type="button" data-v="ganar-musculo">Ganar músculo</button>
+        <button type="button" data-v="recomposicion">Recomposición</button>
+        <button type="button" data-v="mantenerme">Mantenerme y estar sano</button>
+      </div>
+    </div>
+
+    <div class="onb-step" data-step="4">
+      <h1 class="auth-title"><span class="title-out">CÓMO</span> ENTRENAS</h1>
+      <p class="auth-sub">Dónde puedes entrenar y cuántos días a la semana, siendo realista.</p>
+      <span class="label" style="display:block; margin-bottom:8px">Dónde (puedes marcar varios)</span>
+      <div class="pick row-wrap" id="onbEquip">
+        <button type="button" data-v="gimnasio">Gimnasio</button>
+        <button type="button" data-v="casa">Casa</button>
+        <button type="button" data-v="exterior">Exterior</button>
+      </div>
+      <span class="label" style="display:block; margin:16px 0 8px">Días por semana</span>
+      <div class="pick cols" id="onbDays">
+        <button type="button" data-v="2">2</button>
+        <button type="button" data-v="3">3</button>
+        <button type="button" data-v="4">4</button>
+        <button type="button" data-v="5">5</button>
+        <button type="button" data-v="6">6</button>
+      </div>
+    </div>
+
+    <div class="onb-nav">
+      <button type="button" class="btn-ghost" id="onbBack">Atrás</button>
+      <button type="button" class="btn-primary" id="onbNext">SIGUIENTE</button>
+    </div>
+    <div class="auth-err" id="onbErr"></div>
+  </div>
+</div>
+
+<!-- ============ CUENTA · acciones del perfil ============ -->
+<div class="hsheet" id="acctSheet">
+  <div class="hs-title">Tu cuenta</div>
+  <div class="hs-sub" id="acctEmail"></div>
+  <button type="button" class="hs-opt" id="acctPhoto">Cambiar foto de perfil</button>
+  <button type="button" class="hs-opt" id="acctEdit">Editar mis datos</button>
+  <button type="button" class="hs-opt danger" id="acctOut">Cerrar sesión</button>
+</div>
+<input type="file" id="avatarInput" accept="image/*" style="display:none">
 
 <!-- Data files (fallback local; la fuente de verdad ahora es Supabase) -->
 <script src="./data/exercises.js"></script>
@@ -2897,7 +3122,45 @@
   }
 
   // Render Stats (check semanal + objetivos)
+  // Cabecera de perfil de Stats. El nombre y la foto los deja el módulo cloud
+  // en window.__profile; el peso y la racha se calculan aquí, que es donde
+  // viven los datos (mismo número que el resto de la pantalla, sin duplicar).
+  function renderProfileHead() {
+    const p = window.__profile || {};
+    const nameEl = document.getElementById('profName');
+    if (!nameEl) return;
+    const name = (p.display_name || '').trim();
+    nameEl.textContent = name || 'Tu perfil';
+
+    const ini = document.getElementById('profIni');
+    if (ini) ini.textContent = name ? name.trim()[0].toUpperCase() : '·';
+
+    const ava = document.getElementById('profAva');
+    const prev = ava?.querySelector('img');
+    if (p.avatar_url) {
+      if (!prev || prev.dataset.src !== p.avatar_url) {
+        prev?.remove();
+        const img = document.createElement('img');
+        img.dataset.src = p.avatar_url;
+        img.src = p.avatar_url;
+        img.alt = '';
+        ava.insertBefore(img, ava.firstChild);
+      }
+    } else if (prev) prev.remove();
+
+    // Peso: el último registrado; si no hay ninguno, el que puso al registrarse.
+    const ws = loadWeights().slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    const kg = ws.length ? Number(ws[0].kg ?? ws[0].weight_kg) : Number(p.weight_kg);
+    const wEl = document.getElementById('profWeight');
+    if (wEl) wEl.textContent = Number.isFinite(kg) && kg > 0 ? String(kg).replace('.', ',') : '—';
+
+    const sEl = document.getElementById('profStreak');
+    if (sEl) sEl.textContent = String(computeStreak());
+  }
+  window.appRenderProfile = renderProfileHead;
+
   function renderStats() {
+    renderProfileHead();
     const totalSesiones = getAllWorkouts().length;
     const chip = document.getElementById('statsChip');
     if (chip) chip.textContent = `${totalSesiones} SESIONES`;
@@ -4719,25 +4982,282 @@ const _rerenderPreNutri = window.appRerender;
 window.appRerender = () => { _rerenderPreNutri?.(); renderNutrition(); };
 renderNutrition();
 
-// ---------- Login ----------
-const showLogin = () => { $('loginOverlay').style.display = 'flex'; };
-const hideLogin = () => { $('loginOverlay').style.display = 'none'; };
+// ---------- Acceso: entrar, crear cuenta, bienvenida ----------
+const authVeil = $('loginOverlay');
+const onbVeil = $('onbOverlay');
+const showLogin = () => { authVeil.classList.add('open'); };
+const hideLogin = () => { authVeil.classList.remove('open'); };
+const authMode = (mode) => {
+  $('loginForm').style.display = mode === 'up' ? 'none' : '';
+  $('signupForm').style.display = mode === 'up' ? '' : 'none';
+  $('loginErr').textContent = ''; $('suErr').textContent = '';
+};
+$('goSignup').addEventListener('click', () => authMode('up'));
+$('goLogin').addEventListener('click', () => authMode('in'));
+
+// El enlace de invitación trae el código puesto: aturi212.github.io/fitness/#invita=ONIX-XXXXX
+// Se mira al arrancar y también al cambiar el hash: si la app ya está abierta
+// (PWA instalada), tocar el enlace no recarga la página.
+function readInviteFromHash() {
+  const m = /[#&]invita=([^&]+)/i.exec(location.hash || '');
+  if (!m) return;
+  $('suCode').value = decodeURIComponent(m[1]).toUpperCase().trim();
+  authMode('up');
+  history.replaceState(null, '', location.pathname + location.search);
+}
+readInviteFromHash();
+window.addEventListener('hashchange', readInviteFromHash);
+
+// ── Cambio de usuario en el mismo navegador ──
+// Las cachés locales (`fitness_*`) son de quien entró antes. Si no se borran,
+// el siguiente usuario vería entrenos, comidas y notas que no son suyos: la
+// nube está bien separada por RLS, pero el móvil no sabe de quién es lo que
+// tiene guardado. Se limpia al cerrar sesión y al detectar otro user_id.
+const USER_KEY = 'fitness_user_id';
+function wipeLocalData() {
+  Object.keys(localStorage)
+    .filter((k) => k.startsWith('fitness_'))
+    .forEach((k) => localStorage.removeItem(k));
+}
+function checkUserSwitch(userId) {
+  const prev = localStorage.getItem(USER_KEY);
+  if (prev && prev !== userId) wipeLocalData();
+  localStorage.setItem(USER_KEY, userId);
+}
+
+// ---------- Perfil ----------
+window.__profile = null;
+async function pullProfile() {
+  const { data, error } = await sb.from('profiles').select('*').maybeSingle();
+  if (error) { console.warn('No se pudo leer el perfil:', error.message); return null; }
+  window.__profile = data || null;
+  window.appRenderProfile?.();
+  return data;
+}
+async function saveProfile(patch) {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await sb.from('profiles')
+    .upsert({ user_id: user.id, ...patch, updated_at: new Date().toISOString() })
+    .select().maybeSingle();
+  if (error) { console.warn('No se pudo guardar el perfil:', error.message); return null; }
+  window.__profile = data;
+  window.appRenderProfile?.();
+  return data;
+}
 
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('loginErr').textContent = '';
-  const { error } = await sb.auth.signInWithPassword({
+  const { data, error } = await sb.auth.signInWithPassword({
     email: $('loginEmail').value.trim(),
     password: $('loginPass').value,
   });
-  if (error) { $('loginErr').textContent = 'No se pudo entrar: ' + error.message; return; }
+  if (error) {
+    $('loginErr').textContent = /invalid login/i.test(error.message)
+      ? 'Email o contraseña incorrectos.'
+      : 'No se pudo entrar: ' + error.message;
+    return;
+  }
   localStorage.removeItem(SKIP_KEY);
+  checkUserSwitch(data.user.id);
   hideLogin();
   boot(true);
 });
+
+$('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('suErr');
+  err.textContent = '';
+  const code = $('suCode').value.trim();
+  const name = $('suName').value.trim();
+  const email = $('suEmail').value.trim();
+  const pass = $('suPass').value;
+  const btn = $('signupForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'CREANDO…';
+  try {
+    // Aviso claro antes de intentar el alta. La comprobación de verdad la hace
+    // el servidor durante el registro (y deshace el alta si el código no vale).
+    const { data: ok, error: eCode } = await sb.rpc('invite_valid', { p_code: code });
+    if (eCode) { err.textContent = 'No se pudo comprobar el código: ' + eCode.message; return; }
+    if (!ok) { err.textContent = 'Ese código no es válido o ya se ha usado.'; return; }
+
+    const { data, error } = await sb.auth.signUp({
+      email, password: pass,
+      options: { data: { invite_code: code, display_name: name } },
+    });
+    if (error) {
+      err.textContent = /already registered/i.test(error.message)
+        ? 'Ya existe una cuenta con ese email.'
+        : /signups? not allowed/i.test(error.message)
+          ? 'Los registros están desactivados en el servidor.'
+          : 'No se pudo crear la cuenta: ' + error.message;
+      return;
+    }
+    if (!data.session) {   // confirmación de email activada en Supabase
+      err.style.color = 'var(--muted)';
+      err.textContent = 'Cuenta creada. Confirma el enlace que te hemos enviado por email y vuelve a entrar.';
+      return;
+    }
+    wipeLocalData();
+    checkUserSwitch(data.user.id);
+    localStorage.removeItem(SKIP_KEY);
+    hideLogin();
+    await pullProfile();
+    startOnboarding(name);
+  } finally {
+    btn.disabled = false; btn.textContent = 'CREAR CUENTA';
+  }
+});
+
 $('loginSkip').addEventListener('click', () => {
   localStorage.setItem(SKIP_KEY, '1');
   hideLogin();
+});
+
+// ---------- Bienvenida (4 pasos) ----------
+const onb = { step: 1, goal: null, equip: new Set(), days: null };
+
+function startOnboarding(name) {
+  onb.step = 1; onb.goal = null; onb.equip = new Set(); onb.days = null;
+  $('onbName').value = name || window.__profile?.display_name || '';
+  $('onbHi').textContent = name ? name.toUpperCase() : 'QUÉ TAL';
+  onbPaint();
+  onbVeil.classList.add('open');
+}
+function onbPaint() {
+  document.querySelectorAll('#onbOverlay .onb-step').forEach((s) => {
+    s.classList.toggle('on', Number(s.dataset.step) === onb.step);
+  });
+  document.querySelectorAll('#onbBar i').forEach((b, i) => b.classList.toggle('on', i < onb.step));
+  $('onbBack').style.visibility = onb.step === 1 ? 'hidden' : '';
+  $('onbNext').textContent = onb.step === 4 ? 'EMPEZAR' : 'SIGUIENTE';
+  $('onbErr').textContent = '';
+}
+function pickWire(id, onPick) {
+  $(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-v]');
+    if (b) onPick(b, b.dataset.v);
+  });
+}
+pickWire('onbGoal', (b, v) => {
+  onb.goal = v;
+  $('onbGoal').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+});
+pickWire('onbEquip', (b, v) => {
+  if (onb.equip.has(v)) onb.equip.delete(v); else onb.equip.add(v);
+  b.classList.toggle('on', onb.equip.has(v));
+});
+pickWire('onbDays', (b, v) => {
+  onb.days = Number(v);
+  $('onbDays').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+});
+
+$('onbBack').addEventListener('click', () => { if (onb.step > 1) { onb.step--; onbPaint(); } });
+$('onbNext').addEventListener('click', async () => {
+  const fail = (m) => { $('onbErr').textContent = m; };
+  if (onb.step === 1 && !$('onbName').value.trim()) return fail('Dime cómo te llamas.');
+  if (onb.step === 2) {
+    const h = Number($('onbHeight').value), w = Number($('onbWeight').value);
+    if (!(h > 0) || !(w > 0)) return fail('Necesito tu altura y tu peso para calcular tus macros.');
+  }
+  if (onb.step === 3 && !onb.goal) return fail('Marca un objetivo.');
+  if (onb.step === 4) {
+    if (!onb.equip.size) return fail('Marca al menos un sitio donde entrenas.');
+    if (!onb.days) return fail('Marca cuántos días entrenas.');
+    const btn = $('onbNext');
+    btn.disabled = true; btn.textContent = 'GUARDANDO…';
+    const saved = await saveProfile({
+      display_name: $('onbName').value.trim(),
+      birth_year: Number($('onbYear').value) || null,
+      height_cm: Number($('onbHeight').value) || null,
+      weight_kg: Number($('onbWeight').value) || null,
+      goal: onb.goal,
+      equipment: [...onb.equip],
+      training_days: onb.days,
+      onboarding_done: true,
+    });
+    btn.disabled = false; btn.textContent = 'EMPEZAR';
+    if (!saved) return fail('No se ha podido guardar. Revisa la conexión e inténtalo otra vez.');
+    // El peso de bienvenida cuenta como primera métrica: así la gráfica de
+    // progresión física y la cabecera de perfil arrancan con un punto real.
+    if (saved.weight_kg) window.cloudPushWeight?.(new Date().toISOString().slice(0, 10), Number(saved.weight_kg), null);
+    onbVeil.classList.remove('open');
+    boot(true);
+    return;
+  }
+  onb.step++; onbPaint();
+});
+
+// ---------- Cuenta (hoja del perfil) ----------
+const acctSheet = $('acctSheet');
+const hsBack = $('hsBackdrop');
+const openAcct = async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  $('acctEmail').textContent = user?.email || 'Sin sesión iniciada';
+  hsBack.classList.add('open'); acctSheet.classList.add('open');
+};
+const closeAcct = () => { hsBack.classList.remove('open'); acctSheet.classList.remove('open'); };
+$('profAcct')?.addEventListener('click', openAcct);
+hsBack.addEventListener('click', closeAcct);
+
+$('acctEdit').addEventListener('click', () => {
+  closeAcct();
+  startOnboarding(window.__profile?.display_name || '');
+});
+$('acctOut').addEventListener('click', async () => {
+  if (!confirm('¿Cerrar sesión?\n\nSe borrarán los datos guardados en este móvil. Siguen a salvo en la nube y vuelven al entrar.')) return;
+  await sb.auth.signOut();
+  wipeLocalData();
+  location.reload();
+});
+
+// ---------- Foto de perfil ----------
+// Se encoge a 256px antes de subir: una foto de móvil son 3-4 MB y aquí
+// bastan ~40 KB. El bucket solo acepta la carpeta del propio usuario.
+const avatarInput = $('avatarInput');
+$('profAva')?.addEventListener('click', () => avatarInput.click());
+$('acctPhoto').addEventListener('click', () => { closeAcct(); avatarInput.click(); });
+
+function shrinkToJpeg(file, side = 256) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(img.width, img.height);
+      const c = document.createElement('canvas');
+      c.width = c.height = side;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, side, side);
+      c.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas'))), 'image/jpeg', 0.86);
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+avatarInput.addEventListener('change', async () => {
+  const file = avatarInput.files?.[0];
+  avatarInput.value = '';
+  if (!file) return;
+  const ava = $('profAva');
+  ava?.classList.add('busy');
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { showLogin(); return; }
+    const blob = await shrinkToJpeg(file);
+    const path = `${user.id}/avatar_${Date.now()}.jpg`;
+    const { error } = await sb.storage.from('avatars').upload(path, blob, {
+      contentType: 'image/jpeg', upsert: true,
+    });
+    if (error) throw error;
+    const { data: pub } = sb.storage.from('avatars').getPublicUrl(path);
+    await saveProfile({ avatar_url: pub.publicUrl });
+  } catch (e) {
+    alert('No se ha podido subir la foto: ' + (e?.message || e));
+  } finally {
+    ava?.classList.remove('busy');
+  }
 });
 
 // ---------- Historial de conversaciones (tabla chat_threads) ----------
@@ -4962,7 +5482,14 @@ async function boot(loggedIn) {
       if (!localStorage.getItem(SKIP_KEY) && navigator.onLine) showLogin();
       return;
     }
+    checkUserSwitch(session.user.id);
   }
+  // El perfil primero: la cabecera de Stats y (más adelante) el coach dependen
+  // de él. Si falta o está a medias, se piden los datos antes de nada.
+  let prof = await pullProfile();
+  if (!prof) prof = await saveProfile({});
+  if (prof && !prof.onboarding_done) { startOnboarding(prof.display_name); return; }
+
   await flushOutbox();
   const ok = await pullProgram();
   await pullHistory();
