@@ -1519,8 +1519,18 @@
       <div class="hsheet nutri-sheet" id="maSheet">
         <div class="ns-title" id="maTitle"></div>
         <div class="ma-btns">
-          <button type="button" id="maEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Editar</button>
-          <button type="button" id="maRecur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M17 2l4 4-4 4"/><path d="M3 12V10a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg> <span>Hacer periódico</span></button>
+          <!-- Editar y Periódico en la misma línea; Periódico es un interruptor:
+               marcado = el alimento se repite todos los días -->
+          <div class="ma-row">
+            <button type="button" id="maEdit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+              <span>Editar</span>
+            </button>
+            <button type="button" id="maRecur" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9"/><path d="M3.5 12A8.5 8.5 0 0 1 18.1 6.1"/><path d="M18.4 2.6v3.9h-3.9"/><path d="M5.6 21.4v-3.9h3.9"/></svg>
+              <span>Periódico</span>
+            </button>
+          </div>
           <button type="button" id="maDelete" class="ma-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Eliminar</button>
         </div>
       </div>
@@ -1865,7 +1875,7 @@
     .auth-alt { margin-top: 18px; text-align: center; font-size: 13px; color: var(--muted); }
     .auth-alt button { color: var(--text); font-weight: 600; text-decoration: underline;
                        text-underline-offset: 3px; padding: 6px; }
-    .auth-err { color: var(--off); font-size: 13px; min-height: 18px; margin-top: 10px; }
+    .auth-err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 10px; }
     .auth-note { font-size: 11.5px; color: var(--faint); margin-top: 14px; line-height: 1.5; }
     .auth-skip { display: block; margin: 20px auto 0; color: var(--faint); font-size: 12.5px;
                  text-decoration: underline; text-underline-offset: 3px; padding: 8px; }
@@ -1916,6 +1926,123 @@
     .prof-stat .u { font: 500 9px/1 var(--f-mono); letter-spacing: .14em;
                     text-transform: uppercase; color: var(--ghost-2); }
     .prof-sep { width: 1px; height: 13px; background: var(--line); }
+
+    /* ════════ NUTRICIÓN · bloques de comida como cajas ════════
+       Este es el ÚLTIMO bloque de estilos del documento: lo que se declare
+       aquí gana a las reglas de .mt-* repartidas más arriba (hay dos juegos
+       y se pisaban a medias — de ahí que el título quedara pegado a la línea). */
+    #mealList .mt-block {
+      background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-7);
+      padding: 4px 16px 6px; margin-bottom: 12px; box-shadow: var(--sh-card);
+    }
+    #mealList .mt-block:last-child { margin-bottom: 0; }
+    #mealList .mt-head { padding: 15px 0 14px; gap: 11px; align-items: center; justify-content: flex-start; }
+    #mealList .mt-block.closed .mt-head { padding-bottom: 15px; }
+    #mealList .mt-name { font: 700 15px/1 var(--f-display); letter-spacing: .12em; color: var(--text); }
+    #mealList .mt-count { font: 500 10px/1 var(--f-mono); color: var(--ghost-2); }
+    #mealList .mt-kcal { margin-left: auto; font: 500 10px/1 var(--f-mono); letter-spacing: .12em; color: var(--ghost); }
+    #mealList .mt-body { padding-bottom: 4px; }
+    #mealList .nutri-empty { padding: 2px 0 10px; }
+
+    /* Fila deslizable: la cara tapa las acciones hasta que se desliza */
+    #mealList .meal-item { position: relative; overflow: hidden; padding: 0;
+                           border-bottom: 1px solid var(--line); }
+    #mealList .mt-body .meal-item:last-child { border-bottom: none; }
+    #mealList .meal-face { position: relative; z-index: 1; background: var(--s1);
+                           padding: 12px 0 13px; transition: transform var(--t-base) var(--ease); }
+    #mealList .meal-item.dragging .meal-face { transition: none; }
+    #mealList .meal-item:active .meal-face { opacity: .72; }
+    .sw-act { position: absolute; top: 0; bottom: 0; width: 76px; z-index: 0;
+              display: grid; place-items: center; padding: 0; }
+    .sw-act svg { width: 20px; height: 20px; }
+    .sw-left  { left: -16px;  padding-left: 16px;  background: var(--s4); color: var(--muted); }
+    .sw-left.on { background: var(--hot); color: var(--hot-ink); }
+    .sw-right { right: -16px; padding-right: 16px;
+                background: color-mix(in srgb, var(--danger) 84%, #000); color: #fff; }
+
+    /* Marca de "se repite todos los días" en la propia fila */
+    .meal-recur { flex-shrink: 0; display: inline-grid; place-items: center;
+                  width: 15px; height: 15px; color: var(--hot-text); opacity: .9; }
+    .meal-recur svg { width: 100%; height: 100%; }
+
+    /* Hoja de acciones: editar y periódico en una línea */
+    #maSheet .ma-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    #maSheet .ma-row button { display: flex; flex-direction: column; align-items: center; justify-content: center;
+                              gap: 7px; padding: 15px 8px; text-align: center; }
+    #maSheet .ma-row button svg { width: 18px; height: 18px; }
+    #maSheet #maRecur.on { background: var(--hot); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
+    #maSheet .ma-btns > .ma-danger { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* ════════ CUENTA ATRÁS DE INICIO Y FIN DE ENTRENO ════════
+       Por encima del tracker (100) y del descanso (110); por debajo del
+       acceso (200), que siempre debe poder tapar la app. */
+    .cd-veil { position: fixed; inset: 0; z-index: 170; background: var(--bg);
+               display: none; align-items: center; justify-content: center;
+               padding: 24px; overflow: hidden; }
+    .cd-veil.on { display: flex; animation: cd-veil-in var(--t-base) var(--ease-out); }
+    .cd-veil.out { animation: cd-veil-out 320ms var(--ease) forwards; }
+    @keyframes cd-veil-in  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes cd-veil-out { to { opacity: 0; } }
+    .cd-heat { opacity: .34; }
+    .cd-inner { position: relative; z-index: 2; display: flex; flex-direction: column;
+                align-items: center; text-align: center; }
+
+    .cd-routine { font: 500 10px/1 var(--f-mono); letter-spacing: .24em; text-transform: uppercase;
+                  color: var(--dim); margin-bottom: 26px; min-height: 10px; }
+    .cd-ring { position: relative; width: 216px; height: 216px; display: grid; place-items: center; }
+    /* Solo el SVG del aro gira (para arrancar arriba). Con el selector sin `>`
+       el giro y el tamaño se los comía también la flecha de dentro. */
+    .cd-ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .cd-ring circle { fill: none; stroke-width: 3; stroke-linecap: round; }
+    .cd-track { stroke: var(--line-2); }
+    /* 2·π·54 = 339.3 — el aro se completa justo cuando acaba la cuenta.
+       El barrido lo mueve el MISMO temporizador que los números (no una
+       animación CSS): así el aro no puede desincronizarse de la cuenta si el
+       navegador frena las animaciones al pasar la app a segundo plano. */
+    .cd-fill { stroke: var(--hot-solid); stroke-dasharray: 339.3; stroke-dashoffset: 339.3; }
+
+    .cd-num { font: 700 96px/1 var(--f-display); letter-spacing: -.05em;
+              background-image: var(--hot-num); -webkit-background-clip: text; background-clip: text;
+              -webkit-text-fill-color: transparent; padding-right: 6px; }
+    .cd-num.pop { animation: cd-pop 320ms var(--ease-out); }
+    @keyframes cd-pop { from { opacity: .2; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+
+    .cd-go { position: absolute; display: none; width: 78px; height: 78px; border-radius: 50%;
+             background: var(--hot); color: var(--hot-ink); place-items: center; }
+    .cd-go svg { width: 34px; height: 34px; }
+    .cd-veil.go .cd-num { display: none; }
+    .cd-veil.go .cd-go { display: grid; animation: cd-go-in 420ms var(--ease-out); }
+    .cd-veil.go .cd-fill { stroke: var(--hot-solid); animation: cd-ring-burst 480ms var(--ease-out) forwards; }
+    @keyframes cd-go-in { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes cd-ring-burst { to { transform: scale(1.12); opacity: 0; } }
+
+    .cd-label { margin-top: 26px; font: 700 15px/1 var(--f-display); letter-spacing: .2em;
+                text-transform: uppercase; color: var(--text); }
+    .cd-skip { margin-top: 12px; font: 500 9.5px/1 var(--f-mono); letter-spacing: .16em;
+               text-transform: uppercase; color: var(--ghost-2); }
+
+    /* ── Fin de entreno ── */
+    .done-veil { background: var(--bg); }
+    .done-box { position: relative; z-index: 2; width: 100%; max-width: 340px; text-align: center; }
+    .done-mark { width: 76px; height: 76px; margin: 0 auto 24px; border-radius: 50%;
+                 background: var(--hot); color: var(--hot-ink); display: grid; place-items: center; }
+    .done-mark svg { width: 34px; height: 34px; }
+    .done-title { font: 700 34px/.98 var(--f-display); letter-spacing: -.035em; margin: 0 0 14px;
+                  transform: scaleY(1.08); }
+    .done-sub { font-size: 14px; color: var(--muted); margin: 0 0 26px; line-height: 1.5; }
+    .done-stats { display: flex; justify-content: center; gap: 12px; margin-bottom: 28px; }
+    .done-stat { flex: 1; max-width: 130px; background: var(--s1); border: 1px solid var(--line);
+                 border-radius: var(--r-7); padding: 14px 8px; }
+    .done-stat b { display: block; font: 700 26px/1 var(--f-display); font-family: var(--f-mono);
+                   font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin-bottom: 6px; }
+    .done-stat span { font: 500 9px/1 var(--f-mono); letter-spacing: .18em;
+                      text-transform: uppercase; color: var(--ghost-2); }
+    .done-veil.on .done-box > * { animation: cd-rise 420ms var(--ease-out) both; }
+    .done-veil.on .done-title { animation-delay: 90ms; }
+    .done-veil.on .done-sub { animation-delay: 150ms; }
+    .done-veil.on .done-stats { animation-delay: 210ms; }
+    .done-veil.on .btn-primary { animation-delay: 270ms; }
+    @keyframes cd-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   </style>
 
   <!-- =========== TRACKER OVERLAY =========== -->
@@ -1959,6 +2086,41 @@
         <button type="button" class="btn btn--sec" id="tkResume">REANUDAR</button>
         <button type="button" class="btn btn--primary" id="finishBtn">FINALIZAR</button>
       </div>
+    </div>
+  </div>
+
+  <!-- =========== CUENTA ATRÁS DE INICIO =========== -->
+  <!-- Se pone encima del tracker ya montado: al desaparecer, el entreno ya está
+       ahí. El cronómetro NO arranca hasta que termina la cuenta. -->
+  <div class="cd-veil" id="cdVeil" aria-hidden="true">
+    <div class="heat cd-heat" aria-hidden="true"></div>
+    <div class="cd-inner">
+      <div class="cd-routine" id="cdRoutine"></div>
+      <div class="cd-ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="cd-track" cx="60" cy="60" r="54"/>
+          <circle class="cd-fill" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="cd-num" id="cdNum">3</div>
+        <div class="cd-go" id="cdGo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+      <div class="cd-label" id="cdLabel">PREPÁRATE</div>
+      <div class="cd-skip">Toca para saltar</div>
+    </div>
+  </div>
+
+  <!-- =========== ENTRENAMIENTO COMPLETADO =========== -->
+  <div class="cd-veil done-veil" id="doneVeil" aria-hidden="true">
+    <div class="done-box">
+      <div class="done-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg>
+      </div>
+      <h2 class="done-title"><span class="title-out">ENTRENAMIENTO</span><br>COMPLETADO</h2>
+      <p class="done-sub">¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.</p>
+      <div class="done-stats" id="doneStats"></div>
+      <button type="button" class="btn-primary" id="doneClose">CERRAR</button>
     </div>
   </div>
 
@@ -3685,6 +3847,72 @@
     };
   }
 
+  // ===== Cuenta atrás de inicio =====
+  // El tracker ya está montado detrás: cuando el velo se va, el entreno está
+  // listo. El cronómetro arranca AL TERMINAR la cuenta, no antes, para que los
+  // segundos de preparación no cuenten como tiempo entrenado.
+  const CD_SEGUNDOS = 3;
+  const CD_CIRC = 339.3;           // 2·π·54, la longitud del aro
+  let cdTimers = [], cdSweep = null;
+  function cancelarCuentaAtras() {
+    cdTimers.forEach(clearTimeout);
+    cdTimers = [];
+    clearInterval(cdSweep); cdSweep = null;
+    const veil = document.getElementById('cdVeil');
+    veil.classList.remove('on', 'go', 'out');
+    veil.setAttribute('aria-hidden', 'true');
+    veil.onclick = null;
+  }
+  function cuentaAtras(nombreRutina, alTerminar) {
+    const veil = document.getElementById('cdVeil');
+    const num = document.getElementById('cdNum');
+    const label = document.getElementById('cdLabel');
+    cancelarCuentaAtras();
+    document.getElementById('cdRoutine').textContent = nombreRutina || '';
+    num.textContent = String(CD_SEGUNDOS);
+    label.textContent = 'PREPÁRATE';
+    veil.setAttribute('aria-hidden', 'false');
+    void veil.offsetWidth;
+    veil.classList.add('on');
+
+    // Barrido del aro: mismo reloj que los números
+    const aro = veil.querySelector('.cd-fill');
+    const t0 = Date.now();
+    const total = CD_SEGUNDOS * 1000;
+    aro.style.strokeDashoffset = CD_CIRC;
+    cdSweep = setInterval(() => {
+      const p = Math.min(1, (Date.now() - t0) / total);
+      aro.style.strokeDashoffset = (CD_CIRC * (1 - p)).toFixed(1);
+      if (p >= 1) { clearInterval(cdSweep); cdSweep = null; }
+    }, 40);
+
+    let hecho = false;
+    const terminar = () => {
+      if (hecho) return;
+      hecho = true;
+      cancelarCuentaAtras();
+      alTerminar?.();
+    };
+    veil.onclick = terminar;        // tocar salta la cuenta
+
+    for (let i = 1; i <= CD_SEGUNDOS; i++) {
+      cdTimers.push(setTimeout(() => {
+        const quedan = CD_SEGUNDOS - i;
+        if (quedan > 0) {
+          num.textContent = String(quedan);
+          num.classList.remove('pop'); void num.offsetWidth; num.classList.add('pop');
+        } else {
+          veil.classList.add('go');
+          label.textContent = 'VAMOS';
+          navigator.vibrate?.(30);
+        }
+      }, i * 1000));
+    }
+    // Al llegar a cero se deja ver la animación y se sale con un fundido
+    cdTimers.push(setTimeout(() => veil.classList.add('out'), CD_SEGUNDOS * 1000 + 460));
+    cdTimers.push(setTimeout(terminar, CD_SEGUNDOS * 1000 + 780));
+  }
+
   function startSession(routineId) {
     const s = buildSession(routineId);
     if (!s || !s.exercises.length) {
@@ -3694,12 +3922,16 @@
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
-    workoutStart = Date.now();
     pausedMs = 0; pausedAt = null;
     setPaused(false);
     clearInterval(workoutTimer);
-    workoutTimer = setInterval(updateWorkoutTime, 1000);
-    updateWorkoutTime();
+    document.getElementById('trackerTime').textContent = '00:00';
+    cuentaAtras(s.routineName, () => {
+      workoutStart = Date.now();
+      clearInterval(workoutTimer);
+      workoutTimer = setInterval(updateWorkoutTime, 1000);
+      updateWorkoutTime();
+    });
   }
 
   // Pausar / reanudar / finalizar. El tiempo pausado no cuenta como entreno.
@@ -3914,10 +4146,29 @@
       document.querySelectorAll('[data-screen="trainer"] > .tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
     });
   });
+  // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
+  // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
     persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-    alert('Entreno guardado.\n\nSe sincroniza solo en la nube.');
+    const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
+    const segs = Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000));
+    const series = trackerBody.querySelectorAll('td.done button.checked').length;
+    const min = Math.round(segs / 60);
+    document.getElementById('doneStats').innerHTML = `
+      <div class="done-stat"><b>${min}</b><span>${min === 1 ? 'Minuto' : 'Minutos'}</span></div>
+      <div class="done-stat"><b>${series}</b><span>${series === 1 ? 'Serie' : 'Series'}</span></div>`;
+    const veil = document.getElementById('doneVeil');
+    veil.setAttribute('aria-hidden', 'false');
+    veil.classList.remove('out');
+    void veil.offsetWidth;
+    veil.classList.add('on');
+  });
+
+  document.getElementById('doneClose').addEventListener('click', () => {
+    const veil = document.getElementById('doneVeil');
+    veil.classList.remove('on', 'out');
+    veil.setAttribute('aria-hidden', 'true');
     closeTracker();
     renderHome();
     renderTrainer();
@@ -3994,6 +4245,7 @@
     clearInterval(workoutTimer);
     stopRest();
     setPaused(false);
+    cancelarCuentaAtras();   // por si se sale con la cuenta atrás en marcha
   }
 
   function updateWorkoutTime() {
@@ -4530,14 +4782,22 @@ const nutriTotals = (meals) => {
   return t;
 };
 
+// Días en los que se borró a mano una comida periódica: no se vuelven a crear.
+const SKIPS_KEY = 'fitness_recurring_skips_v1';
+const loadSkips = () => { try { return JSON.parse(localStorage.getItem(SKIPS_KEY) || '[]'); } catch { return []; } };
+const saveSkips = (s) => localStorage.setItem(SKIPS_KEY, JSON.stringify(s));
+const skipKey = (recurringId, date) => recurringId + '|' + date;
+
 async function pullMeals() {
   const since = nutriAddDays(nutriIso(), -30);
-  const [{ data, error }, { data: recs, error: e2 }] = await Promise.all([
+  const [{ data, error }, { data: recs, error: e2 }, { data: skips, error: e3 }] = await Promise.all([
     sb.from('meals').select('*').gte('date', since).order('created_at'),
     sb.from('recurring_meals').select('*'),
+    sb.from('recurring_skips').select('recurring_id, date'),
   ]);
   if (!error && data) saveMeals(data);
   if (!e2 && recs) saveRecurring(recs);
+  if (!e3 && skips) saveSkips(skips.map((s) => skipKey(s.recurring_id, s.date)));
 }
 
 // Materializa las comidas periódicas activas en `meals` (una fila por día,
@@ -4548,12 +4808,13 @@ async function materializeRecurring() {
   if (!recs.length) return;
   const today = nutriIso();
   const horizon = nutriAddDays(today, -14);
-  const have = new Set(loadMeals().filter((m) => m.recurring_id).map((m) => m.recurring_id + '|' + m.date));
+  const have = new Set(loadMeals().filter((m) => m.recurring_id).map((m) => skipKey(m.recurring_id, m.date)));
+  const skipped = new Set(loadSkips());   // días que el usuario borró a mano
   const rows = [];
   recs.forEach((r) => {
     const end = (r.end_date && r.end_date < today) ? r.end_date : today;
     for (let d = (r.start_date > horizon ? r.start_date : horizon); d <= end; d = nutriAddDays(d, 1)) {
-      if (!have.has(r.id + '|' + d)) {
+      if (!have.has(skipKey(r.id, d)) && !skipped.has(skipKey(r.id, d))) {
         rows.push({
           date: d, description: r.description, meal_type: r.meal_type || 'other',
           protein_g: r.protein_g, carbs_g: r.carbs_g, fat_g: r.fat_g, fiber_g: r.fiber_g,
@@ -4621,15 +4882,28 @@ function renderNutriDaily() {
   $('mealCount').textContent = meals.length ? String(meals.length).padStart(2, '0') : '';
 
   // Cuatro desplegables: desayuno, comida, cena y otros
-  const mealRow = (m) => `
-    <div class="meal-item" data-meal="${m.id}">
-      <div class="meal-top">
-        <span class="meal-name">${m.description}</span>
-        <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
+  // Deslizar a la derecha → periódico · deslizar a la izquierda → eliminar.
+  // La cara lleva fondo opaco para tapar las acciones mientras no se desliza.
+  const ICO_RECUR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9"/><path d="M3.5 12A8.5 8.5 0 0 1 18.1 6.1"/><path d="M18.4 2.6v3.9h-3.9"/><path d="M5.6 21.4v-3.9h3.9"/></svg>`;
+  const ICO_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
+  const mealRow = (m) => {
+    const esPeriodica = !!activeRecurringOf(m);
+    return `
+    <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">
+      <button type="button" class="sw-act sw-left${esPeriodica ? ' on' : ''}" data-act="recur"
+        aria-label="${esPeriodica ? 'Quitar periódico' : 'Hacer periódico'}">${ICO_RECUR}</button>
+      <button type="button" class="sw-act sw-right" data-act="del" aria-label="Eliminar">${ICO_DEL}</button>
+      <div class="meal-face">
+        <div class="meal-top">
+          <span class="meal-name">${m.description}</span>
+          ${esPeriodica ? `<span class="meal-recur" aria-label="Periódico">${ICO_RECUR}</span>` : ''}
+          <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
+        </div>
+        <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
+          `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}</div>
       </div>
-      <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
-        `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}</div>
     </div>`;
+  };
   $('mealList').innerHTML = MEAL_TYPES.map((t) => {
     const items = meals.filter((m) => (m.meal_type || 'other') === t.k);
     const kcal = Math.round(items.reduce((a, m) => a + (Number(m.kcal) || 0), 0));
@@ -4709,7 +4983,9 @@ function renderNutriWeekly() {
     const dateIso = nutriAddDays(nutriWeekStart, i);
     const dayMeals = mealsOf(dateIso);
     const totals = nutriTotals(dayMeals);
-    if (dayMeals.length) conDatos.push(totals);
+    // La media solo cuenta DÍAS TERMINADOS: el día en curso va a medias y
+    // hundiría la media (y el futuro, obviamente, no cuenta).
+    if (dayMeals.length && dateIso < today) conDatos.push(totals);
     const segs = NUTRI_MACROS.map((m) => {
       const pct = (totals[m.k] || 0) / (targets[m.k] || 1);
       const met = pct >= 1;
@@ -4726,10 +5002,12 @@ function renderNutriWeekly() {
     </div>`;
   }).join('');
 
-  // La media se hace SOLO sobre los días en los que apuntó algo
+  // La media se hace SOLO sobre días terminados en los que apuntó algo
   const n = conDatos.length;
   const media = (k) => (n ? conDatos.reduce((acc, t) => acc + (t[k] || 0), 0) / n : 0);
-  $('nwAvgLabel').textContent = n ? `Media ${n} ${n === 1 ? 'día' : 'días'}` : 'Sin registros';
+  $('nwAvgLabel').textContent = n
+    ? `Media ${n} ${n === 1 ? 'día' : 'días'}`
+    : (nutriWeekStart === curMonday ? 'Aún sin días completos' : 'Sin registros');
   $('nwAvgKcal').innerHTML = n ? `${Math.round(media('kcal'))}<small>KCAL</small>` : '—';
   $('weekAvgMacros').innerHTML = NUTRI_MACROS.map((m) => `
     <div class="wa-row">
@@ -4880,29 +5158,128 @@ let maMealId = null;
 const activeRecurringOf = (meal) => meal?.recurring_id
   ? loadRecurring().find((r) => r.id === meal.recurring_id && !r.end_date) : null;
 
+function paintMaSheet(meal) {
+  if (!meal) return;
+  $('maTitle').textContent = meal.description;
+  const on = !!activeRecurringOf(meal);
+  const btn = $('maRecur');
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
 $('mealList').addEventListener('click', (e) => {
+  if (e.target.closest('.sw-act')) return;   // los botones de deslizar tienen lo suyo
   const row = e.target.closest('[data-meal]');
-  if (!row) return;
+  if (!row || row.classList.contains('swiping')) return;
   const meal = loadMeals().find((m) => String(m.id) === row.dataset.meal);
   if (!meal) return;
   maMealId = meal.id;
-  $('maTitle').textContent = meal.description;
-  $('maRecur').textContent = activeRecurringOf(meal) ? 'Quitar periódico' : 'Hacer periódico';
+  paintMaSheet(meal);
   openSheet('maSheet');
 });
 
+// ===== Deslizar una comida: derecha → periódico · izquierda → eliminar =====
+// El gesto se queda en la fila (stopPropagation): si subiera, el deslizamiento
+// de la pestaña Diario cambiaría de día a la vez.
+(() => {
+  const lista = $('mealList');
+  if (!lista) return;
+  const ANCHO = 76;     // lo que se abre la fila
+  const UMBRAL = 38;    // a partir de aquí se queda abierta al soltar
+  let row = null, face = null, x0 = 0, y0 = 0, eje = null, dx = 0;
+
+  const cerrarTodas = (menos) => {
+    lista.querySelectorAll('.meal-item.open').forEach((r) => {
+      if (r === menos) return;
+      r.classList.remove('open');
+      const f = r.querySelector('.meal-face');
+      if (f) f.style.transform = '';
+    });
+  };
+
+  lista.addEventListener('touchstart', (e) => {
+    const r = e.target.closest('.meal-item');
+    if (!r) return;
+    e.stopPropagation();
+    row = r; face = r.querySelector('.meal-face');
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    eje = null; dx = 0;
+  }, { passive: true });
+
+  lista.addEventListener('touchmove', (e) => {
+    if (!row || !face) return;
+    const ddx = e.touches[0].clientX - x0;
+    const ddy = e.touches[0].clientY - y0;
+    if (eje === null) {
+      if (Math.abs(ddx) < 8 && Math.abs(ddy) < 8) return;
+      eje = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y';
+      if (eje === 'x') { row.classList.add('dragging'); cerrarTodas(row); }
+    }
+    if (eje !== 'x') return;
+    e.preventDefault();   // mientras se desliza en horizontal, no se desplaza la página
+    dx = Math.max(-ANCHO, Math.min(ANCHO, ddx));
+    face.style.transform = `translateX(${dx}px)`;
+  }, { passive: false });
+
+  function soltar() {
+    if (!row || !face) { row = null; face = null; return; }
+    const r = row, f = face, d = dx, ejeFin = eje;
+    row = null; face = null;
+    r.classList.remove('dragging');
+    if (ejeFin !== 'x') return;
+    const abierta = Math.abs(d) > UMBRAL;
+    f.style.transform = abierta ? `translateX(${d > 0 ? ANCHO : -ANCHO}px)` : '';
+    r.classList.toggle('open', abierta);
+    // Traga el clic que cierra el gesto para que no abra la hoja de acciones
+    r.classList.add('swiping');
+    setTimeout(() => r.classList.remove('swiping'), 320);
+  }
+  lista.addEventListener('touchend', (e) => { e.stopPropagation(); soltar(); }, { passive: true });
+  lista.addEventListener('touchcancel', soltar, { passive: true });
+
+  // Botones que quedan al descubierto
+  lista.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.sw-act');
+    if (!btn) return;
+    e.stopPropagation();
+    const r = btn.closest('.meal-item');
+    const meal = loadMeals().find((m) => String(m.id) === r?.dataset.meal);
+    if (!meal) return;
+    if (btn.dataset.act === 'del') await deleteMeal(meal);
+    else await toggleRecurring(meal);
+  });
+
+  // Tocar fuera cierra la fila abierta
+  document.addEventListener('touchstart', (e) => {
+    if (!e.target.closest('.meal-item')) cerrarTodas(null);
+  }, { passive: true });
+})();
+
+// Borrar una comida. Si venía de una periódica hay que DEJAR CONSTANCIA del
+// día borrado: si no, materializeRecurring() la vuelve a crear en el siguiente
+// arranque y parece que el borrado no ha funcionado.
+async function deleteMeal(meal, { preguntar = true } = {}) {
+  if (!meal) return false;
+  if (preguntar && !confirm(`¿Borrar "${meal.description}"?`)) return false;
+  const { error } = await sb.from('meals').delete().eq('id', meal.id);
+  if (error) { alert('No se pudo borrar: ' + error.message); return false; }
+  if (meal.recurring_id) {
+    const { error: eSkip } = await sb.from('recurring_skips')
+      .upsert({ recurring_id: meal.recurring_id, date: meal.date });
+    if (eSkip) console.warn('No se pudo anotar el día borrado:', eSkip.message);
+    else saveSkips([...new Set(loadSkips().concat(skipKey(meal.recurring_id, meal.date)))]);
+  }
+  saveMeals(loadMeals().filter((m) => m.id !== meal.id));
+  renderNutrition();
+  return true;
+}
+
 $('maDelete').addEventListener('click', async () => {
   const meal = loadMeals().find((m) => m.id === maMealId);
-  if (!meal || !confirm(`¿Borrar "${meal.description}"?`)) return;
-  const { error } = await sb.from('meals').delete().eq('id', meal.id);
-  if (error) { alert('No se pudo borrar: ' + error.message); return; }
-  saveMeals(loadMeals().filter((m) => m.id !== meal.id));
-  closeSheets();
-  renderNutrition();
+  if (await deleteMeal(meal)) closeSheets();
 });
 
-$('maRecur').addEventListener('click', async () => {
-  const meal = loadMeals().find((m) => m.id === maMealId);
+async function toggleRecurring(meal) {
   if (!meal) return;
   const active = activeRecurringOf(meal);
   try {
@@ -4927,9 +5304,15 @@ $('maRecur').addEventListener('click', async () => {
       await materializeRecurring();
     }
     if (navigator.vibrate) navigator.vibrate(30);
-    closeSheets();
     renderNutrition();
   } catch (err) { alert('No se pudo cambiar lo periódico: ' + (err?.message || err)); }
+}
+
+$('maRecur').addEventListener('click', async () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  await toggleRecurring(meal);
+  // La hoja se queda abierta: el botón es un interruptor y hay que ver cómo queda
+  paintMaSheet(loadMeals().find((m) => m.id === maMealId));
 });
 
 // ===== Editor =====
