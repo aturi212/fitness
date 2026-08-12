@@ -1452,6 +1452,17 @@
       </div>
 
       <div id="nutriDaily">
+        <!-- Navegador de día: lo que se registre va SIEMPRE al día que se ve -->
+        <div class="daynav" id="nutriDayNav">
+          <button type="button" class="daynav-btn" id="ndPrev" aria-label="Día anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="daynav-label" id="ndLabel"></div>
+          <button type="button" class="daynav-btn" id="ndNext" aria-label="Día siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
         <div class="card">
           <div class="nk-head">
             <span class="label">Macros del día</span>
@@ -1663,7 +1674,7 @@
       <span>HOME</span>
     </button>
     <button data-go="nutrition" aria-label="Nutrición">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8C10.7 6.5 8.5 6 7 7c-1.7 1.2-2.3 3.4-2.3 5.4 0 3.9 2.5 7.6 4.5 7.6.9 0 1.6-.5 2.8-.5s1.9.5 2.8.5c2 0 4.5-3.7 4.5-7.6 0-2-.6-4.2-2.3-5.4-1.5-1-3.7-.5-5 1z"/><path d="M12 8V5.2"/><path d="M12.2 5.2c1.5-.1 2.7-1.2 2.8-2.6-1.5-.1-2.8 1.1-2.8 2.6z"/></svg>
       <span>NUTRI</span>
     </button>
     <button data-go="stats" aria-label="Estadísticas">
@@ -1972,6 +1983,20 @@
     #maSheet .ma-row button svg { width: 18px; height: 18px; }
     #maSheet #maRecur.on { background: var(--hot); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
     #maSheet .ma-btns > .ma-danger { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* ════════ Navegador de día (Nutrición · Diario) ════════ */
+    .daynav { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; }
+    .daynav-btn { width: 38px; height: 38px; flex-shrink: 0; border-radius: var(--r-4);
+                  background: var(--s2); border: 1px solid var(--line); color: var(--muted);
+                  display: grid; place-items: center;
+                  transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease); }
+    .daynav-btn svg { width: 16px; height: 16px; }
+    .daynav-btn:active { transform: scale(.94); }
+    .daynav-btn[disabled] { opacity: .3; }
+    .daynav-label { flex: 1; text-align: center; font: 700 13px/1 var(--f-mono);
+                    letter-spacing: .16em; text-transform: uppercase; color: var(--text); }
+    /* Solo el día de hoy va en naranja; el resto en blanco */
+    .daynav-label.is-today { color: var(--hot-text); }
 
     /* ════════ CUENTA ATRÁS DE INICIO Y FIN DE ENTRENO ════════
        Por encima del tracker (100) y del descanso (110); por debajo del
@@ -4842,6 +4867,19 @@ function nutriDayLabel(iso) {
   return `${DOW_N2[new Date(y, m - 1, d).getDay()]} ${String(d).padStart(2, '0')} ${MESES_N2[m]}`;
 }
 
+// Versión larga para el navegador de día (la píldora de la cabecera se queda
+// con la corta, para que no se lean como dos veces lo mismo).
+const DOW_LARGO = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+const MESES_LARGO = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+  'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+function nutriDayLabelLargo(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const hoy = nutriIso();
+  if (iso === hoy) return `HOY · ${d} ${MESES_LARGO[m]}`;
+  if (iso === nutriAddDays(hoy, -1)) return `AYER · ${d} ${MESES_LARGO[m]}`;
+  return `${DOW_LARGO[new Date(y, m - 1, d).getDay()]} ${d} ${MESES_LARGO[m]}`;
+}
+
 // Bloques que el usuario ha plegado (se recuerda entre renders)
 const mealCollapsed = new Set();
 
@@ -4851,6 +4889,13 @@ function renderNutriDaily() {
   const targets = nutriTargets();
 
   $('nutriChip').textContent = nutriDayLabel(nutriDay);
+
+  // Navegador de día. Lo que se registre va al día que se está viendo.
+  const hoyIso = nutriIso();
+  const lbl = $('ndLabel');
+  lbl.textContent = nutriDayLabelLargo(nutriDay);
+  lbl.classList.toggle('is-today', nutriDay === hoyIso);
+  $('ndNext').disabled = nutriDay >= hoyIso;   // no se apunta en el futuro
 
   // Anillos concéntricos con el CENTRO VACÍO (§5.5): el total vive en la cabecera
   const radii = [70, 56, 42, 28];
@@ -4950,6 +4995,27 @@ function cambiarDia(n) {
   nutriDay = destino;
   renderNutriDaily();
 }
+$('ndPrev').addEventListener('click', () => cambiarDia(-1));
+$('ndNext').addEventListener('click', () => cambiarDia(1));
+
+// ===== El día de "hoy" cambia solo =====
+// Una PWA instalada se queda en memoria días enteros: la fecha de Home, la
+// racha, la tira de la semana y el día de nutrición se quedaban congelados en
+// el día en que se abrió la app (de ahí que apareciera "sábado 08" un miércoles).
+// Se comprueba al volver a la app y una vez por minuto.
+let diaEnPantalla = nutriIso();
+async function comprobarCambioDeDia() {
+  const hoy = nutriIso();
+  if (hoy === diaEnPantalla) return;
+  const mirabaHoy = nutriDay === diaEnPantalla;
+  diaEnPantalla = hoy;
+  if (mirabaHoy) nutriDay = hoy;      // si estabas en "hoy", sigues en hoy
+  await materializeRecurring();       // las periódicas del día nuevo
+  window.appRerender?.();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarCambioDeDia(); });
+window.addEventListener('focus', comprobarCambioDeDia);
+setInterval(comprobarCambioDeDia, 60000);
 
 // El chat del nutricionista se retiró de esta pantalla (decisión de Adrián).
 // La Edge Function `nutrition` conserva el modo chat por si vuelve.
