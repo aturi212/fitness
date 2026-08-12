@@ -1479,11 +1479,6 @@
           REGISTRAR COMIDA
         </button>
 
-        <div class="sec-head">
-          <span class="label">Comidas</span>
-          <span class="rule"></span>
-          <span class="data-sm" id="mealCount"></span>
-        </div>
         <div id="mealList"></div>
       </div>
 
@@ -4881,7 +4876,10 @@ function nutriDayLabelLargo(iso) {
 }
 
 // Bloques que el usuario ha plegado (se recuerda entre renders)
-const mealCollapsed = new Set();
+// Los bloques arrancan SIEMPRE plegados: al abrir la app y cada vez que se
+// cambia de día. Solo se abre el que el usuario despliega, y ese estado vive en
+// memoria (no se guarda), así que al volver está todo recogido otra vez.
+let mealOpen = new Set();
 
 function renderNutriDaily() {
   const meals = mealsOf(nutriDay);
@@ -4924,7 +4922,6 @@ function renderNutriDaily() {
 
   $('nutriKcal').textContent = Math.round(totals.kcal);
   $('nutriKcalGoal').textContent = targets.kcal ? `/${Math.round(targets.kcal)}` : '';
-  $('mealCount').textContent = meals.length ? String(meals.length).padStart(2, '0') : '';
 
   // Cuatro desplegables: desayuno, comida, cena y otros
   // Deslizar a la derecha → periódico · deslizar a la izquierda → eliminar.
@@ -4952,7 +4949,7 @@ function renderNutriDaily() {
   $('mealList').innerHTML = MEAL_TYPES.map((t) => {
     const items = meals.filter((m) => (m.meal_type || 'other') === t.k);
     const kcal = Math.round(items.reduce((a, m) => a + (Number(m.kcal) || 0), 0));
-    const plegado = mealCollapsed.has(t.k);
+    const plegado = !mealOpen.has(t.k);
     return `<div class="mt-block ${plegado ? 'closed' : ''}" data-block="${t.k}">
       <button type="button" class="mt-head" data-toggle="${t.k}">
         <svg class="mt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -4968,8 +4965,8 @@ function renderNutriDaily() {
   $('mealList').querySelectorAll('[data-toggle]').forEach((b) => {
     b.addEventListener('click', () => {
       const k = b.dataset.toggle;
-      if (mealCollapsed.has(k)) mealCollapsed.delete(k); else mealCollapsed.add(k);
-      b.closest('.mt-block').classList.toggle('closed', mealCollapsed.has(k));
+      if (mealOpen.has(k)) mealOpen.delete(k); else mealOpen.add(k);
+      b.closest('.mt-block').classList.toggle('closed', !mealOpen.has(k));
     });
   });
 }
@@ -4993,6 +4990,7 @@ function cambiarDia(n) {
   const destino = nutriAddDays(nutriDay, n);
   if (destino > nutriIso()) return;      // no se apunta en el futuro
   nutriDay = destino;
+  mealOpen.clear();                      // cada día se entra con todo recogido
   renderNutriDaily();
 }
 $('ndPrev').addEventListener('click', () => cambiarDia(-1));
@@ -5010,6 +5008,7 @@ async function comprobarCambioDeDia() {
   const mirabaHoy = nutriDay === diaEnPantalla;
   diaEnPantalla = hoy;
   if (mirabaHoy) nutriDay = hoy;      // si estabas en "hoy", sigues en hoy
+  mealOpen.clear();                   // día nuevo, bloques recogidos
   await materializeRecurring();       // las periódicas del día nuevo
   window.appRerender?.();
 }
