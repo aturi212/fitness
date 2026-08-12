@@ -1268,20 +1268,13 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="statsChip"></span>
-        <button type="button" class="btn-icon" id="statsAdd" aria-label="Añadir métricas">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
       </div>
 
       <!-- Cabecera de perfil: foto (toca para cambiarla), nombre, peso y racha.
            Debajo sigue "TU PROGRESO" tal cual estaba. -->
       <div class="prof-head" id="profHead">
-        <button type="button" class="prof-ava" id="profAva" aria-label="Cambiar foto de perfil">
+        <button type="button" class="prof-ava" id="profAva" aria-label="Foto de perfil">
           <span class="ini" id="profIni">·</span>
-          <span class="cam" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          </span>
         </button>
         <div class="prof-id">
           <div class="prof-name" id="profName">—</div>
@@ -1291,14 +1284,18 @@
             <span class="prof-stat"><span class="v" id="profStreak">—</span><span class="u">de racha</span></span>
           </div>
         </div>
-        <button type="button" class="btn-icon" id="profAcct" aria-label="Tu cuenta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.6 20a7.6 7.6 0 0 1 14.8 0"/></svg>
+        <button type="button" class="btn-icon" id="profAcct" aria-label="Ajustes del perfil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
         </button>
       </div>
 
       <h1 class="title scr-title"><span class="out">TU</span> <span>PROGRESO</span></h1>
 
-      <div class="card check-card">
+      <!-- El orden de estas tarjetas lo decide cada usuario (Ajustes →
+           Rediseñar progreso) y se guarda en profiles.stats_order. -->
+      <div id="statsCards">
+
+      <div class="card check-card" data-sec="check" data-sec-name="Check semanal">
         <div class="nk-head">
           <span class="label">Check semanal</span>
           <span class="data-sm" id="checkGoal"></span>
@@ -1306,7 +1303,7 @@
         <div class="check-grid" id="weeklyCheck"></div>
       </div>
 
-      <div class="card" style="margin-top:18px">
+      <div class="card" data-sec="calendario" data-sec-name="Calendario">
         <div class="cal-card-head">
           <span class="label">Calendario</span>
           <div class="seg seg-mini" id="calSeg">
@@ -1329,7 +1326,7 @@
         </div>
       </div>
 
-      <div class="card chart-card" style="margin-top:18px">
+      <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
         <div class="prog-head">
           <span class="label">Progresión</span>
           <span class="pr-pill" id="progPr" style="display:none"></span>
@@ -1341,27 +1338,29 @@
       </div>
 
       <!-- Progresión física: peso, IMC y grasa -->
-      <div class="card chart-card" style="margin-top:18px">
+      <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
         <div class="prog-head">
           <span class="label">Progresión física</span>
           <span class="pr-pill" id="bodyDelta" style="display:none"></span>
         </div>
-        <div class="ex-slider" id="bodySlider"></div>
+        <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
+        <div class="metric-tabs" id="bodySlider"></div>
         <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readout" id="bodyReadout"></div>
         <div class="sub" id="bodySub"></div>
+        <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          AÑADIR MÉTRICAS
+        </button>
+        <form class="weight-form" id="weightForm" style="display:none">
+          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
+          <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
+          <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
+          <button type="submit">Guardar</button>
+        </form>
       </div>
 
-      <button type="button" class="btn btn--sec" id="metricsAddBtn" style="margin-top:18px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        AÑADIR MÉTRICAS
-      </button>
-      <form class="weight-form" id="weightForm" style="display:none">
-        <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
-        <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
-        <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
-        <button type="submit">Guardar</button>
-      </form>
+      </div><!-- /#statsCards -->
 
       <style>
         /* ---------- Stats v2 ---------- */
@@ -1438,10 +1437,6 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="nutriChip"></span>
-        <button type="button" class="btn-icon" id="nutriAdd" aria-label="Registrar comida">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
       </div>
 
       <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
@@ -1672,9 +1667,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8C10.7 6.5 8.5 6 7 7c-1.7 1.2-2.3 3.4-2.3 5.4 0 3.9 2.5 7.6 4.5 7.6.9 0 1.6-.5 2.8-.5s1.9.5 2.8.5c2 0 4.5-3.7 4.5-7.6 0-2-.6-4.2-2.3-5.4-1.5-1-3.7-.5-5 1z"/><path d="M12 8V5.2"/><path d="M12.2 5.2c1.5-.1 2.7-1.2 2.8-2.6-1.5-.1-2.8 1.1-2.8 2.6z"/></svg>
       <span>NUTRI</span>
     </button>
-    <button data-go="stats" aria-label="Estadísticas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 7-8"/><path d="M14 8h5v5"/></svg>
-      <span>STATS</span>
+    <button data-go="stats" aria-label="Perfil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>
+      <span>PERFIL</span>
     </button>
   </nav>
 
@@ -1917,10 +1912,6 @@
     .prof-ava:active { transform: scale(.96); }
     .prof-ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .prof-ava .ini { font: 700 21px/1 var(--f-display); color: var(--dim); letter-spacing: -.02em; }
-    .prof-ava .cam { position: absolute; right: -1px; bottom: -1px; width: 21px; height: 21px;
-                     border-radius: 50%; background: var(--hot-solid); color: var(--hot-ink);
-                     display: grid; place-items: center; border: 2px solid var(--bg); }
-    .prof-ava .cam svg { width: 10px; height: 10px; }
     .prof-ava.busy { opacity: .5; }
     .prof-id { flex: 1; min-width: 0; }
     .prof-name { font: 700 22px/1.1 var(--f-display); letter-spacing: -.03em; margin: 0 0 6px;
@@ -1942,6 +1933,13 @@
       padding: 4px 16px 6px; margin-bottom: 12px; box-shadow: var(--sh-card);
     }
     #mealList .mt-block:last-child { margin-bottom: 0; }
+    /* Mismo aire entre el botón de registrar y la primera caja que entre cajas */
+    #mealAddBtn { margin-bottom: 12px; }
+
+    /* La manzana se veía más pequeña que el resto de iconos de la barra:
+       el dibujo ocupa menos alto que una casa o una gráfica. */
+    nav.bottom button[data-go="nutrition"] svg { width: 23.5px; height: 23.5px; }
+    nav.bottom button[data-go="nutrition"].active svg { width: 21.5px; height: 21.5px; }
     #mealList .mt-head { padding: 15px 0 14px; gap: 11px; align-items: center; justify-content: flex-start; }
     #mealList .mt-block.closed .mt-head { padding-bottom: 15px; }
     #mealList .mt-name { font: 700 15px/1 var(--f-display); letter-spacing: .12em; color: var(--text); }
@@ -1992,6 +1990,112 @@
                     letter-spacing: .16em; text-transform: uppercase; color: var(--text); }
     /* Solo el día de hoy va en naranja; el resto en blanco */
     .daynav-label.is-today { color: var(--hot-text); }
+
+    /* ════════ CAJONES LATERALES ════════
+       El del logo entra por la izquierda; el de ajustes de Perfil por la
+       derecha. Por encima de todo menos del acceso (200) y del entreno (170). */
+    /* Un punto más grande que antes (26×14) y tocable: abre el cajón */
+    .logo { width: 32px; height: 17px; cursor: pointer; }
+    .drawer-veil { position: fixed; inset: 0; z-index: 178; background: rgba(0,0,0,.55);
+                   opacity: 0; pointer-events: none; transition: opacity var(--t-base) var(--ease); }
+    .drawer-veil.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; bottom: 0; z-index: 179; width: min(276px, 76vw);
+              background: var(--s1); display: flex; flex-direction: column; overflow-y: auto;
+              padding: max(28px, env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
+              transition: transform var(--t-slow) var(--ease); }
+    .drawer--left  { left: 0;  border-right: 1px solid var(--line); transform: translateX(-102%); }
+    .drawer--right { right: 0; border-left: 1px solid var(--line);  transform: translateX(102%); }
+    .drawer.open { transform: none; }
+
+    .drawer-brand { display: flex; align-items: center; gap: 12px; padding: 6px 4px 26px;
+                    border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+    .logo--xl { width: 40px; height: 21px; }
+    .drawer-name { font: 700 24px/1 var(--f-display); letter-spacing: .04em; }
+    .drawer-head { display: flex; align-items: center; gap: 10px; padding: 6px 4px 18px;
+                   border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+    .drawer-back { width: 30px; height: 30px; margin-left: -4px; border-radius: var(--r-3);
+                   background: var(--s3); border: 1px solid var(--line); color: var(--muted);
+                   display: grid; place-items: center; flex-shrink: 0; }
+    .drawer-back svg { width: 14px; height: 14px; }
+
+    .drawer-list { display: grid; gap: 6px; }
+    .drawer-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+                   padding: 14px 12px; border-radius: var(--r-5); background: var(--s2);
+                   border: 1px solid var(--line); color: var(--text); font-size: 14.5px;
+                   transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
+    .drawer-item svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--dim); }
+    .drawer-item:active { transform: scale(.98); background: var(--s4); }
+    .drawer-item.danger { color: var(--danger); }
+    .drawer-item.danger svg { color: var(--danger); }
+    .drawer-foot { margin-top: auto; padding-top: 18px; font: 500 10px/1.4 var(--f-mono);
+                   letter-spacing: .08em; color: var(--ghost-2); word-break: break-all; }
+    .drawer-hint { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 4px 14px; }
+    .drawer-reset { margin-top: 16px; width: 100%; padding: 12px; border-radius: var(--r-5);
+                    background: none; border: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+
+    /* Lista para reordenar las tarjetas de Perfil */
+    .ord-list { display: grid; gap: 8px; }
+    .ord-item { display: flex; align-items: center; gap: 11px; padding: 14px 12px;
+                border-radius: var(--r-5); background: var(--s2); border: 1px solid var(--line);
+                font-size: 14px; touch-action: none; user-select: none; -webkit-user-select: none;
+                transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease); }
+    .ord-item .grip { display: grid; gap: 3px; flex-shrink: 0; }
+    .ord-item .grip i { display: block; width: 14px; height: 1.5px; background: var(--ghost-2); border-radius: 1px; }
+    .ord-item .ord-name { flex: 1; min-width: 0; }
+    .ord-item .ord-num { font: 500 10px/1 var(--f-mono); color: var(--ghost-2); }
+    .ord-item.dragging { background: var(--s4); border-color: var(--line-3);
+                         box-shadow: var(--sh-float); transform: scale(1.03); opacity: .96; }
+
+    /* ════════ Perfil (ex Stats): foto y nombre más grandes ════════ */
+    .prof-ava { width: 74px; height: 74px; }
+    .prof-ava .ini { font-size: 27px; }
+    .prof-name { font-size: 27px; margin-bottom: 8px; }
+    .prof-head { gap: 15px; margin: 18px 0 22px; }
+
+    /* Las tarjetas de Perfil se reordenan: el aire va entre hermanas, no en
+       cada tarjeta, para que la primera no arrastre un margen suelto. */
+    #statsCards > .card + .card { margin-top: 18px; }
+
+    /* Check semanal: más bajo, ocupaba demasiado alto */
+    .check-grid { gap: 8px; margin-top: 11px; }
+    .check-week { padding: 9px 5px 9px; }
+    .check-week .wk-lbl { font-size: 8.5px; letter-spacing: .12em; }
+    .check-week .wk-val { font-size: 16px; margin-top: 4px; }
+
+    /* Progresión por ejercicio: los chips se desvanecen hacia los bordes
+       de la tarjeta, para que se vea que la tira sigue a los lados. */
+    .ex-slider {
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+    }
+
+    /* Progresión física: peso / IMC / grasa centrados y sin desplazamiento */
+    .metric-tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px; }
+    .metric-tabs .ex-chip { flex: 0 0 auto; scroll-snap-align: none; }
+
+    /* Lectura en una sola línea: «85,2 KG · 25 JUL» */
+    #bodyReadout, #progReadout { display: flex; align-items: baseline; justify-content: center; gap: 9px; }
+    #bodyReadout span::before, #progReadout span::before { content: '·'; margin-right: 9px; color: var(--ghost-2); }
+
+    /* El botón de métricas vive dentro de la tarjeta, al final */
+    .metrics-btn { width: 100%; margin-top: 16px; }
+    #weightForm { margin-top: 10px; }
+
+    /* ── Recorte del avatar ── */
+    .crop-veil { z-index: 182; }
+    .crop-box { position: relative; z-index: 2; width: 100%; max-width: 330px; text-align: center; }
+    .crop-title { font: 700 17px/1 var(--f-display); letter-spacing: -.01em; margin-bottom: 18px; }
+    .crop-stage { position: relative; width: 100%; aspect-ratio: 1; margin: 0 auto 18px;
+                  overflow: hidden; border-radius: var(--r-7); background: #000;
+                  touch-action: none; user-select: none; -webkit-user-select: none; }
+    .crop-stage img { position: absolute; left: 0; top: 0; max-width: none; pointer-events: none;
+                      -webkit-user-drag: none; }
+    /* El círculo se dibuja con una sombra enorme: todo lo de fuera se oscurece */
+    .crop-mask { position: absolute; inset: 0; border-radius: 50%;
+                 box-shadow: 0 0 0 9999px rgba(5,5,5,.72); pointer-events: none; }
+    #cropZoom { width: 100%; margin: 0 0 20px; accent-color: var(--hot-solid); }
+    .crop-actions { display: flex; gap: 10px; }
+    .crop-actions .btn-ghost, .crop-actions .btn-primary { margin-top: 0; flex: 1; }
 
     /* ════════ CUENTA ATRÁS DE INICIO Y FIN DE ENTRENO ════════
        Por encima del tracker (100) y del descanso (110); por debajo del
@@ -2310,14 +2414,86 @@
   </div>
 </div>
 
-<!-- ============ CUENTA · acciones del perfil ============ -->
-<div class="hsheet" id="acctSheet">
-  <div class="hs-title">Tu cuenta</div>
-  <div class="hs-sub" id="acctEmail"></div>
-  <button type="button" class="hs-opt" id="acctPhoto">Cambiar foto de perfil</button>
-  <button type="button" class="hs-opt" id="acctEdit">Editar mis datos</button>
-  <button type="button" class="hs-opt danger" id="acctOut">Cerrar sesión</button>
+<!-- ============ CAJONES LATERALES ============
+     El del logo entra por la izquierda (menú de la app); el de ajustes de
+     Perfil entra por la derecha. Tocar fuera los cierra. -->
+<div class="drawer-veil" id="drawerVeil"></div>
+
+<aside class="drawer drawer--left" id="logoDrawer" aria-hidden="true">
+  <div class="drawer-brand">
+    <span class="logo logo--xl" aria-label="ONIX"><i></i><i></i></span>
+    <span class="drawer-name">ONIX</span>
+  </div>
+  <div class="drawer-list">
+    <button type="button" class="drawer-item danger" id="ldLogout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
+  <div class="drawer-foot" id="ldEmail"></div>
+</aside>
+
+<aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
+  <div id="pdMain">
+    <div class="drawer-head"><span class="label">Ajustes de perfil</span></div>
+    <div class="drawer-list">
+      <button type="button" class="drawer-item" id="pdPhoto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="11.8" cy="12.6" r="3.2"/></svg>
+        <span>Cambiar foto de perfil</span>
+      </button>
+      <button type="button" class="drawer-item" id="pdEdit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        <span>Editar mis datos</span>
+      </button>
+      <button type="button" class="drawer-item" id="pdOrder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11"/><path d="M4 12h16"/><path d="M4 18h8"/><path d="M18 15l3 3-3 3"/></svg>
+        <span>Rediseñar progreso</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="pdOrderPane" style="display:none">
+    <div class="drawer-head">
+      <button type="button" class="drawer-back" id="pdOrderBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="label">Orden de las tarjetas</span>
+    </div>
+    <p class="drawer-hint">Mantén pulsada una tarjeta y arrástrala para cambiar el orden. Se guarda solo.</p>
+    <div class="ord-list" id="ordList"></div>
+    <button type="button" class="drawer-reset" id="pdOrderReset">Volver al orden original</button>
+  </div>
+</aside>
+
+<!-- ============ FOTO DE PERFIL ============ -->
+<div class="hsheet" id="photoSheet">
+  <div class="hs-title">Foto de perfil</div>
+  <button type="button" class="hs-opt" id="phNew">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex-shrink:0"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    Subir una foto nueva
+  </button>
+  <button type="button" class="hs-opt" id="phEdit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex-shrink:0"><path d="M7 3v14a1 1 0 0 0 1 1h14"/><path d="M17 21V7a1 1 0 0 0-1-1H2"/></svg>
+    Ajustar la foto actual
+  </button>
 </div>
+
+<!-- Recorte del avatar: arrastra para encuadrar y la barra para acercar -->
+<div class="cd-veil crop-veil" id="cropVeil" aria-hidden="true">
+  <div class="crop-box">
+    <div class="crop-title">Ajusta tu foto</div>
+    <div class="crop-stage" id="cropStage">
+      <img id="cropImg" alt="" draggable="false">
+      <div class="crop-mask" aria-hidden="true"></div>
+    </div>
+    <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" aria-label="Acercar">
+    <div class="crop-actions">
+      <button type="button" class="btn-ghost" id="cropCancel">Cancelar</button>
+      <button type="button" class="btn-primary" id="cropSave">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="avatarInput" accept="image/*" style="display:none">
 
 <!-- Data files (fallback local; la fuente de verdad ahora es Supabase) -->
@@ -3343,9 +3519,8 @@
 
   function renderStats() {
     renderProfileHead();
-    const totalSesiones = getAllWorkouts().length;
-    const chip = document.getElementById('statsChip');
-    if (chip) chip.textContent = `${totalSesiones} SESIONES`;
+    // La píldora de «nn SESIONES» se retiró: la cabecera de Perfil va solo con
+    // el logo (decisión de Adrián).
     // Check semanal — últimas 4 semanas. Cuenta SESIONES registradas contra los
     // días planificados (≠rest) de la semana efectiva (base + overrides).
     const grid = document.getElementById('weeklyCheck');
@@ -3367,7 +3542,7 @@
       if (target > 0 && done >= target) cls = 'met';
       else if (done > 0) cls = 'partial';
       if (i === 0) cls += ' current';
-      const lbl = i === 0 ? 'Esta sem.' : (i === 1 ? 'Anterior' : `Hace ${i}`);
+      const lbl = i === 0 ? 'Esta' : (i === 1 ? 'Anterior' : `Hace ${i}`);
       const val = `${done}/${target}`;
       const sub = (target > 0 && done >= target) ? 'cumplido' : 'entrenos';
       html.push(`
@@ -3446,12 +3621,13 @@
       .filter((id) => topSetSeries(id).length > 4)
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
-      slider.innerHTML = ''; chart.innerHTML = '';
+      slider.innerHTML = ''; chart.innerHTML = ''; chart.style.display = 'none';
       document.getElementById('progReadout').innerHTML = '';
       pr.style.display = 'none'; progIdsKey = ''; progSeries = [];
       sub.textContent = 'Aquí aparecerán los ejercicios con más de 4 sesiones registradas';
       return;
     }
+    chart.style.display = '';
     if (!progExId || !ids.includes(progExId)) {
       progExId = ids.includes('bench-press-barbell') ? 'bench-press-barbell' : ids[0];
     }
@@ -3607,8 +3783,11 @@
     const sub = document.getElementById('bodySub');
     const out = document.getElementById('bodyReadout');
 
+    // Con menos de dos registros no hay gráfica: se ESCONDE el svg, si no deja
+    // un hueco vacío enorme dentro de la tarjeta.
     if (!serie.length) {
-      chart.innerHTML = ''; out.innerHTML = ''; delta.style.display = 'none';
+      chart.innerHTML = ''; chart.style.display = 'none';
+      out.innerHTML = ''; delta.style.display = 'none';
       sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el botón de abajo.`;
       return;
     }
@@ -3617,11 +3796,12 @@
     const dif = +(last.v - first.v).toFixed(1);
     delta.textContent = `${dif >= 0 ? '+' : ''}${fmtKg(dif)} ${def.unidad}`.trim();
     if (serie.length === 1) {
-      chart.innerHTML = '';
+      chart.innerHTML = ''; chart.style.display = 'none';
       out.innerHTML = `<b>${fmtKg(last.v)} ${def.unidad}</b><span>${fmtD(last.date)}</span>`;
       sub.textContent = 'Un solo registro. Con dos ya se ve la tendencia.';
       return;
     }
+    chart.style.display = '';
     drawLine(chart, serie.map((p) => p.v), 'gBody');
     setBodyPoint(serie.length - 1);
     sub.textContent = `${serie.length} registros · desde ${fmtD(first.date)}`;
@@ -3652,7 +3832,9 @@
     el.addEventListener('pointermove', scrub);
   })();
 
-  // El formulario de métricas se abre desde el botón o desde el «+» de la cabecera
+  // El formulario de métricas se despliega desde el botón del final de la
+  // tarjeta de progresión física (el «+» de la cabecera se retiró: solo
+  // llevaba aquí abajo y no aportaba nada).
   function toggleWeightForm() {
     const f = document.getElementById('weightForm');
     const show = f.style.display === 'none';
@@ -3792,7 +3974,6 @@
   // Métricas: peso, IMC y % de grasa. El peso viaja a la nube (tabla body_weight);
   // IMC y grasa se guardan en la nota de ese día, que es donde caben hoy.
   document.getElementById('metricsAddBtn').addEventListener('click', toggleWeightForm);
-  document.getElementById('statsAdd').addEventListener('click', toggleWeightForm);
   document.getElementById('weightForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const num = (id) => {
@@ -4886,7 +5067,8 @@ function renderNutriDaily() {
   const totals = nutriTotals(meals);
   const targets = nutriTargets();
 
-  $('nutriChip').textContent = nutriDayLabel(nutriDay);
+  // La píldora de fecha de la cabecera se retiró: la fecha vive en el
+  // navegador de abajo, y tenerla dos veces era ruido.
 
   // Navegador de día. Lo que se registre va al día que se está viendo.
   const hoyIso = nutriIso();
@@ -5192,7 +5374,6 @@ async function nsSubmit(imageB64) {
   } finally { nsBusy(false); }
 }
 
-$('nutriAdd').addEventListener('click', openNutriSheet);
 $('mealAddBtn').addEventListener('click', openNutriSheet);
 $('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
@@ -5480,6 +5661,7 @@ async function pullProfile() {
   if (error) { console.warn('No se pudo leer el perfil:', error.message); return null; }
   window.__profile = data || null;
   window.appRenderProfile?.();
+  aplicarOrden();          // el orden de las tarjetas viaja en el perfil
   return data;
 }
 async function saveProfile(patch) {
@@ -5637,63 +5819,268 @@ $('onbNext').addEventListener('click', async () => {
   onb.step++; onbPaint();
 });
 
-// ---------- Cuenta (hoja del perfil) ----------
-const acctSheet = $('acctSheet');
-const hsBack = $('hsBackdrop');
-const openAcct = async () => {
-  const { data: { user } } = await sb.auth.getUser();
-  $('acctEmail').textContent = user?.email || 'Sin sesión iniciada';
-  hsBack.classList.add('open'); acctSheet.classList.add('open');
-};
-const closeAcct = () => { hsBack.classList.remove('open'); acctSheet.classList.remove('open'); };
-$('profAcct')?.addEventListener('click', openAcct);
-hsBack.addEventListener('click', closeAcct);
+// ---------- Cajones laterales ----------
+const drawerVeil = $('drawerVeil');
+const logoDrawer = $('logoDrawer');
+const profDrawer = $('profDrawer');
 
-$('acctEdit').addEventListener('click', () => {
-  closeAcct();
-  startOnboarding(window.__profile?.display_name || '');
+function cerrarCajones() {
+  [logoDrawer, profDrawer].forEach((d) => {
+    d.classList.remove('open');
+    d.setAttribute('aria-hidden', 'true');
+  });
+  drawerVeil.classList.remove('open');
+}
+async function abrirCajon(el) {
+  cerrarCajones();
+  if (el === logoDrawer) {
+    const { data: { user } } = await sb.auth.getUser();
+    $('ldEmail').textContent = user?.email || '';
+  }
+  el.classList.add('open');
+  el.setAttribute('aria-hidden', 'false');
+  drawerVeil.classList.add('open');
+}
+drawerVeil.addEventListener('click', cerrarCajones);
+
+// El logo de CUALQUIER pantalla abre el menú de la app
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.logo') && !e.target.closest('.drawer')) abrirCajon(logoDrawer);
 });
-$('acctOut').addEventListener('click', async () => {
+
+$('ldLogout').addEventListener('click', async () => {
   if (!confirm('¿Cerrar sesión?\n\nSe borrarán los datos guardados en este móvil. Siguen a salvo en la nube y vuelven al entrar.')) return;
   await sb.auth.signOut();
   wipeLocalData();
   location.reload();
 });
 
+// ---------- Ajustes de Perfil (cajón de la derecha) ----------
+const panelAjustes = () => { $('pdMain').style.display = ''; $('pdOrderPane').style.display = 'none'; };
+const panelOrden = () => { $('pdMain').style.display = 'none'; $('pdOrderPane').style.display = ''; };
+
+$('profAcct')?.addEventListener('click', () => { panelAjustes(); abrirCajon(profDrawer); });
+$('pdPhoto').addEventListener('click', () => { cerrarCajones(); avatarInput.click(); });
+$('pdEdit').addEventListener('click', () => { cerrarCajones(); startOnboarding(window.__profile?.display_name || ''); });
+$('pdOrder').addEventListener('click', () => { pintarOrden(); panelOrden(); });
+$('pdOrderBack').addEventListener('click', panelAjustes);
+
+// ---------- Orden de las tarjetas de Perfil ----------
+// Se guarda en profiles.stats_order para que siga al usuario entre
+// dispositivos. Lo desconocido se ignora y lo que falte se añade al final:
+// así, si algún día se añade una tarjeta nueva, no desaparece.
+const SEC_DEFECTO = ['check', 'calendario', 'progresion', 'fisica'];
+function ordenActual() {
+  const guardado = Array.isArray(window.__profile?.stats_order) ? window.__profile.stats_order : [];
+  const validos = guardado.filter((k) => SEC_DEFECTO.includes(k));
+  return [...validos, ...SEC_DEFECTO.filter((k) => !validos.includes(k))];
+}
+function aplicarOrden() {
+  const cont = $('statsCards');
+  if (!cont) return;
+  ordenActual().forEach((k) => {
+    const el = cont.querySelector(`[data-sec="${k}"]`);
+    if (el) cont.appendChild(el);
+  });
+}
+function pintarOrden() {
+  const cont = $('statsCards');
+  $('ordList').innerHTML = ordenActual().map((k, i) => {
+    const el = cont?.querySelector(`[data-sec="${k}"]`);
+    return `<div class="ord-item" data-k="${k}">
+      <span class="grip" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="ord-name">${el?.dataset.secName || k}</span>
+      <span class="ord-num">${String(i + 1).padStart(2, '0')}</span>
+    </div>`;
+  }).join('');
+}
+function renumerarOrden() {
+  $('ordList').querySelectorAll('.ord-num').forEach((n, i) => {
+    n.textContent = String(i + 1).padStart(2, '0');
+  });
+}
+
+(() => {
+  const lista = $('ordList');
+  let arrastrando = null, y0 = 0;
+
+  lista.addEventListener('pointerdown', (e) => {
+    const it = e.target.closest('.ord-item');
+    if (!it) return;
+    arrastrando = it;
+    y0 = e.clientY;
+    try { it.setPointerCapture?.(e.pointerId); } catch { /* el dedo ya se levantó */ }
+    it.classList.add('dragging');
+  });
+
+  lista.addEventListener('pointermove', (e) => {
+    if (!arrastrando) return;
+    e.preventDefault();
+    arrastrando.style.transform = `translateY(${e.clientY - y0}px)`;
+    const caja = arrastrando.getBoundingClientRect();
+    const centro = caja.top + caja.height / 2;
+    for (const h of [...lista.querySelectorAll('.ord-item')]) {
+      if (h === arrastrando) continue;
+      const r = h.getBoundingClientRect();
+      const hc = r.top + r.height / 2;
+      const vaAntes = arrastrando.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_PRECEDING;
+      if (centro < hc && !vaAntes) { lista.insertBefore(arrastrando, h); }
+      else if (centro > hc && vaAntes) { lista.insertBefore(arrastrando, h.nextSibling); }
+      else continue;
+      y0 = e.clientY;                       // el elemento ya se ha movido: se reancla
+      arrastrando.style.transform = '';
+      renumerarOrden();
+      break;
+    }
+  });
+
+  async function soltar() {
+    if (!arrastrando) return;
+    arrastrando.classList.remove('dragging');
+    arrastrando.style.transform = '';
+    arrastrando = null;
+    renumerarOrden();
+    const nuevo = [...lista.querySelectorAll('.ord-item')].map((x) => x.dataset.k);
+    await saveProfile({ stats_order: nuevo });
+    aplicarOrden();
+  }
+  lista.addEventListener('pointerup', soltar);
+  lista.addEventListener('pointercancel', soltar);
+})();
+
+$('pdOrderReset').addEventListener('click', async () => {
+  await saveProfile({ stats_order: SEC_DEFECTO });
+  aplicarOrden();
+  pintarOrden();
+});
+
 // ---------- Foto de perfil ----------
 // Se encoge a 256px antes de subir: una foto de móvil son 3-4 MB y aquí
 // bastan ~40 KB. El bucket solo acepta la carpeta del propio usuario.
 const avatarInput = $('avatarInput');
-$('profAva')?.addEventListener('click', () => avatarInput.click());
-$('acctPhoto').addEventListener('click', () => { closeAcct(); avatarInput.click(); });
+const photoSheet = $('photoSheet');
+const hsBack = $('hsBackdrop');
 
-function shrinkToJpeg(file, side = 256) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const s = Math.min(img.width, img.height);
-      const c = document.createElement('canvas');
-      c.width = c.height = side;
-      const ctx = c.getContext('2d');
-      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, side, side);
-      c.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas'))), 'image/jpeg', 0.86);
-      URL.revokeObjectURL(img.src);
-    };
-    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
-    img.src = URL.createObjectURL(file);
-  });
-}
+const abrirHojaFoto = () => {
+  // «Ajustar la actual» solo tiene sentido si ya hay foto
+  $('phEdit').style.display = window.__profile?.avatar_url ? '' : 'none';
+  hsBack.classList.add('open');
+  photoSheet.classList.add('open');
+};
+const cerrarHojaFoto = () => { hsBack.classList.remove('open'); photoSheet.classList.remove('open'); };
+hsBack.addEventListener('click', cerrarHojaFoto);
 
-avatarInput.addEventListener('change', async () => {
+$('profAva')?.addEventListener('click', abrirHojaFoto);
+$('phNew').addEventListener('click', () => { cerrarHojaFoto(); avatarInput.click(); });
+$('phEdit').addEventListener('click', () => {
+  cerrarHojaFoto();
+  if (window.__profile?.avatar_url) abrirRecorte(window.__profile.avatar_url, true);
+});
+
+avatarInput.addEventListener('change', () => {
   const file = avatarInput.files?.[0];
   avatarInput.value = '';
-  if (!file) return;
+  if (file) abrirRecorte(URL.createObjectURL(file), false);
+});
+
+// ---------- Recorte del avatar ----------
+// La foto se encuadra a mano y sale un cuadrado de 256px: una foto de móvil
+// son 3-4 MB y aquí bastan ~40 KB.
+const SALIDA_AVATAR = 256;
+const cropVeil = $('cropVeil'), cropStage = $('cropStage'), cropImg = $('cropImg'), cropZoom = $('cropZoom');
+let crop = null;   // { lado, base, zoom, ox, oy, remota }
+
+function pintarRecorte() {
+  if (!crop) return;
+  const escala = crop.base * crop.zoom;
+  const ancho = cropImg.naturalWidth * escala;
+  const alto = cropImg.naturalHeight * escala;
+  // El encuadre nunca puede dejar hueco: se limita el desplazamiento
+  crop.ox = Math.min(0, Math.max(crop.lado - ancho, crop.ox));
+  crop.oy = Math.min(0, Math.max(crop.lado - alto, crop.oy));
+  cropImg.style.width = ancho + 'px';
+  cropImg.style.height = alto + 'px';
+  cropImg.style.transform = `translate(${crop.ox}px, ${crop.oy}px)`;
+}
+
+function abrirRecorte(url, remota) {
+  cropImg.removeAttribute('src');
+  if (remota) cropImg.crossOrigin = 'anonymous'; else cropImg.removeAttribute('crossorigin');
+  cropImg.onload = () => {
+    const lado = cropStage.clientWidth || 280;
+    const base = Math.max(lado / cropImg.naturalWidth, lado / cropImg.naturalHeight);
+    crop = { lado, base, zoom: 1, ox: 0, oy: 0, remota, url };
+    // Arranca centrado
+    crop.ox = (lado - cropImg.naturalWidth * base) / 2;
+    crop.oy = (lado - cropImg.naturalHeight * base) / 2;
+    cropZoom.value = '1';
+    pintarRecorte();
+  };
+  cropImg.onerror = () => {
+    cerrarRecorte();
+    alert('No se ha podido abrir la foto. Prueba a subirla de nuevo.');
+  };
+  cropVeil.setAttribute('aria-hidden', 'false');
+  cropVeil.classList.add('on');
+  cropImg.src = url;
+}
+function cerrarRecorte() {
+  cropVeil.classList.remove('on');
+  cropVeil.setAttribute('aria-hidden', 'true');
+  if (crop && !crop.remota && crop.url?.startsWith('blob:')) URL.revokeObjectURL(crop.url);
+  crop = null;
+}
+$('cropCancel').addEventListener('click', cerrarRecorte);
+
+cropZoom.addEventListener('input', () => {
+  if (!crop) return;
+  const antes = crop.zoom;
+  crop.zoom = Number(cropZoom.value);
+  // Se acerca hacia el centro del encuadre, no hacia la esquina
+  const f = crop.zoom / antes;
+  crop.ox = crop.lado / 2 - (crop.lado / 2 - crop.ox) * f;
+  crop.oy = crop.lado / 2 - (crop.lado / 2 - crop.oy) * f;
+  pintarRecorte();
+});
+
+(() => {
+  let x0 = 0, y0 = 0, moviendo = false;
+  cropStage.addEventListener('pointerdown', (e) => {
+    if (!crop) return;
+    moviendo = true; x0 = e.clientX; y0 = e.clientY;
+    try { cropStage.setPointerCapture(e.pointerId); } catch { /* nada */ }
+  });
+  cropStage.addEventListener('pointermove', (e) => {
+    if (!moviendo || !crop) return;
+    e.preventDefault();
+    crop.ox += e.clientX - x0; crop.oy += e.clientY - y0;
+    x0 = e.clientX; y0 = e.clientY;
+    pintarRecorte();
+  });
+  const soltar = () => { moviendo = false; };
+  cropStage.addEventListener('pointerup', soltar);
+  cropStage.addEventListener('pointercancel', soltar);
+})();
+
+$('cropSave').addEventListener('click', async () => {
+  if (!crop) return;
+  const btn = $('cropSave');
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
   const ava = $('profAva');
   ava?.classList.add('busy');
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { showLogin(); return; }
-    const blob = await shrinkToJpeg(file);
+    const r = SALIDA_AVATAR / crop.lado;
+    const escala = crop.base * crop.zoom;
+    const c = document.createElement('canvas');
+    c.width = c.height = SALIDA_AVATAR;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(cropImg, crop.ox * r, crop.oy * r,
+      cropImg.naturalWidth * escala * r, cropImg.naturalHeight * escala * r);
+    const blob = await new Promise((res, rej) =>
+      c.toBlob((b) => (b ? res(b) : rej(new Error('No se pudo preparar la imagen'))), 'image/jpeg', 0.86));
+
     const path = `${user.id}/avatar_${Date.now()}.jpg`;
     const { error } = await sb.storage.from('avatars').upload(path, blob, {
       contentType: 'image/jpeg', upsert: true,
@@ -5701,9 +6088,11 @@ avatarInput.addEventListener('change', async () => {
     if (error) throw error;
     const { data: pub } = sb.storage.from('avatars').getPublicUrl(path);
     await saveProfile({ avatar_url: pub.publicUrl });
+    cerrarRecorte();
   } catch (e) {
-    alert('No se ha podido subir la foto: ' + (e?.message || e));
+    alert('No se ha podido guardar la foto: ' + (e?.message || e));
   } finally {
+    btn.disabled = false; btn.textContent = 'GUARDAR';
     ava?.classList.remove('busy');
   }
 });
