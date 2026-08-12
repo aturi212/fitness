@@ -4753,10 +4753,9 @@
 // por diseño (el acceso real lo controla RLS + login).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const sb = createClient(
-  'https://rffzgrpoffosqfkqutqq.supabase.co',
-  'sb_publishable_cMVl8RyTE6EUHOBze-iXgQ_6-1ZDYAo'
-);
+const SB_URL = 'https://rffzgrpoffosqfkqutqq.supabase.co';
+const SB_KEY = 'sb_publishable_cMVl8RyTE6EUHOBze-iXgQ_6-1ZDYAo';
+const sb = createClient(SB_URL, SB_KEY);
 window.__sb = sb; // hook de debug (la key es pública; la sesión es del propio navegador)
 
 const $ = (id) => document.getElementById(id);
@@ -6188,25 +6187,81 @@ async function sendChat(text) {
   chatHistory.push({ role: 'user', content: text });
   if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
-  const typing = chatBubble('bot typing', 'Pensando…');
+  // La respuesta llega EN DIRECTO: el estado ("Mirando tu historial…") vive en
+  // una burbuja aparte y el texto se va escribiendo en la de abajo.
+  const estado = chatBubble('bot typing', 'Pensando…');
+  const burbuja = chatBubble('bot', '');
+  burbuja.style.display = 'none';
   chatSend.disabled = true;
+  const acciones = [];
+  let respuesta = '';
   try {
-    const { data, error } = await sb.functions.invoke('chat', {
-      body: { messages: chatHistory.slice(-24).map((m) => ({ role: m.role, content: m.content })) },
+    const { data: { session: s2 } } = await sb.auth.getSession();
+    const resp = await fetch(`${SB_URL}/functions/v1/chat`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${s2?.access_token || ''}`,
+        apikey: SB_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: chatHistory.slice(-24).map((m) => ({ role: m.role, content: m.content })),
+      }),
     });
-    typing.remove();
-    if (error || data?.error) {
-      chatBubble('bot', (data?.error || error?.message || 'Error de conexión. Reintenta.'));
-    } else {
-      chatHistory.push({ role: 'assistant', content: data.reply || '(sin respuesta)', actions: data.actions || [] });
-      renderChat();
-      // Si el entrenador tocó la BD, refresca el programa al momento
-      // (el realtime también lo haría, esto lo hace instantáneo)
-      if (data.actions?.length && (await pullProgram())) window.appRerender?.();
+    if (!resp.ok || !resp.body) {
+      let msg = `Error ${resp.status}`;
+      try { msg = (await resp.json())?.error || msg; } catch { /* respuesta sin JSON */ }
+      throw new Error(msg);
     }
+
+    const lector = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    const tragarLinea = (linea) => {
+      if (!linea.trim()) return;
+      let ev;
+      try { ev = JSON.parse(linea); } catch { return; }
+      if (ev.t === 'text') {
+        respuesta += ev.v;
+        estado.style.display = 'none';
+        burbuja.style.display = '';
+        burbuja.textContent = respuesta.replace(/\*\*/g, '');
+        const caja = $('chatBox');
+        if (caja) caja.scrollTop = caja.scrollHeight;
+      } else if (ev.t === 'tool') {
+        if (ev.v) { estado.style.display = ''; estado.textContent = ev.v; }
+      } else if (ev.t === 'action') {
+        acciones.push(ev.v);
+      } else if (ev.t === 'error') {
+        throw new Error(ev.v);
+      }
+    };
+    for (;;) {
+      const { value, done } = await lector.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lineas = buf.split('\n');
+      buf = lineas.pop() ?? '';
+      lineas.forEach(tragarLinea);
+    }
+    if (buf.trim()) tragarLinea(buf);
+
+    estado.remove();
+    burbuja.remove();
+    chatHistory.push({ role: 'assistant', content: respuesta || '(sin respuesta)', actions: acciones });
+    renderChat();
+    // Si el entrenador tocó la BD, refresca el programa al momento
+    // (el realtime también lo haría, esto lo hace instantáneo)
+    if (acciones.length && (await pullProgram())) window.appRerender?.();
   } catch (err) {
-    typing.remove();
-    chatBubble('bot', (err?.message || err));
+    estado.remove();
+    burbuja.remove();
+    // Si ya había escrito algo, no se tira: se guarda lo que llegó
+    if (respuesta) {
+      chatHistory.push({ role: 'assistant', content: respuesta, actions: acciones });
+      renderChat();
+    }
+    chatBubble('bot', (err?.message || err || 'Error de conexión. Reintenta.'));
   } finally {
     chatSend.disabled = false;
     chatLastTs = Date.now();
