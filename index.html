@@ -1461,6 +1461,7 @@
         <div class="card">
           <div class="nk-head">
             <span class="label">Macros del día</span>
+            <span class="daytype" id="nutriDayType" style="display:none"></span>
             <span class="nk-kcal"><small>KCAL</small><b id="nutriKcal">0</b><i id="nutriKcalGoal"></i></span>
           </div>
           <div class="nutri-rings-wrap">
@@ -1935,6 +1936,11 @@
     #mealList .mt-block:last-child { margin-bottom: 0; }
     /* Mismo aire entre el botón de registrar y la primera caja que entre cajas */
     #mealAddBtn { margin-bottom: 12px; }
+
+    /* Qué juego de macros se está aplicando hoy (solo si hay dos configurados) */
+    .daytype { font: 500 8.5px/1 var(--f-mono); letter-spacing: .16em; color: var(--ghost-2);
+               border: 1px solid var(--line); border-radius: var(--r-3); padding: 5px 7px; }
+    .daytype.is-training { color: var(--hot-text); border-color: var(--hot-line); }
 
     /* La manzana se veía más pequeña que el resto de iconos de la barra:
        el dibujo ocupa menos alto que una casa o una gráfica. */
@@ -4739,6 +4745,22 @@
   // Hook para que el módulo cloud repinte la UI tras un pull
   window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); };
 
+  // ¿Ese día cuenta como día de entreno? Lo usa Nutrición para elegir entre
+  // los macros de entreno y los de descanso. Regla acordada con Adrián:
+  //  · si hay sesión registrada ese día → ENTRENO (aunque estuviera de descanso)
+  //  · si el día YA TERMINÓ y no entrenó → DESCANSO (aunque estuviera planificado)
+  //  · hoy y días futuros → lo que diga el calendario de Home
+  window.appIsTrainingDay = (iso) => {
+    if (!iso) return false;
+    if (getAllWorkouts().some((w) => w.date === iso)) return true;
+    const hoy = localIso();
+    if (iso < hoy) return false;
+    const sched = getEffectiveSchedule(wsMondayOf(iso));
+    const [y, m, d] = iso.split('-').map(Number);
+    const rid = sched[new Date(y, m - 1, d).getDay()];
+    return !!rid && rid !== 'rest';
+  };
+
   // ============ Register service worker ============
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -4970,10 +4992,25 @@ function defaultMealType() {
   return 'dinner';
 }
 // Objetivos: del plan (goals.nutrition, ajustable por el Personal Trainer) o defaults
-const nutriTargets = () => {
-  const t = { ...NUTRI_DEFAULT_TARGETS, ...((window.ROUTINES?.goals || {}).nutrition || {}) };
+// Los macros pueden venir en DOS juegos: { training: {...}, rest: {...} }.
+// Si vienen planos (formato antiguo, un solo juego) valen para los dos tipos
+// de día, así nada se rompe hasta que el entrenador los separe.
+const nutriTargets = (iso) => {
+  const guardado = (window.ROUTINES?.goals || {}).nutrition || {};
+  const porTipo = guardado.training || guardado.rest;
+  let base = guardado;
+  if (porTipo) {
+    const entreno = window.appIsTrainingDay?.(iso || nutriDay);
+    base = (entreno ? guardado.training : guardado.rest) || guardado.training || guardado.rest || {};
+  }
+  const t = { ...NUTRI_DEFAULT_TARGETS, ...base };
   if (!t.kcal) t.kcal = Math.round(t.protein_g * 4 + t.carbs_g * 4 + t.fat_g * 9);
   return t;
+};
+// ¿Hay dos juegos configurados? (para enseñar o no la etiqueta del día)
+const nutriTieneDosJuegos = () => {
+  const g = (window.ROUTINES?.goals || {}).nutrition || {};
+  return !!(g.training && g.rest);
 };
 const nutriTotals = (meals) => {
   const t = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0 };
@@ -5064,7 +5101,20 @@ let mealOpen = new Set();
 function renderNutriDaily() {
   const meals = mealsOf(nutriDay);
   const totals = nutriTotals(meals);
-  const targets = nutriTargets();
+  const targets = nutriTargets(nutriDay);
+
+  // Si hay macros distintos por tipo de día, se dice cuál se está aplicando:
+  // si no, los números cambian solos y no se entiende por qué.
+  const etq = $('nutriDayType');
+  if (etq) {
+    const dos = nutriTieneDosJuegos();
+    etq.style.display = dos ? '' : 'none';
+    if (dos) {
+      const entreno = window.appIsTrainingDay?.(nutriDay);
+      etq.textContent = entreno ? 'DÍA DE ENTRENO' : 'DÍA DE DESCANSO';
+      etq.classList.toggle('is-training', !!entreno);
+    }
+  }
 
   // La píldora de fecha de la cabecera se retiró: la fecha vive en el
   // navegador de abajo, y tenerla dos veces era ruido.
@@ -5214,7 +5264,6 @@ async function ensureWeekData(weekStart) {
   }
 }
 function renderNutriWeekly() {
-  const targets = nutriTargets();
   const today = nutriIso();
   const curMonday = nutriMonday(today);
   const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -5225,13 +5274,17 @@ function renderNutriWeekly() {
   $('nwNext').disabled = nutriWeekStart >= curMonday;
   $('nwNext').style.opacity = nutriWeekStart >= curMonday ? .35 : 1;
   const conDatos = [];
+  const objDeLosDias = [];
   $('weekMacros').innerHTML = DAYS.map((name, i) => {
     const dateIso = nutriAddDays(nutriWeekStart, i);
     const dayMeals = mealsOf(dateIso);
     const totals = nutriTotals(dayMeals);
+    // Cada día se compara con SU objetivo: un día de descanso ya no sale
+    // «corto» por comer menos de lo que toca en un día de entreno.
+    const targets = nutriTargets(dateIso);
     // La media solo cuenta DÍAS TERMINADOS: el día en curso va a medias y
     // hundiría la media (y el futuro, obviamente, no cuenta).
-    if (dayMeals.length && dateIso < today) conDatos.push(totals);
+    if (dayMeals.length && dateIso < today) { conDatos.push(totals); objDeLosDias.push(targets); }
     const segs = NUTRI_MACROS.map((m) => {
       const pct = (totals[m.k] || 0) / (targets[m.k] || 1);
       const met = pct >= 1;
@@ -5251,6 +5304,11 @@ function renderNutriWeekly() {
   // La media se hace SOLO sobre días terminados en los que apuntó algo
   const n = conDatos.length;
   const media = (k) => (n ? conDatos.reduce((acc, t) => acc + (t[k] || 0), 0) / n : 0);
+  // El objetivo de referencia es la media de los objetivos de esos mismos días:
+  // con dos juegos de macros, comparar contra uno fijo desvirtuaría la semana.
+  const objMedio = (k) => (objDeLosDias.length
+    ? objDeLosDias.reduce((acc, t) => acc + (t[k] || 0), 0) / objDeLosDias.length
+    : nutriTargets(today)[k] || 0);
   $('nwAvgLabel').textContent = n
     ? `Media ${n} ${n === 1 ? 'día' : 'días'}`
     : (nutriWeekStart === curMonday ? 'Aún sin días completos' : 'Sin registros');
@@ -5259,7 +5317,7 @@ function renderNutriWeekly() {
     <div class="wa-row">
       <span class="nl-dot" style="background:${m.color}"></span>
       <span class="wa-name">${m.label}</span>
-      <span class="wa-val"><b>${n ? Math.round(media(m.k)) : '—'}</b> / ${Math.round(targets[m.k] || 0)}</span>
+      <span class="wa-val"><b>${n ? Math.round(media(m.k)) : '—'}</b> / ${Math.round(objMedio(m.k))}</span>
     </div>`).join('');
 }
 $('nwPrev').addEventListener('click', async () => {
