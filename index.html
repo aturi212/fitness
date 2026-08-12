@@ -1459,9 +1459,8 @@
         </div>
 
         <div class="card">
-          <div class="nk-head">
-            <span class="label">Macros del día</span>
-            <span class="daytype" id="nutriDayType" style="display:none"></span>
+          <div class="nk-head nk-head--day">
+            <span class="daytype" id="nutriDayType"></span>
             <span class="nk-kcal"><small>KCAL</small><b id="nutriKcal">0</b><i id="nutriKcalGoal"></i></span>
           </div>
           <div class="nutri-rings-wrap">
@@ -1937,9 +1936,13 @@
     /* Mismo aire entre el botón de registrar y la primera caja que entre cajas */
     #mealAddBtn { margin-bottom: 12px; }
 
-    /* Qué juego de macros se está aplicando hoy (solo si hay dos configurados) */
-    .daytype { font: 500 8.5px/1 var(--f-mono); letter-spacing: .16em; color: var(--ghost-2);
-               border: 1px solid var(--line); border-radius: var(--r-3); padding: 5px 7px; }
+    /* Qué tipo de día es, en el sitio donde antes ponía «Macros del día».
+       El padding derecho descuenta el letter-spacing: esa separación se aplica
+       TAMBIÉN detrás de la última letra y dejaba la caja descuadrada. */
+    .nk-head--day { align-items: center; }
+    .daytype { font: 700 9px/1 var(--f-mono); letter-spacing: .18em; color: var(--ghost-2);
+               border: 1px solid var(--line); border-radius: var(--r-3);
+               padding: 6px calc(8px - .18em) 6px 8px; }
     .daytype.is-training { color: var(--hot-text); border-color: var(--hot-line); }
 
     /* La manzana se veía más pequeña que el resto de iconos de la barra:
@@ -5007,11 +5010,6 @@ const nutriTargets = (iso) => {
   if (!t.kcal) t.kcal = Math.round(t.protein_g * 4 + t.carbs_g * 4 + t.fat_g * 9);
   return t;
 };
-// ¿Hay dos juegos configurados? (para enseñar o no la etiqueta del día)
-const nutriTieneDosJuegos = () => {
-  const g = (window.ROUTINES?.goals || {}).nutrition || {};
-  return !!(g.training && g.rest);
-};
 const nutriTotals = (meals) => {
   const t = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0 };
   meals.forEach((m) => { Object.keys(t).forEach((k) => { t[k] += Number(m[k]) || 0; }); });
@@ -5103,17 +5101,13 @@ function renderNutriDaily() {
   const totals = nutriTotals(meals);
   const targets = nutriTargets(nutriDay);
 
-  // Si hay macros distintos por tipo de día, se dice cuál se está aplicando:
-  // si no, los números cambian solos y no se entiende por qué.
+  // Ocupa el sitio donde antes ponía «Macros del día». Se enseña SIEMPRE:
+  // si no, la cabecera se quedaría vacía los días sin dos juegos de macros.
   const etq = $('nutriDayType');
   if (etq) {
-    const dos = nutriTieneDosJuegos();
-    etq.style.display = dos ? '' : 'none';
-    if (dos) {
-      const entreno = window.appIsTrainingDay?.(nutriDay);
-      etq.textContent = entreno ? 'DÍA DE ENTRENO' : 'DÍA DE DESCANSO';
-      etq.classList.toggle('is-training', !!entreno);
-    }
+    const entreno = window.appIsTrainingDay?.(nutriDay);
+    etq.textContent = entreno ? 'TRAIN' : 'REST';
+    etq.classList.toggle('is-training', !!entreno);
   }
 
   // La píldora de fecha de la cabecera se retiró: la fecha vive en el
