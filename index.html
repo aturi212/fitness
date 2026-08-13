@@ -2355,7 +2355,7 @@
 <!-- ============ BIENVENIDA · 4 pasos, rellena `profiles` ============ -->
 <div class="auth-veil" id="onbOverlay">
   <div class="auth-box">
-    <div class="onb-bar" id="onbBar"><i class="on"></i><i></i><i></i><i></i></div>
+    <div class="onb-bar" id="onbBar"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 
     <div class="onb-step on" data-step="1">
       <h1 class="auth-title"><span class="title-out">HOLA,</span> <span id="onbHi">QUÉ TAL</span></h1>
@@ -2397,6 +2397,16 @@
     </div>
 
     <div class="onb-step" data-step="4">
+      <h1 class="auth-title"><span class="title-out">TU</span> NIVEL</h1>
+      <p class="auth-sub">Para saber cuánto explicarte. Sé sincero, no hay respuesta mala.</p>
+      <div class="pick" id="onbLevel">
+        <button type="button" data-v="novato">Empiezo ahora o vuelvo tras mucho tiempo</button>
+        <button type="button" data-v="intermedio">Llevo un tiempo y me manejo</button>
+        <button type="button" data-v="avanzado">Entreno en serio desde hace años</button>
+      </div>
+    </div>
+
+    <div class="onb-step" data-step="5">
       <h1 class="auth-title"><span class="title-out">CÓMO</span> ENTRENAS</h1>
       <p class="auth-sub">Dónde puedes entrenar y cuántos días a la semana, siendo realista.</p>
       <span class="label" style="display:block; margin-bottom:8px">Dónde (puedes marcar varios)</span>
@@ -5797,10 +5807,11 @@ $('loginSkip').addEventListener('click', () => {
 });
 
 // ---------- Bienvenida (4 pasos) ----------
-const onb = { step: 1, goal: null, equip: new Set(), days: null };
+const ONB_PASOS = 5;
+const onb = { step: 1, goal: null, level: null, equip: new Set(), days: null };
 
 function startOnboarding(name) {
-  onb.step = 1; onb.goal = null; onb.equip = new Set(); onb.days = null;
+  onb.step = 1; onb.goal = null; onb.level = null; onb.equip = new Set(); onb.days = null;
   $('onbName').value = name || window.__profile?.display_name || '';
   $('onbHi').textContent = name ? name.toUpperCase() : 'QUÉ TAL';
   onbPaint();
@@ -5812,7 +5823,7 @@ function onbPaint() {
   });
   document.querySelectorAll('#onbBar i').forEach((b, i) => b.classList.toggle('on', i < onb.step));
   $('onbBack').style.visibility = onb.step === 1 ? 'hidden' : '';
-  $('onbNext').textContent = onb.step === 4 ? 'EMPEZAR' : 'SIGUIENTE';
+  $('onbNext').textContent = onb.step === ONB_PASOS ? 'EMPEZAR' : 'SIGUIENTE';
   $('onbErr').textContent = '';
 }
 function pickWire(id, onPick) {
@@ -5824,6 +5835,10 @@ function pickWire(id, onPick) {
 pickWire('onbGoal', (b, v) => {
   onb.goal = v;
   $('onbGoal').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+});
+pickWire('onbLevel', (b, v) => {
+  onb.level = v;
+  $('onbLevel').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
 });
 pickWire('onbEquip', (b, v) => {
   if (onb.equip.has(v)) onb.equip.delete(v); else onb.equip.add(v);
@@ -5843,7 +5858,8 @@ $('onbNext').addEventListener('click', async () => {
     if (!(h > 0) || !(w > 0)) return fail('Necesito tu altura y tu peso para calcular tus macros.');
   }
   if (onb.step === 3 && !onb.goal) return fail('Marca un objetivo.');
-  if (onb.step === 4) {
+  if (onb.step === 4 && !onb.level) return fail('Marca tu nivel.');
+  if (onb.step === 5) {
     if (!onb.equip.size) return fail('Marca al menos un sitio donde entrenas.');
     if (!onb.days) return fail('Marca cuántos días entrenas.');
     const btn = $('onbNext');
@@ -5854,6 +5870,7 @@ $('onbNext').addEventListener('click', async () => {
       height_cm: Number($('onbHeight').value) || null,
       weight_kg: Number($('onbWeight').value) || null,
       goal: onb.goal,
+      experience: onb.level,
       equipment: [...onb.equip],
       training_days: onb.days,
       onboarding_done: true,
