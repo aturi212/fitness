@@ -2301,6 +2301,16 @@
     </div>
   </div>
 
+<!-- ============ ARRANQUE · velo neutro hasta saber quién entra ============
+     Sin esto, la app se pinta un instante antes de que el módulo cloud
+     compruebe la sesión: quien acaba de registrarse vería por un momento
+     la pantalla del usuario anterior. -->
+<div class="auth-veil open" id="bootVeil" aria-hidden="true">
+  <div class="auth-box" style="text-align:center">
+    <span class="logo auth-logo" aria-label="ONIX" style="margin:0"><i></i><i></i></span>
+  </div>
+</div>
+
 <!-- ============ ACCESO · entrar o crear cuenta (lo gestiona el módulo cloud del final) ============ -->
 <div class="auth-veil" id="loginOverlay">
   <div class="auth-box">
@@ -2352,14 +2362,32 @@
   </div>
 </div>
 
-<!-- ============ BIENVENIDA · 4 pasos, rellena `profiles` ============ -->
+<script>
+// Quitar el velo de arranque cuanto antes: si no hay sesión guardada en este
+// navegador, la decisión ya está tomada aquí y se enseña el acceso sin esperar
+// a que cargue el módulo cloud (que viene de la red y puede tardar o fallar).
+(() => {
+  const veil = document.getElementById('bootVeil');
+  const haySesion = Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
+  if (!haySesion) {
+    if (!localStorage.getItem('fitness_login_skipped')) document.getElementById('loginOverlay').classList.add('open');
+    veil.classList.remove('open');
+    return;
+  }
+  // Con sesión, lo quita boot(); este plazo es solo el seguro por si el módulo
+  // cloud no llega a cargar (sin red, esm.sh caído…) y la app se quedaría en negro.
+  setTimeout(() => veil.classList.remove('open'), 4000);
+})();
+</script>
+
+<!-- ============ BIENVENIDA · 5 pasos, rellena `profiles` ============ -->
 <div class="auth-veil" id="onbOverlay">
   <div class="auth-box">
     <div class="onb-bar" id="onbBar"><i class="on"></i><i></i><i></i><i></i><i></i></div>
 
     <div class="onb-step on" data-step="1">
       <h1 class="auth-title"><span class="title-out">HOLA,</span> <span id="onbHi">QUÉ TAL</span></h1>
-      <p class="auth-sub">Cuatro preguntas rápidas para que el coach sepa con quién habla. Treinta segundos.</p>
+      <p class="auth-sub">Cinco preguntas rápidas para que el coach sepa con quién habla. Treinta segundos.</p>
       <label class="auth-field">
         <span class="label">Tu nombre</span>
         <input id="onbName" type="text" autocomplete="given-name" placeholder="Tu nombre">
@@ -2538,15 +2566,25 @@
   // ============ Programa desde caché cloud (si existe) ============
   // El módulo cloud (final del archivo) descarga catálogo+rutinas de
   // Supabase y los cachea. Se aplican ANTES de construir la UI para que
-  // la app pinte lo último conocido aunque no haya red. Si nunca hubo
-  // sync, se usa el fallback de data/*.js.
+  // la app pinte lo último conocido aunque no haya red.
+  //
+  // Si NO hay caché, la app arranca VACÍA a propósito. El plan de data/
+  // routines.js es el de una persona concreta: enseñárselo a quien acaba de
+  // registrarse sería enseñarle entrenos, objetivos y macros que no son suyos.
+  // El catálogo de ejercicios sí se mantiene: es genérico y común a todos.
+  window.PROGRAMA_VACIO = () => ({
+    goals: {}, plan: { name: '', blocks: [] }, currentPlan: null,
+    weeklySchedule: {}, routines: {},
+  });
   try {
     const pc = JSON.parse(localStorage.getItem('fitness_program_cache_v1') || 'null');
     if (pc && pc.exercises && pc.routines) {
       window.EXERCISES = pc.exercises;
       window.ROUTINES = pc.routines;
+    } else {
+      window.ROUTINES = window.PROGRAMA_VACIO();
     }
-  } catch {}
+  } catch { window.ROUTINES = window.PROGRAMA_VACIO(); }
 
   // ============ Helpers ============
   let EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e]));
@@ -2821,10 +2859,13 @@
       const sig = planned.find(p => !doneIds.has(p.id));
       const rSig = sig ? window.ROUTINES.routines[sig.id] : null;
       tag.textContent = 'DESCANSO';
-      vals.innerHTML = [
-        `<b>${week.length} DE ${target} ESTA SEMANA</b>`,
-        rSig ? `SIGUIENTE: ${(rSig.tag || rSig.name).toUpperCase()}` : 'SEMANA COMPLETADA',
-      ].join('<i>/</i>');
+      vals.innerHTML = planned.length
+        ? [
+            `<b>${week.length} DE ${target} ESTA SEMANA</b>`,
+            rSig ? `SIGUIENTE: ${(rSig.tag || rSig.name).toUpperCase()}` : 'SEMANA COMPLETADA',
+          ].join('<i>/</i>')
+        // Cuenta nueva: no hay nada planificado, así que «semana completada» sonaría a burla
+        : ['<b>SIN ENTRENOS TODAVÍA</b>', 'CRÉALOS EN TRAINER O EN EL CHAT'].join('<i>/</i>');
     }
 
     // ── Tiles: racha (cifra en --hot-num) + anillo de sesiones ──
@@ -3267,7 +3308,8 @@
           </div>`;
         }).join('');
     };
-    list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home);
+    list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home)
+      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de arriba o pídeselos al Coach en el Chat.</div>`;
 
     // Plan macro (bloques) — vive en Chat › Programa
     renderProgramTab();
@@ -4891,11 +4933,13 @@ async function pullProgram() {
     });
   });
   const p = plan.data || {};
+  // Lo que no esté en la nube se queda VACÍO. Nada de heredar lo que hubiera en
+  // memoria: sería del usuario anterior (o del plan de ejemplo de data/).
   const ROUT = {
-    goals: p.goals || window.ROUTINES.goals,
+    goals: p.goals || {},
     plan: { name: p.name, startDate: p.start_date, endDate: p.end_date, notes: p.notes, blocks: p.blocks || [] },
-    currentPlan: p.current_block || window.ROUTINES.currentPlan,
-    weeklySchedule: p.weekly_schedule || window.ROUTINES.weeklySchedule,
+    currentPlan: p.current_block || null,
+    weeklySchedule: p.weekly_schedule || {},
     routines,
   };
   localStorage.setItem('fitness_program_cache_v1',
@@ -5708,6 +5752,13 @@ function wipeLocalData() {
   Object.keys(localStorage)
     .filter((k) => k.startsWith('fitness_'))
     .forEach((k) => localStorage.removeItem(k));
+  // Y lo que ya estaba pintado: el programa y el perfil viven en memoria y
+  // seguirían siendo los del usuario anterior hasta la primera bajada.
+  window.ROUTINES = window.PROGRAMA_VACIO?.() ?? window.ROUTINES;
+  window.__profile = null;
+  window.refreshCatalog?.();
+  window.appRenderProfile?.();
+  window.appRerender?.();
 }
 function checkUserSwitch(userId) {
   const prev = localStorage.getItem(USER_KEY);
@@ -5806,14 +5857,34 @@ $('loginSkip').addEventListener('click', () => {
   hideLogin();
 });
 
-// ---------- Bienvenida (4 pasos) ----------
+// ---------- Bienvenida (5 pasos) ----------
 const ONB_PASOS = 5;
 const onb = { step: 1, goal: null, level: null, equip: new Set(), days: null };
 
+// Marca en los botones lo que ya está elegido (al volver atrás y al editar)
+function onbMarcar() {
+  $('onbGoal').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === onb.goal));
+  $('onbLevel').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === onb.level));
+  $('onbEquip').querySelectorAll('button').forEach((b) => b.classList.toggle('on', onb.equip.has(b.dataset.v)));
+  $('onbDays').querySelectorAll('button').forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === onb.days));
+}
+
+// Los mismos cinco pasos sirven para darse de alta y para «Editar mis datos»:
+// por eso arranca con la ficha que ya haya, en vez de en blanco.
 function startOnboarding(name) {
-  onb.step = 1; onb.goal = null; onb.level = null; onb.equip = new Set(); onb.days = null;
-  $('onbName').value = name || window.__profile?.display_name || '';
-  $('onbHi').textContent = name ? name.toUpperCase() : 'QUÉ TAL';
+  const p = window.__profile || {};
+  onb.step = 1;
+  onb.goal = p.goal || null;
+  onb.level = p.experience || null;
+  onb.equip = new Set(Array.isArray(p.equipment) ? p.equipment : []);
+  onb.days = Number(p.training_days) || null;
+  const nombre = name || p.display_name || '';
+  $('onbName').value = nombre;
+  $('onbYear').value = p.birth_year || '';
+  $('onbHeight').value = p.height_cm || '';
+  $('onbWeight').value = p.weight_kg || '';
+  $('onbHi').textContent = nombre ? nombre.toUpperCase() : 'QUÉ TAL';
+  onbMarcar();
   onbPaint();
   onbVeil.classList.add('open');
 }
@@ -6436,20 +6507,28 @@ function onProgramChange() {
   clearTimeout(pullTimer);
   pullTimer = setTimeout(async () => { if (await pullProgram()) window.appRerender?.(); }, 400);
 }
+const hideBoot = () => $('bootVeil')?.classList.remove('open');
+
 async function boot(loggedIn) {
   if (!loggedIn) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
       if (!localStorage.getItem(SKIP_KEY) && navigator.onLine) showLogin();
+      hideBoot();
       return;
     }
     checkUserSwitch(session.user.id);
+    // El velo de acceso pudo abrirlo el arranque antes de saber que había
+    // sesión (p. ej. al volver del enlace de confirmación del email, que trae
+    // el token en el hash y todavía no está guardado en el navegador).
+    hideLogin();
   }
   // El perfil primero: la cabecera de Stats y (más adelante) el coach dependen
   // de él. Si falta o está a medias, se piden los datos antes de nada.
   let prof = await pullProfile();
   if (!prof) prof = await saveProfile({});
-  if (prof && !prof.onboarding_done) { startOnboarding(prof.display_name); return; }
+  if (prof && !prof.onboarding_done) { startOnboarding(prof.display_name); hideBoot(); return; }
+  hideBoot();
 
   await flushOutbox();
   const ok = await pullProgram();

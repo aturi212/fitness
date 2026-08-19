@@ -20,7 +20,11 @@ El proyecto se trabaja en **dos chats paralelos** dentro del mismo proyecto FITN
   - `data/exercises.js` — banco de ejercicios (catálogo maestro). Puede añadir/editar ejercicios que falten.
 - **NO toca:** `index.html` ni nada del código de la app.
 
-La app lee automáticamente de `data/`, así que los cambios del chat de entrenamientos aparecen al recargar.
+**Ojo con `data/`:** la fuente de verdad del programa (rutinas, plan, calendario y objetivos)
+es Supabase, y es distinta para cada usuario. La app ya **no pinta `data/routines.js`**: si
+todavía no ha bajado nada de la nube, arranca vacía a propósito, para no enseñarle a quien
+acaba de registrarse el plan de otra persona. De `data/exercises.js` solo se usa el catálogo
+como respaldo mientras no hay sincronización.
 
 ## Estructura de archivos
 
