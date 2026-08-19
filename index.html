@@ -1888,6 +1888,9 @@
     .onb-step { display: none; }
     .onb-step.on { display: block; animation: screen-in var(--t-base) var(--ease-out); }
     .onb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    /* Fecha de nacimiento: día / mes / año (el año pide más sitio) */
+    .onb-grid3 { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 8px; }
+    .onb-grid3 input { text-align: center; }
     .pick { display: grid; gap: 8px; margin-bottom: 6px; }
     .pick button { display: flex; align-items: center; justify-content: space-between; gap: 10px;
                    background: var(--s2); border: 1px solid var(--line); color: var(--text);
@@ -1896,10 +1899,10 @@
     .pick button:active { transform: scale(.98); }
     .pick button.on { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
     .pick.row-wrap { display: flex; flex-wrap: wrap; }
-    .pick.row-wrap button { flex: 1 1 30%; justify-content: center; }
-    /* Los días son 5: en rejilla fija, o la última fila se estira y desencaja */
-    .pick.cols { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .pick.cols button { justify-content: center; padding: 15px 6px; }
+    .pick.row-wrap button { flex: 1 1 40%; justify-content: center; }   /* 2 por fila con 4 opciones */
+    /* Los días son 7: rejilla fija, o la última fila se estira y desencaja */
+    .pick.cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .pick.cols button { justify-content: center; padding: 15px 0; font-size: 15px; }
     .onb-nav { display: flex; gap: 10px; margin-top: 18px; }
     .onb-nav .btn-primary, .onb-nav .btn-ghost { margin-top: 0; }
     .onb-nav .btn-ghost { width: 92px; flex-shrink: 0; }
@@ -2397,10 +2400,18 @@
     <div class="onb-step" data-step="2">
       <h1 class="auth-title"><span class="title-out">TUS</span> DATOS</h1>
       <p class="auth-sub">Para calcular tus macros y ajustar las cargas. Puedes cambiarlos cuando quieras.</p>
-      <label class="auth-field">
-        <span class="label">Año de nacimiento</span>
-        <input id="onbYear" type="number" inputmode="numeric" min="1920" max="2020" placeholder="1995">
-      </label>
+      <span class="label" style="display:block; margin-bottom:8px">Sexo</span>
+      <div class="pick row-wrap" id="onbSex">
+        <button type="button" data-v="hombre">Hombre</button>
+        <button type="button" data-v="mujer">Mujer</button>
+      </div>
+      <span class="label" style="display:block; margin:16px 0 8px">Fecha de nacimiento</span>
+      <div class="onb-grid3">
+        <input id="onbDay" type="number" inputmode="numeric" min="1" max="31" placeholder="DD" aria-label="Día">
+        <input id="onbMonth" type="number" inputmode="numeric" min="1" max="12" placeholder="MM" aria-label="Mes">
+        <input id="onbYear" type="number" inputmode="numeric" min="1920" max="2020" placeholder="AAAA" aria-label="Año">
+      </div>
+      <div style="height:14px"></div>
       <div class="onb-grid2">
         <label class="auth-field">
           <span class="label">Altura (cm)</span>
@@ -2415,12 +2426,14 @@
 
     <div class="onb-step" data-step="3">
       <h1 class="auth-title"><span class="title-out">QUÉ</span> BUSCAS</h1>
-      <p class="auth-sub">Marca tu objetivo principal. Es lo que guiará tus entrenos y tus macros.</p>
+      <p class="auth-sub">Marca lo que quieras: una, varias o ninguna. Es lo que guiará tus entrenos y tus macros.</p>
       <div class="pick" id="onbGoal">
         <button type="button" data-v="perder-grasa">Perder grasa</button>
         <button type="button" data-v="ganar-musculo">Ganar músculo</button>
         <button type="button" data-v="recomposicion">Recomposición</button>
-        <button type="button" data-v="mantenerme">Mantenerme y estar sano</button>
+        <button type="button" data-v="estar-sano">Estar sano</button>
+        <button type="button" data-v="estar-en-forma">Estar en forma</button>
+        <button type="button" data-v="competicion">Prepararme para competir</button>
       </div>
     </div>
 
@@ -2442,14 +2455,17 @@
         <button type="button" data-v="gimnasio">Gimnasio</button>
         <button type="button" data-v="casa">Casa</button>
         <button type="button" data-v="exterior">Exterior</button>
+        <button type="button" data-v="competicion">Competición</button>
       </div>
-      <span class="label" style="display:block; margin:16px 0 8px">Días por semana</span>
+      <span class="label" style="display:block; margin:16px 0 8px">Días por semana (si aún no lo sabes, déjalo)</span>
       <div class="pick cols" id="onbDays">
+        <button type="button" data-v="1">1</button>
         <button type="button" data-v="2">2</button>
         <button type="button" data-v="3">3</button>
         <button type="button" data-v="4">4</button>
         <button type="button" data-v="5">5</button>
         <button type="button" data-v="6">6</button>
+        <button type="button" data-v="7">7</button>
       </div>
     </div>
 
@@ -5859,14 +5875,29 @@ $('loginSkip').addEventListener('click', () => {
 
 // ---------- Bienvenida (5 pasos) ----------
 const ONB_PASOS = 5;
-const onb = { step: 1, goal: null, level: null, equip: new Set(), days: null };
+const onb = { step: 1, sex: null, goals: new Set(), level: null, equip: new Set(), days: null };
 
 // Marca en los botones lo que ya está elegido (al volver atrás y al editar)
 function onbMarcar() {
-  $('onbGoal').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === onb.goal));
+  $('onbSex').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === onb.sex));
+  $('onbGoal').querySelectorAll('button').forEach((b) => b.classList.toggle('on', onb.goals.has(b.dataset.v)));
   $('onbLevel').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === onb.level));
   $('onbEquip').querySelectorAll('button').forEach((b) => b.classList.toggle('on', onb.equip.has(b.dataset.v)));
   $('onbDays').querySelectorAll('button').forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === onb.days));
+}
+
+// Fecha de nacimiento en tres casillas. Devuelve null si está vacía y
+// undefined si está a medias o no existe (30 de febrero y compañía).
+function onbFecha() {
+  const d = $('onbDay').value.trim(), m = $('onbMonth').value.trim(), a = $('onbYear').value.trim();
+  if (!d && !m && !a) return null;                     // vacía: es opcional
+  if (!d || !m || !a) return undefined;                // a medias
+  const dd = Number(d), mm = Number(m), aa = Number(a);
+  if (!(aa >= 1920 && aa <= new Date().getFullYear())) return undefined;
+  if (!(mm >= 1 && mm <= 12)) return undefined;
+  const finDeMes = new Date(aa, mm, 0).getDate();
+  if (!(dd >= 1 && dd <= finDeMes)) return undefined;
+  return `${aa}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
 }
 
 // Los mismos cinco pasos sirven para darse de alta y para «Editar mis datos»:
@@ -5874,13 +5905,18 @@ function onbMarcar() {
 function startOnboarding(name) {
   const p = window.__profile || {};
   onb.step = 1;
-  onb.goal = p.goal || null;
+  onb.sex = p.sex || null;
+  // `goals` es la lista; `goal` es lo que guardaban las versiones anteriores
+  onb.goals = new Set(Array.isArray(p.goals) ? p.goals : (p.goal ? [p.goal] : []));
   onb.level = p.experience || null;
   onb.equip = new Set(Array.isArray(p.equipment) ? p.equipment : []);
   onb.days = Number(p.training_days) || null;
   const nombre = name || p.display_name || '';
   $('onbName').value = nombre;
-  $('onbYear').value = p.birth_year || '';
+  const [aa, mm, dd] = String(p.birth_date || '').split('-');
+  $('onbDay').value = dd ? Number(dd) : '';
+  $('onbMonth').value = mm ? Number(mm) : '';
+  $('onbYear').value = aa ? Number(aa) : (p.birth_year || '');
   $('onbHeight').value = p.height_cm || '';
   $('onbWeight').value = p.weight_kg || '';
   $('onbHi').textContent = nombre ? nombre.toUpperCase() : 'QUÉ TAL';
@@ -5903,9 +5939,14 @@ function pickWire(id, onPick) {
     if (b) onPick(b, b.dataset.v);
   });
 }
+// El sexo se puede desmarcar volviendo a tocarlo: no es obligatorio.
+pickWire('onbSex', (b, v) => {
+  onb.sex = onb.sex === v ? null : v;
+  $('onbSex').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.v === onb.sex));
+});
 pickWire('onbGoal', (b, v) => {
-  onb.goal = v;
-  $('onbGoal').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  if (onb.goals.has(v)) onb.goals.delete(v); else onb.goals.add(v);
+  b.classList.toggle('on', onb.goals.has(v));
 });
 pickWire('onbLevel', (b, v) => {
   onb.level = v;
@@ -5916,8 +5957,8 @@ pickWire('onbEquip', (b, v) => {
   b.classList.toggle('on', onb.equip.has(v));
 });
 pickWire('onbDays', (b, v) => {
-  onb.days = Number(v);
-  $('onbDays').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  onb.days = onb.days === Number(v) ? null : Number(v);
+  $('onbDays').querySelectorAll('button').forEach((x) => x.classList.toggle('on', Number(x.dataset.v) === onb.days));
 });
 
 $('onbBack').addEventListener('click', () => { if (onb.step > 1) { onb.step--; onbPaint(); } });
@@ -5927,20 +5968,25 @@ $('onbNext').addEventListener('click', async () => {
   if (onb.step === 2) {
     const h = Number($('onbHeight').value), w = Number($('onbWeight').value);
     if (!(h > 0) || !(w > 0)) return fail('Necesito tu altura y tu peso para calcular tus macros.');
+    if (onbFecha() === undefined) return fail('Esa fecha de nacimiento no existe. Repásala o déjala vacía.');
   }
-  if (onb.step === 3 && !onb.goal) return fail('Marca un objetivo.');
+  // Los objetivos son libres: puede marcar varios o ninguno.
   if (onb.step === 4 && !onb.level) return fail('Marca tu nivel.');
   if (onb.step === 5) {
     if (!onb.equip.size) return fail('Marca al menos un sitio donde entrenas.');
-    if (!onb.days) return fail('Marca cuántos días entrenas.');
     const btn = $('onbNext');
     btn.disabled = true; btn.textContent = 'GUARDANDO…';
+    const fecha = onbFecha();
     const saved = await saveProfile({
       display_name: $('onbName').value.trim(),
-      birth_year: Number($('onbYear').value) || null,
+      sex: onb.sex,
+      birth_date: fecha,
+      // Los prompts del Coach leen el año suelto: se mantiene al día
+      birth_year: fecha ? Number(fecha.slice(0, 4)) : null,
       height_cm: Number($('onbHeight').value) || null,
       weight_kg: Number($('onbWeight').value) || null,
-      goal: onb.goal,
+      goals: [...onb.goals],
+      goal: [...onb.goals][0] || null,   // compatibilidad con la versión anterior
       experience: onb.level,
       equipment: [...onb.equip],
       training_days: onb.days,
