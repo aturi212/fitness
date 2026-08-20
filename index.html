@@ -4895,6 +4895,19 @@
   // casilla, una nota, o al menos un minuto de sesión. Devuelve null solo si
   // no hay absolutamente nada que guardar.
   const MIN_DURACION_SOLA = 60;
+  // Lo escrito en una serie, en texto, sea del tipo que sea. Devuelve cadena
+  // vacía si de verdad no hay nada: es lo que decide si se rescata o no.
+  function resumenSerie(st) {
+    const trozos = [];
+    if (st.distance_m != null) trozos.push(`${(st.distance_m / 1000).toFixed(2).replace('.', ',')} km`);
+    if (st.seconds != null) {
+      trozos.push(st.seconds >= 120 ? `${Math.round(st.seconds / 60)} min` : `${st.seconds}s`);
+    }
+    if (st.hr != null) trozos.push(`${st.hr} ppm`);
+    if (st.kg != null || st.reps != null) trozos.push(`${st.kg ?? '—'}×${st.reps ?? '—'}`);
+    return trozos.join(' · ');
+  }
+
   function buildWorkoutPayload(snap, routineId) {
     const exercises = snap.exercises || [];
     const haySeries = exercises.some(e => (e.sets || []).length);
@@ -4935,8 +4948,11 @@
             // si la serie 1 no se marcaba, la nota se perdía.
             notes: (setIdx === 1 && ex.notes) ? ex.notes : null,
           });
-        } else if (st.kg != null || st.reps != null) {
-          sinMarcar.push(`${st.kg ?? '—'}×${st.reps ?? '—'}`);
+        } else if (resumenSerie(st)) {
+          // Escrito pero sin marcar. Antes solo se rescataban kilos y reps: una
+          // sesión de cardio con distancia y tiempo pero sin tocar la casilla
+          // se perdía entera y en silencio.
+          sinMarcar.push(resumenSerie(st));
         }
       });
       // Todo lo que no cabe en workout_sets se escribe en workouts.notes:
@@ -5077,18 +5093,22 @@
   // Si te equivocas, desmarcas, corriges y vuelves a marcar.
   window.toggleSet = function(btn, restSec) {
     btn.classList.toggle('checked');
-    const tr = btn.closest('tr');
     const marcada = btn.classList.contains('checked');
-    tr.classList.toggle('completed', marcada);
+    // Las fichas de cardio no tienen filas: su casilla vive suelta en la
+    // tarjeta. Antes se daba por hecho que siempre había un <tr> y marcarla
+    // reventaba (y con ella el borrador, que se guarda justo después).
+    const fila = btn.closest('tr');
+    const ancla = fila || btn.closest('.exercise-card');
+    fila?.classList.toggle('completed', marcada);
     scheduleDraft();
     if (marcada) {
       navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
       // En una superserie el descanso solo va al terminar la última serie del grupo
-      const panel = tr.closest('.tk-panel');
+      const panel = ancla?.closest('.tk-panel');
       const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
       const esUltimaDelGrupo = !esSuperserie ||
-        (tr.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
-      if (esUltimaDelGrupo) startRest(restSec);
+        (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
+      if (esUltimaDelGrupo && restSec > 0) startRest(restSec);
     }
   };
   function startRest(sec) {
@@ -5611,7 +5631,17 @@ async function pullHistory() {
       const rec = {
         date: wk.date + 'T12:00:00.000Z',
         routineId: wk.routine_id,
-        sets: rs.map(r => ({ kg: r.weight_kg != null ? Number(r.weight_kg) : null, reps: r.reps, done: true })),
+        // Todo lo que sepa la fila, no solo kilos y reps: si no, al bajar de
+        // la nube una carrera se queda sin distancia ni tiempo y el ANTERIOR
+        // de la ficha sale vacío.
+        sets: rs.map(r => ({
+          kg: r.weight_kg != null ? Number(r.weight_kg) : null,
+          reps: r.reps,
+          seconds: r.seconds ?? null,
+          distance_m: r.distance_m != null ? Number(r.distance_m) : null,
+          hr: r.avg_hr ?? null,
+          done: true,
+        })),
         notes: rs.find(r => r.notes)?.notes || '',
       };
       const list = (hist[exId] ||= []);

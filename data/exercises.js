@@ -78,7 +78,8 @@ window.GROUP_LABELS = {
   hamstrings: 'Femoral',
   glutes: 'Glúteo',
   calves: 'Gemelo',
-  core: 'Core'
+  core: 'Core',
+  cardio: 'Cardio'
 };
 
 window.EQUIPMENT_ICONS = {
