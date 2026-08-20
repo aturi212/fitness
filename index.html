@@ -2056,6 +2056,28 @@
     /* Solo el día de hoy va en naranja; el resto en blanco */
     .daynav-label.is-today { color: var(--hot-text); }
 
+    /* ════════ AVISO DE SIN SINCRONIZAR ════════
+       Tarjeta flotante justo encima de la barra de navegación. Solo se ve si
+       hay algo pendiente, y se toca para resolverlo. Por debajo del entreno
+       (100+) y del acceso (200): mientras entrenas no estorba. */
+    .syncbar { position: fixed; z-index: 51;
+               left: var(--nav-side); right: var(--nav-side);
+               bottom: calc(var(--nav-gap) + var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+               max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
+               display: flex; align-items: center; gap: 10px;
+               padding: 11px 12px; border-radius: var(--r-5);
+               background: var(--s2); border: 1px solid var(--hot-line);
+               box-shadow: var(--sh-float); }
+    .syncbar[hidden] { display: none; }
+    .syncbar .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+                       background: var(--hot-solid); animation: sb-pulse 1.6s var(--ease) infinite; }
+    @keyframes sb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+    .syncbar .sb-txt { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.35; color: var(--text); }
+    .syncbar .sb-act { flex-shrink: 0; height: 30px; padding: 0 12px; border-radius: var(--r-3);
+                       background: var(--white); color: var(--white-ink); border: none;
+                       font: 700 10px/1 var(--f-mono); letter-spacing: .12em; }
+    .syncbar .sb-act:active { transform: scale(.96); }
+
     /* ════════ CAJONES LATERALES ════════
        El del logo entra por la izquierda; el de ajustes de Perfil por la
        derecha. Por encima de todo menos del acceso (200) y del entreno (170). */
@@ -2095,6 +2117,35 @@
     .drawer-foot { margin-top: auto; padding-top: 18px; font: 500 10px/1.4 var(--f-mono);
                    letter-spacing: .08em; color: var(--ghost-2); word-break: break-all; }
     .drawer-hint { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 4px 14px; }
+    .ld-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+                background: var(--hot-solid); color: #fff; font: 700 11px/20px var(--f-mono);
+                text-align: center; flex-shrink: 0; }
+    .ld-badge[hidden] { display: none; }
+
+    /* Panel de recuperación (cajón de la izquierda) */
+    .rec-block { margin-bottom: 18px; }
+    .rec-block > .label { display: block; margin: 0 2px 8px; }
+    .rec-card { padding: 12px; border-radius: var(--r-5); background: var(--s2);
+                border: 1px solid var(--line); margin-bottom: 8px; }
+    .rec-card b { display: block; font-size: 14px; margin-bottom: 3px; }
+    .rec-card p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted);
+                  white-space: pre-wrap; word-break: break-word; }
+    .rec-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .rec-actions button { flex: 1; height: 34px; border-radius: var(--r-3); font-size: 12px;
+                          background: var(--s4); border: 1px solid var(--line); color: var(--text); }
+    .rec-actions button.go { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
+    .rec-note { display: flex; gap: 10px; align-items: flex-start; padding: 10px 11px;
+                border-radius: var(--r-5); background: var(--s2); border: 1px solid var(--line);
+                margin-bottom: 7px; }
+    .rec-note input[type="checkbox"] { margin-top: 2px; width: 17px; height: 17px;
+                                       accent-color: var(--hot-solid); flex-shrink: 0; }
+    .rec-note .rn-txt { flex: 1; min-width: 0; }
+    .rec-note .rn-txt b { display: block; font-size: 13px; margin-bottom: 2px; }
+    .rec-note .rn-txt span { font-size: 12px; color: var(--muted); word-break: break-word; }
+    .rec-date { width: 100%; margin: 4px 0 10px; padding: 10px; border-radius: var(--r-5);
+                background: var(--s2); border: 1px solid var(--line); color: var(--text);
+                font-size: 13px; color-scheme: dark; }
+    .rec-ok { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 2px; }
     .drawer-reset { margin-top: 16px; width: 100%; padding: 12px; border-radius: var(--r-5);
                     background: none; border: 1px solid var(--line); color: var(--dim); font-size: 13px; }
 
@@ -2574,6 +2625,16 @@
   </div>
 </div>
 
+<!-- ============ AVISO DE ENTRENO SIN SINCRONIZAR ============
+     Tarjeta fija encima de la barra de navegación. Solo aparece si hay algo
+     pendiente: un borrador de entreno sin guardar o una sesión que no ha
+     llegado a la nube. Se toca para resolverlo. -->
+<div class="syncbar" id="syncBar" hidden>
+  <span class="sb-dot" aria-hidden="true"></span>
+  <span class="sb-txt" id="syncBarTxt"></span>
+  <button type="button" class="sb-act" id="syncBarBtn"></button>
+</div>
+
 <!-- ============ PRIMERA SESIÓN · el Coach se presenta ============
      Sale una sola vez, al terminar la bienvenida. A partir de ahí el
      recordatorio vive en el chat, que no deja escribir otra cosa hasta que
@@ -2596,21 +2657,39 @@
 <div class="drawer-veil" id="drawerVeil"></div>
 
 <aside class="drawer drawer--left" id="logoDrawer" aria-hidden="true">
-  <div class="drawer-brand">
-    <span class="logo logo--xl" aria-label="ONIX"><i></i><i></i></span>
-    <span class="drawer-name">ONIX</span>
+  <div id="ldMain">
+    <div class="drawer-brand">
+      <span class="logo logo--xl" aria-label="ONIX"><i></i><i></i></span>
+      <span class="drawer-name">ONIX</span>
+    </div>
+    <div class="drawer-list">
+      <button type="button" class="drawer-item" id="ldSync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 6.3 5.7L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 13.7 5.3L20 16"/><path d="M20 20v-4h-4"/></svg>
+        <span>Entrenos sin sincronizar</span>
+        <span class="ld-badge" id="ldSyncBadge" hidden></span>
+      </button>
+      <button type="button" class="drawer-item" id="ldRestart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Rehacer plan</span>
+      </button>
+      <button type="button" class="drawer-item danger" id="ldLogout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+    <div class="drawer-foot" id="ldEmail"></div>
   </div>
-  <div class="drawer-list">
-    <button type="button" class="drawer-item" id="ldRestart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
-      <span>Rehacer plan</span>
-    </button>
-    <button type="button" class="drawer-item danger" id="ldLogout">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
-      <span>Cerrar sesión</span>
-    </button>
+
+  <!-- Recuperación: borradores a medias, cola sin subir y notas sueltas -->
+  <div id="ldSyncPane" style="display:none">
+    <div class="drawer-head">
+      <button type="button" class="drawer-back" id="ldSyncBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="label">Sin sincronizar</span>
+    </div>
+    <div id="ldSyncBody"></div>
   </div>
-  <div class="drawer-foot" id="ldEmail"></div>
 </aside>
 
 <aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
@@ -2759,10 +2838,14 @@
   function saveHistory(h) {
     localStorage.setItem(LS_KEY, JSON.stringify(h));
   }
+  // Última sesión CON SERIES: las sesiones apuntadas solo con nota (una salida
+  // a correr, por ejemplo) no deben borrar el "anterior" de las casillas.
   function getLastSession(exerciseId) {
-    const h = loadHistory();
-    const recs = h[exerciseId];
-    return (recs && recs.length) ? recs[recs.length - 1] : null;
+    const recs = loadHistory()[exerciseId] || [];
+    for (let i = recs.length - 1; i >= 0; i--) {
+      if ((recs[i].sets || []).length) return recs[i];
+    }
+    return null;
   }
   function getPrev(exerciseId) {
     const last = getLastSession(exerciseId);
@@ -4342,6 +4425,7 @@
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
+    renderSyncBar();
     pausedMs = 0; pausedAt = null;
     setPaused(false);
     clearInterval(workoutTimer);
@@ -4370,6 +4454,12 @@
   });
 
   const trackerBody = document.getElementById('trackerBody');
+
+  // Cualquier tecla dentro del tracker (kg, reps o nota) guarda borrador.
+  // Se delega una sola vez: renderTracker rehace el HTML en cada sesión.
+  trackerBody.addEventListener('input', (e) => {
+    if (e.target.matches('input[data-field], .notes-input')) scheduleDraft();
+  });
 
   // Notas persistentes por ejercicio. Arrancan con la del entrenador (viene de
   // routine_exercises.notes) y, si Adrián la edita, manda la suya. Si la borra,
@@ -4551,6 +4641,7 @@
       const km = card.querySelector('[data-field="km"]');
       const min = card.querySelector('[data-field="min"]');
       const salida = card.querySelector('[data-calc="ritmo"]');
+      if (!km || !min || !salida) return;
       const pintar = () => {
         const d = parseFloat(km.value), t = parseFloat(min.value);
         if (!(d > 0) || !(t > 0)) { salida.textContent = '—'; return; }
@@ -4601,7 +4692,9 @@
   }
 
   document.getElementById('closeTracker').addEventListener('click', () => {
-    if (confirm('¿Salir sin guardar el entreno?')) closeTracker();
+    // Salir sin guardar es una decisión explícita: se tira también el
+    // borrador, si no reaparecería como "entreno sin guardar".
+    if (confirm('¿Salir sin guardar el entreno?')) { clearTimeout(draftTimer); clearDraft(); closeTracker(); }
   });
 
   // Trainer: pestañas y navegación entre semanas
@@ -4636,8 +4729,25 @@
   // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
   // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
-    persistSession();
+    const guardado = persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // "Queda guardado" solo se dice cuando es verdad. Si la sesión está en el
+    // outbox esperando red, se avisa aquí mismo en vez de dar por buena una
+    // subida que no ha ocurrido.
+    const sub = document.querySelector('#doneVeil .done-sub');
+    if (!guardado) {
+      sub.textContent = 'No había nada que guardar: ni series, ni notas, ni tiempo.';
+    } else if (window.appOutboxCount?.()) {
+      sub.textContent = 'Guardado en el móvil. Sin conexión con la nube: se subirá solo en cuanto haya red.';
+    } else {
+      sub.textContent = 'Subiendo a la nube… Queda guardado en el móvil pase lo que pase.';
+      // La subida es asíncrona: en cuanto el outbox se vacía, se confirma.
+      setTimeout(() => {
+        sub.textContent = window.appOutboxCount?.()
+          ? 'Guardado en el móvil. La subida a la nube no se ha confirmado: se reintenta sola.'
+          : '¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.';
+      }, 2500);
+    }
     const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
     const segs = Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000));
     const series = trackerBody.querySelectorAll('td.done button.checked').length;
@@ -4663,35 +4773,94 @@
   });
 
   // ============ Sincronización en la nube v2 (Supabase) ============
-  // La lógica de red vive en el módulo cloud del final del archivo
-  // (window.cloudPushWorkout / window.cloudPushOverride). Aquí solo se
-  // construye el payload y se encola en el outbox si el módulo aún no
-  // está listo o no hay conexión (se reintenta al abrir la app).
+  // La lógica de red vive en el módulo cloud del final del archivo. Aquí se
+  // construye el payload y SIEMPRE se deja primero en el outbox: si el móvil
+  // se queda sin batería o sin red a mitad de la subida, el entreno sigue
+  // apuntado y se reintenta solo. Nada depende de que la subida salga bien
+  // a la primera.
   const OUTBOX_KEY = 'fitness_sync_outbox_v2';
   function loadOutbox() { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } }
   function saveOutbox(o) { localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); }
-  function enqueue(item) { const o = loadOutbox(); o.push(item); saveOutbox(o); }
+  function enqueue(item) {
+    const o = loadOutbox();
+    // Un entreno se reencola POR ID: volver a guardarlo sustituye la copia
+    // pendiente en vez de acumular dos que luego suben lo mismo dos veces.
+    const i = (item.type === 'workout' && item.workout?.id)
+      ? o.findIndex(x => x.type === 'workout' && x.workout?.id === item.workout.id)
+      : -1;
+    if (i >= 0) o[i] = item; else o.push(item);
+    saveOutbox(o);
+    window.appSyncChanged?.();
+  }
   window.fitnessEnqueue = enqueue;
 
-  function persistSession() {
-    const hist = loadHistory();
+  // ---------- Borrador del entreno en curso ----------
+  // Antes no se escribía NADA hasta pulsar FINALIZAR: si iOS mataba la app,
+  // se cerraba la pestaña o la sesión no llegaba a terminarse, se perdía todo
+  // lo escrito — notas incluidas. Ahora cada cambio se vuelca a localStorage
+  // y al volver a abrir la app se ofrece recuperarlo.
+  const DRAFT_KEY = 'fitness_session_draft_v1';
+  function loadDraft() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { return null; } }
+  function clearDraft() { localStorage.removeItem(DRAFT_KEY); window.appSyncChanged?.(); }
+  function saveDraft() {
+    const snap = readTracker();
+    if (!snap || !snap.exercises.length) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      savedAt: new Date().toISOString(),
+      dateIso: snap.dateIso,
+      routineId: session.routineId,
+      routineName: session.routineName,
+      durationSec: snap.durationSec,
+      exercises: snap.exercises,
+    }));
+    window.appSyncChanged?.();
+  }
+  let draftTimer = null;
+  function scheduleDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 400); }
+  window.appLoadDraft = loadDraft;
+  window.appClearDraft = clearDraft;
+  window.appOutboxCount = () => loadOutbox().filter(i => i.type === 'workout').length;
+
+  // Al irse a segundo plano (bloquear el móvil, cambiar de app) se guarda YA,
+  // sin esperar al temporizador: es justo cuando iOS puede matar la pestaña.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && session && document.getElementById('tracker').classList.contains('open')) {
+      clearTimeout(draftTimer); saveDraft();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    if (session && document.getElementById('tracker').classList.contains('open')) { clearTimeout(draftTimer); saveDraft(); }
+  });
+
+  // ---------- Lectura del tracker ----------
+  // Foto de lo que hay AHORA MISMO en las tarjetas. Un ejercicio cuenta si
+  // tiene series con algo escrito o marcado, O si tiene nota: una nota sola
+  // también es un dato del entreno (aquí se perdía la sesión de running).
+  function readTracker() {
+    if (!session) return null;
     const cards = trackerBody.querySelectorAll('.exercise-card');
-    const dateIso = new Date().toISOString();
-    const sessionExercises = [];
+    if (!cards.length) return null;
+    const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
+    const durationSec = workoutStart
+      ? Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000))
+      : null;
+    const exercises = [];
     cards.forEach(card => {
-      const slotIdx = parseInt(card.dataset.slot, 10);
-      const slot = session.exercises[slotIdx];
+      const slot = session.exercises[parseInt(card.dataset.slot, 10)];
+      if (!slot) return;
+      // Cada tipo de ejercicio se apunta distinto: kilos y reps, una sesión de
+      // cardio con distancia y tiempo, o solo segundos.
       const tipo = card.dataset.log || 'fuerza';
-      const num = (sel, entero) => {
-        const el = card.querySelector(sel);
+      const leer = (raiz, campo, entero) => {
+        const el = raiz.querySelector(`input[data-field="${campo}"]`);
         if (!el) return null;
         const v = entero ? parseInt(el.value, 10) : parseFloat(el.value);
         return isNaN(v) ? null : v;
       };
       const sets = [];
       if (tipo === 'cardio') {
-        // Una sesión de cardio es un solo registro, no una lista de series
-        const km = num('[data-field="km"]'), min = num('[data-field="min"]'), hr = num('[data-field="hr"]', true);
+        // Una sesión de cardio es un registro, no una lista de series
+        const km = leer(card, 'km'), min = leer(card, 'min'), hr = leer(card, 'hr', true);
         const done = !!card.querySelector('.cardio-done button')?.classList.contains('checked');
         if (done || km != null || min != null || hr != null) {
           sets.push({
@@ -4702,62 +4871,191 @@
           });
         }
       } else {
-        card.querySelectorAll('tbody tr').forEach((tr) => {
-          const campo = (f, entero) => {
-            const el = tr.querySelector(`input[data-field="${f}"]`);
-            if (!el) return null;
-            const v = entero ? parseInt(el.value, 10) : parseFloat(el.value);
-            return isNaN(v) ? null : v;
-          };
-          const kg = campo('kg'), reps = campo('reps', true), seg = campo('seg', true);
+        card.querySelectorAll('tbody tr').forEach(tr => {
+          const kg = leer(tr, 'kg'), reps = leer(tr, 'reps', true), seg = leer(tr, 'seg', true);
           const done = tr.querySelector('.done button').classList.contains('checked');
           if (done || kg != null || reps != null || seg != null) {
             sets.push({ kg, reps, seconds: seg, done });
           }
         });
       }
-      if (!sets.length) return;
-      const notes = card.querySelector('.notes-input').value.trim();
-      const rec = { date: dateIso, routineId: session.routineId, sets, notes };
-      if (!hist[slot.exerciseId]) hist[slot.exerciseId] = [];
-      hist[slot.exerciseId].push(rec);
-      sessionExercises.push({ exerciseId: slot.exerciseId, name: getExercise(slot.exerciseId).name, sets, notes, swapped: !!slot.swapped });
+      const notes = (card.querySelector('.notes-input')?.value || '').trim();
+      if (!sets.length && !notes) return; // tarjeta vacía del todo
+      exercises.push({
+        exerciseId: slot.exerciseId,
+        name: getExercise(slot.exerciseId).name,
+        sets, notes, swapped: !!slot.swapped,
+      });
     });
-    saveHistory(hist);
-    // Sincroniza la sesión en la nube (modelo workouts + workout_sets)
-    if (sessionExercises.length) {
-      const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart - pausedMs) / 1000) : null;
-      const workout = {
-        id: (crypto.randomUUID ? crypto.randomUUID() : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
-        date: dateIso.slice(0, 10),
-        routine_id: session.routineId || null,
-        duration_sec: durationSec,
-      };
-      const rows = [];
-      sessionExercises.forEach((ex, slotIdx) => {
-        ex.sets.forEach((st, setIdx) => {
-          if (!st.done) return; // solo series realizadas
+    return { dateIso: new Date().toISOString(), durationSec, exercises };
+  }
+
+  // ---------- De la foto del entreno a las filas de la nube ----------
+  // Se guarda si hay CUALQUIER dato: una serie marcada, algo escrito en una
+  // casilla, una nota, o al menos un minuto de sesión. Devuelve null solo si
+  // no hay absolutamente nada que guardar.
+  const MIN_DURACION_SOLA = 60;
+  function buildWorkoutPayload(snap, routineId) {
+    const exercises = snap.exercises || [];
+    const haySeries = exercises.some(e => (e.sets || []).length);
+    const hayNotas = exercises.some(e => e.notes);
+    const hayTiempo = (snap.durationSec || 0) >= MIN_DURACION_SOLA;
+    if (!haySeries && !hayNotas && !hayTiempo) return null;
+
+    const workout = {
+      id: snap.workoutId || (crypto.randomUUID ? crypto.randomUUID()
+           : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      date: (snap.dateIso || new Date().toISOString()).slice(0, 10),
+      routine_id: routineId || null,
+      duration_sec: snap.durationSec ?? null,
+      notes: null,
+    };
+    const rows = [];
+    const lineas = [];
+    exercises.forEach((ex, slotIdx) => {
+      let setIdx = 0;
+      const sinMarcar = [];
+      (ex.sets || []).forEach(st => {
+        if (st.done) {
+          // workout_sets solo guarda series HECHAS: no hay columna para
+          // distinguirlas y las estadísticas cuentan filas.
+          setIdx++;
           rows.push({
             workout_id: workout.id,
             exercise_id: ex.exerciseId,
             slot_index: slotIdx + 1,
-            set_index: setIdx + 1,
+            set_index: setIdx,
             weight_kg: st.kg ?? null,
             reps: st.reps ?? null,
             seconds: st.seconds ?? null,
             distance_m: st.distance_m ?? null,
             avg_hr: st.hr ?? null,
             swapped: !!ex.swapped,
-            notes: (setIdx === 0 && ex.notes) ? ex.notes : null,
+            // La nota va en la PRIMERA fila que se sube, no en la serie 1:
+            // si la serie 1 no se marcaba, la nota se perdía.
+            notes: (setIdx === 1 && ex.notes) ? ex.notes : null,
           });
-        });
+        } else if (st.kg != null || st.reps != null) {
+          sinMarcar.push(`${st.kg ?? '—'}×${st.reps ?? '—'}`);
+        }
       });
-      if (window.cloudPushWorkout) window.cloudPushWorkout(workout, rows);
-      else enqueue({ type: 'workout', workout, sets: rows });
-    }
+      // Todo lo que no cabe en workout_sets se escribe en workouts.notes:
+      // así una sesión de solo notas (running) llega entera a la nube.
+      if (ex.notes) lineas.push(`${ex.name} · ${ex.notes}`);
+      if (sinMarcar.length) lineas.push(`${ex.name} · sin marcar: ${sinMarcar.join(', ')}`);
+    });
+    workout.notes = lineas.length ? lineas.join('\n') : null;
+    return { workout, sets: rows };
   }
+
+  // Deja el entreno en el outbox y empuja de inmediato. La confirmación la da
+  // el módulo cloud vaciando el outbox; hasta entonces se ve "sin sincronizar".
+  function pushWorkout(payload) {
+    enqueue({ type: 'workout', workout: payload.workout, sets: payload.sets });
+    window.cloudFlushNow?.();
+  }
+
+  function persistSession() {
+    const snap = readTracker();
+    if (!snap) { clearDraft(); return null; }
+    // Historial local: TODO lo que haya, también un ejercicio con nota y sin
+    // series (antes se descartaba entero y ni siquiera quedaba en el móvil).
+    const hist = loadHistory();
+    snap.exercises.forEach(ex => {
+      (hist[ex.exerciseId] ||= []).push({
+        date: snap.dateIso, routineId: session.routineId, sets: ex.sets, notes: ex.notes,
+      });
+    });
+    saveHistory(hist);
+    const payload = buildWorkoutPayload(snap, session.routineId);
+    if (payload) pushWorkout(payload);
+    // La sesión ya está en el historial y en el outbox: el borrador sobra.
+    clearDraft();
+    return payload;
+  }
+
+  // ---------- Aviso visible de "sin sincronizar" ----------
+  // Un fallo de guardado ya no se lo traga nadie: mientras quede algo por
+  // subir o un borrador sin guardar, la barra está a la vista y se puede
+  // tocar para resolverlo.
+  const syncBar = document.getElementById('syncBar');
+  const syncTxt = document.getElementById('syncBarTxt');
+  const syncBtn = document.getElementById('syncBarBtn');
+  let syncAccion = null;
+
+  const fechaCorta = (iso) => {
+    const d = new Date(iso);
+    return isNaN(d) ? '' : `${d.getDate()} ${months[d.getMonth()].toLowerCase()}`;
+  };
+
+  function renderSyncBar() {
+    const draft = loadDraft();
+    const abierto = document.getElementById('tracker').classList.contains('open');
+    const pend = loadOutbox().filter(i => i.type === 'workout');
+    // El borrador del entreno que está abierto ahora mismo no es un aviso.
+    if (draft && !abierto) {
+      syncTxt.textContent = `Entreno sin guardar · ${draft.routineName || ''} ${fechaCorta(draft.dateIso)}`.trim();
+      syncBtn.textContent = 'GUARDAR';
+      syncAccion = () => { recoverDraft(); };
+    } else if (pend.length) {
+      syncTxt.textContent = pend.length === 1
+        ? 'Entreno sin sincronizar: sigue solo en este móvil.'
+        : `${pend.length} entrenos sin sincronizar: siguen solo en este móvil.`;
+      syncBtn.textContent = 'REINTENTAR';
+      syncAccion = () => { syncBtn.textContent = 'SUBIENDO…'; window.cloudFlushNow?.(true); };
+    } else {
+      syncAccion = null;
+      syncBar.hidden = true;
+      return;
+    }
+    syncBar.hidden = false;
+  }
+  syncBtn.addEventListener('click', () => syncAccion?.());
+  window.appSyncChanged = renderSyncBar;
+
+  // ---------- Recuperar un borrador ----------
+  // Vuelca al historial local y al outbox lo que quedó a medias. Se usa desde
+  // la barra de aviso y desde el cajón (Entrenos sin sincronizar).
+  function recoverDraft(d) {
+    const draft = d || loadDraft();
+    if (!draft) return null;
+    const payload = buildWorkoutPayload(draft, draft.routineId);
+    const hist = loadHistory();
+    (draft.exercises || []).forEach(ex => {
+      const yaEsta = (hist[ex.exerciseId] || []).some(r =>
+        (r.date || '').slice(0, 10) === (draft.dateIso || '').slice(0, 10) &&
+        JSON.stringify(r.sets || []) === JSON.stringify(ex.sets || []) &&
+        (r.notes || '') === (ex.notes || ''));
+      if (!yaEsta) (hist[ex.exerciseId] ||= []).push({
+        date: draft.dateIso, routineId: draft.routineId, sets: ex.sets, notes: ex.notes,
+      });
+    });
+    saveHistory(hist);
+    if (payload) pushWorkout(payload);
+    clearDraft();
+    renderHome(); renderTrainer(); renderStats();
+    return payload;
+  }
+  window.appRecoverDraft = recoverDraft;
+
+  // Guardar a mano una sesión que no pasó por el tracker (rescate de notas).
+  // exercises: [{ exerciseId, name, sets, notes }]
+  window.appSaveManualSession = function(dateIso, routineId, exercises, durationSec) {
+    const snap = { dateIso, durationSec: durationSec ?? null, exercises };
+    const payload = buildWorkoutPayload(snap, routineId || null);
+    if (!payload) return null;
+    const hist = loadHistory();
+    exercises.forEach(ex => {
+      (hist[ex.exerciseId] ||= []).push({ date: dateIso, routineId: routineId || null, sets: ex.sets || [], notes: ex.notes || '' });
+    });
+    saveHistory(hist);
+    pushWorkout(payload);
+    renderHome(); renderTrainer(); renderStats();
+    return payload;
+  };
   function closeTracker() {
     document.getElementById('tracker').classList.remove('open');
+    renderSyncBar();
     clearInterval(workoutTimer);
     stopRest();
     setPaused(false);
@@ -4782,6 +5080,7 @@
     const tr = btn.closest('tr');
     const marcada = btn.classList.contains('checked');
     tr.classList.toggle('completed', marcada);
+    scheduleDraft();
     if (marcada) {
       navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
       // En una superserie el descanso solo va al terminar la última serie del grupo
@@ -5052,7 +5351,10 @@
   document.getElementById('resetAll').addEventListener('click', resetAll);
 
   // Hook para que el módulo cloud repinte la UI tras un pull
-  window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); };
+  window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); renderSyncBar(); };
+
+  // Al arrancar: si quedó un entreno a medias o algo sin subir, se ve enseguida.
+  renderSyncBar();
 
   // ¿Ese día cuenta como día de entreno? Lo usa Nutrición para elegir entre
   // los macros de entreno y los de descanso. Regla acordada con Adrián:
@@ -5112,9 +5414,9 @@ async function pushOverrideNow(item) {
   });
   if (error) throw error;
 }
-window.cloudPushWorkout = (workout, sets) => {
-  pushWorkoutNow(workout, sets).catch(() => window.fitnessEnqueue({ type: 'workout', workout, sets }));
-};
+// Los entrenos NO tienen camino directo: la app los deja en el outbox y de
+// ahí los sube flushOutbox. Así una subida a medias (batería, túnel, pestaña
+// cerrada) nunca pierde la sesión: sigue en la cola hasta que se confirma.
 window.cloudPushOverride = (item) => {
   pushOverrideNow(item).catch(() => window.fitnessEnqueue(item));
 };
@@ -5166,22 +5468,76 @@ window.cloudAddExercise = (ex) => {
   addExerciseNow({ ex }).catch(() => window.fitnessEnqueue({ type: 'exadd', ex }));
 };
 
-async function flushOutbox() {
-  const items = outbox();
-  if (!items.length) return;
-  const remaining = [];
-  for (const it of items) {
-    try {
-      if (it.type === 'workout') await pushWorkoutNow(it.workout, it.sets);
-      else if (it.type === 'override') await pushOverrideNow(it);
-      else if (it.type === 'weight') await pushWeightNow(it);
-      else if (it.type === 'exrename') await renameExerciseNow(it);
-      else if (it.type === 'exadd') await addExerciseNow(it);
-      else if (it.type === 'exnote') await pushExNoteNow(it);
-    } catch { remaining.push(it); }
-  }
-  saveOutbox(remaining);
+// ---------- Vaciado del outbox ----------
+// Un solo vaciado a la vez, con reintentos escalonados dentro del propio
+// intento y un temporizador de respaldo mientras quede algo. Antes solo se
+// intentaba al abrir la app y al volver la red: si las dos cosas fallaban,
+// el entreno se quedaba en el móvil para siempre y sin avisar.
+let flushing = false, flushTimer = null;
+window.__syncLastError = null;
+
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function pushItem(it) {
+  if (it.type === 'workout') return pushWorkoutNow(it.workout, it.sets);
+  if (it.type === 'override') return pushOverrideNow(it);
+  if (it.type === 'weight') return pushWeightNow(it);
+  if (it.type === 'exrename') return renameExerciseNow(it);
+  if (it.type === 'exadd') return addExerciseNow(it);
+  if (it.type === 'exnote') return pushExNoteNow(it);
+  return null; // tipo desconocido: no se reintenta eternamente
 }
+
+// Identidad de un elemento de la cola: por id de entreno cuando lo hay, y si
+// no por su contenido. Se usa para no borrar de la cola lo que ha entrado
+// MIENTRAS se subía (terminar otro entreno durante un reintento largo).
+const itemKey = (it) => (it.type === 'workout' && it.workout?.id)
+  ? `workout:${it.workout.id}` : `${it.type}:${JSON.stringify(it)}`;
+
+async function flushOutbox({ force = false } = {}) {
+  if (flushing) return;
+  const items = outbox();
+  if (!items.length) { programarReintento(); window.appSyncChanged?.(); return; }
+  if (!navigator.onLine && !force) { programarReintento(); window.appSyncChanged?.(); return; }
+  flushing = true;
+  const subidos = new Set();
+  let ultimoFallo = null;
+  try {
+    for (const it of items) {
+      let err = null;
+      // Tres intentos con espera creciente: los cortes de red del móvil
+      // suelen durar segundos, no hace falta esperar a la próxima apertura.
+      for (const espera of [0, 2000, 6000]) {
+        if (espera) await esperar(espera);
+        try { await pushItem(it); subidos.add(itemKey(it)); err = null; break; }
+        catch (e) { err = e; }
+      }
+      if (err) ultimoFallo = err;
+    }
+  } finally {
+    flushing = false;
+    // Se relee la cola: lo encolado durante la subida sigue ahí.
+    const remaining = outbox().filter((it) => !subidos.has(itemKey(it)));
+    saveOutbox(remaining);
+    window.__syncLastError = remaining.length
+      ? (ultimoFallo?.message || String(ultimoFallo || 'sin conexión')) : null;
+    window.appSyncChanged?.();
+    programarReintento();
+  }
+}
+
+// Mientras quede algo pendiente se reintenta cada minuto por su cuenta.
+function programarReintento() {
+  clearTimeout(flushTimer);
+  if (!outbox().length) return;
+  flushTimer = setTimeout(() => flushOutbox(), 60000);
+}
+
+window.cloudFlushNow = (force) => flushOutbox({ force: !!force });
+window.cloudPendingCount = () => outbox().length;
+window.addEventListener('online', () => flushOutbox());
+window.addEventListener('focus', () => flushOutbox());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) flushOutbox(); });
 
 // ---------- Bajada: programa (catálogo + rutinas + plan + overrides) ----------
 async function pullProgram() {
@@ -5273,7 +5629,13 @@ async function pullHistory() {
   // de las SERIES, así que una sesión sin series registradas no aparecería;
   // esta lista permite que cuente igual para el calendario y la racha.
   localStorage.setItem('fitness_sessions_v1', JSON.stringify(
-    w.data.map(wk => ({ date: wk.date, routineId: wk.routine_id, sets: (setsByWorkout[wk.id] || []).length }))
+    w.data.map(wk => ({
+      date: wk.date, routineId: wk.routine_id,
+      sets: (setsByWorkout[wk.id] || []).length,
+      // Las notas de la sesión viven en workouts.notes: es lo único que queda
+      // de un entreno apuntado solo con notas (p. ej. una salida a correr).
+      notes: wk.notes || '', durationSec: wk.duration_sec ?? null,
+    }))
   ));
 }
 
@@ -6386,15 +6748,20 @@ function cerrarCajones() {
   });
   drawerVeil.classList.remove('open');
 }
-async function abrirCajon(el) {
+function abrirCajon(el) {
   cerrarCajones();
-  if (el === logoDrawer) {
-    const { data: { user } } = await sb.auth.getUser();
-    $('ldEmail').textContent = user?.email || '';
-  }
+  if (el === logoDrawer) panelMenu();
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
   drawerVeil.classList.add('open');
+  // El email se rellena después y sin bloquear: sin conexión, `getUser()`
+  // se queda colgado o falla, y el cajón no llegaba a abrirse — justo cuando
+  // más falta hace (es donde se ve lo que está sin sincronizar).
+  if (el === logoDrawer) {
+    sb.auth.getUser()
+      .then(({ data }) => { $('ldEmail').textContent = data?.user?.email || ''; })
+      .catch(() => {});
+  }
 }
 drawerVeil.addEventListener('click', cerrarCajones);
 
@@ -6402,6 +6769,116 @@ drawerVeil.addEventListener('click', cerrarCajones);
 document.addEventListener('click', (e) => {
   if (e.target.closest('.logo') && !e.target.closest('.drawer')) abrirCajon(logoDrawer);
 });
+
+// ---------- Panel "Sin sincronizar" (cajón de la izquierda) ----------
+// Tres cosas en un sitio: el entreno que quedó a medias, la cola que no ha
+// subido, y las notas de ejercicio que siguen en el móvil (de ahí se rescata
+// una sesión apuntada solo con notas que nunca llegó a la nube).
+const panelMenu = () => { $('ldMain').style.display = ''; $('ldSyncPane').style.display = 'none'; };
+const panelSync = () => { $('ldMain').style.display = 'none'; $('ldSyncPane').style.display = ''; pintarSync(); };
+$('ldSyncBack').addEventListener('click', panelMenu);
+$('ldSync').addEventListener('click', panelSync);
+
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const hoyIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+function pintarSync() {
+  const body = $('ldSyncBody');
+  const pend = (() => { try { return JSON.parse(localStorage.getItem('fitness_sync_outbox_v2') || '[]'); } catch { return []; } })();
+  const draft = window.appLoadDraft?.();
+  const notas = (() => { try { return JSON.parse(localStorage.getItem('fitness_ex_notes_v1') || '{}'); } catch { return {}; } })();
+  const conNota = Object.entries(notas).filter(([, v]) => v && String(v).trim());
+  let html = '';
+
+  if (draft) {
+    const series = (draft.exercises || []).reduce((n, e) => n + (e.sets || []).length, 0);
+    const conNotas = (draft.exercises || []).filter(e => e.notes).length;
+    html += `
+      <div class="rec-block">
+        <span class="label">Entreno a medias</span>
+        <div class="rec-card">
+          <b>${esc(draft.routineName || 'Entreno')} · ${esc((draft.dateIso || '').slice(0, 10))}</b>
+          <p>${series} serie${series === 1 ? '' : 's'} · ${conNotas} nota${conNotas === 1 ? '' : 's'}${draft.durationSec ? ` · ${Math.round(draft.durationSec / 60)} min` : ''}</p>
+          <div class="rec-actions">
+            <button type="button" class="go" id="recDraftSave">GUARDARLO</button>
+            <button type="button" id="recDraftDrop">DESCARTAR</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  html += `
+    <div class="rec-block">
+      <span class="label">Cola de subida</span>`;
+  if (!pend.length) {
+    html += `<p class="rec-ok">Todo subido. No queda nada esperando.</p>`;
+  } else {
+    html += pend.map((it) => {
+      if (it.type === 'workout') {
+        const n = (it.sets || []).length;
+        return `<div class="rec-card"><b>Entreno · ${esc(it.workout?.date || '')}</b>
+          <p>${n} serie${n === 1 ? '' : 's'}${it.workout?.notes ? `\n${esc(it.workout.notes)}` : ''}</p></div>`;
+      }
+      return `<div class="rec-card"><b>${esc(it.type)}</b><p>Pendiente de subir.</p></div>`;
+    }).join('');
+    if (window.__syncLastError) html += `<p class="rec-ok">Último error: ${esc(window.__syncLastError)}</p>`;
+    html += `<div class="rec-actions"><button type="button" class="go" id="recFlush">REINTENTAR AHORA</button></div>`;
+  }
+  html += `</div>`;
+
+  if (conNota.length) {
+    html += `
+      <div class="rec-block">
+        <span class="label">Rescatar notas del móvil</span>
+        <p class="rec-hint rec-ok" style="margin-bottom:10px">Notas guardadas en este móvil por ejercicio. Marca las que sean de una sesión que no llegó a la nube, elige el día y guárdalas como entreno.</p>
+        <input type="date" class="rec-date" id="recDate" value="${hoyIso()}" max="${hoyIso()}">
+        ${conNota.map(([id, txt]) => `
+          <label class="rec-note">
+            <input type="checkbox" data-ex="${esc(id)}">
+            <span class="rn-txt"><b>${esc(window.EXERCISES?.find(e => e.id === id)?.name || id)}</b><span>${esc(txt)}</span></span>
+          </label>`).join('')}
+        <div class="rec-actions"><button type="button" class="go" id="recSaveNotes">GUARDAR COMO ENTRENO</button></div>
+      </div>`;
+  }
+
+  body.innerHTML = html;
+
+  $('recDraftSave')?.addEventListener('click', () => { window.appRecoverDraft?.(); pintarSync(); });
+  $('recDraftDrop')?.addEventListener('click', () => {
+    if (confirm('¿Descartar el entreno a medias? No se puede deshacer.')) { window.appClearDraft?.(); pintarSync(); }
+  });
+  $('recFlush')?.addEventListener('click', async (e) => {
+    e.currentTarget.textContent = 'SUBIENDO…';
+    await window.cloudFlushNow?.(true);
+    pintarSync();
+  });
+  $('recSaveNotes')?.addEventListener('click', () => {
+    const marcadas = [...body.querySelectorAll('.rec-note input:checked')].map(i => i.dataset.ex);
+    if (!marcadas.length) { alert('No has marcado ninguna nota.'); return; }
+    const fecha = $('recDate').value || hoyIso();
+    const ejercicios = marcadas.map(id => ({
+      exerciseId: id,
+      name: window.EXERCISES?.find(e => e.id === id)?.name || id,
+      sets: [],
+      notes: String(notas[id] || '').trim(),
+    }));
+    const ok = window.appSaveManualSession?.(`${fecha}T12:00:00.000Z`, null, ejercicios, null);
+    if (!ok) { alert('No se ha podido preparar el entreno.'); return; }
+    alert(`Entreno del ${fecha} guardado con ${ejercicios.length} nota${ejercicios.length === 1 ? '' : 's'}. Se sube a la nube en cuanto haya red.`);
+    pintarSync();
+  });
+}
+
+// El badge del menú refleja lo que queda pendiente
+const _syncChangedPrev = window.appSyncChanged;
+window.appSyncChanged = () => {
+  _syncChangedPrev?.();
+  const n = (window.cloudPendingCount?.() || 0) + (window.appLoadDraft?.() ? 1 : 0);
+  const badge = $('ldSyncBadge');
+  if (badge) { badge.hidden = !n; badge.textContent = String(n); }
+  if ($('ldSyncPane')?.style.display !== 'none') pintarSync();
+};
+window.appSyncChanged();
 
 // Rehacer el plan: no se borra nada. El plan y los entrenos se archivan (el
 // Coach los puede consultar) y se vuelve a empezar por la primera sesión.
@@ -6826,9 +7303,15 @@ async function sendChat(text, opciones = {}) {
     burbuja.remove();
     chatHistory.push({ role: 'assistant', content: respuesta || '(sin respuesta)', actions: acciones });
     renderChat();
-    // Si el entrenador tocó la BD, refresca el programa al momento
-    // (el realtime también lo haría, esto lo hace instantáneo)
-    if (acciones.length && (await pullProgram())) window.appRerender?.();
+    // Si el entrenador tocó la BD, refresca al momento lo que se ve
+    // (el realtime lo haría con el programa, pero `meals` no va por realtime:
+    // sin esto, una comida que apunte el Coach no sale en Nutrición hasta
+    // reabrir la app)
+    if (acciones.length) {
+      if (await pullProgram()) window.appRerender?.();
+      await pullMeals();
+      renderNutrition();
+    }
     // El Coach puede haber cerrado la primera sesión: si es así, se desbloquea
     // el chat sin que el usuario tenga que recargar.
     if (faltaPrimeraSesion()) await pullProfile();
@@ -6990,7 +7473,6 @@ async function boot(loggedIn) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'week_overrides' }, onProgramChange)
     .subscribe((status, err) => { window.__rtStatus = status; window.__rtErr = err ? String(err) : null; });
   window.__rt = rt;
-  window.addEventListener('online', flushOutbox);
 }
 boot(false);
 </script>
