@@ -1864,6 +1864,16 @@
       transition: border-color var(--t-fast) var(--ease);
     }
     .auth-veil input:focus { outline: none; border-color: var(--line-3); }
+    /* Ojito para ver la contraseña: sin esto se escribe a ciegas y en el móvil
+       es la primera causa de «no puedo entrar». */
+    .pass-wrap { position: relative; display: block; }
+    .pass-wrap input { padding-right: 48px; }
+    .pass-eye { position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+                width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+                color: var(--ghost); background: none; border: 0; }
+    .pass-eye svg { width: 19px; height: 19px; }
+    .pass-eye.on { color: var(--text); }
+    .pass-eye.on .eye-off { display: none; }
     .auth-veil input.ok { border-color: var(--hot-line); }
     .btn-primary { width: 100%; background: var(--white); color: var(--white-ink); font-weight: 700;
                    border-radius: var(--r-5); padding: 15px; font-size: 15px; letter-spacing: -.01em;
@@ -2329,11 +2339,15 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+        <span class="pass-wrap">
+          <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pass-eye" data-eye="loginPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">ENTRAR</button>
       <div class="auth-err" id="loginErr"></div>
       <div class="auth-alt">¿No tienes cuenta? <button type="button" id="goSignup">Crear una</button></div>
+      <button type="button" class="auth-skip" id="goRecover">¿Has olvidado la contraseña?</button>
       <button type="button" class="auth-skip" id="loginSkip">Seguir sin conexión</button>
     </form>
 
@@ -2356,11 +2370,41 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+        <span class="pass-wrap">
+          <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="suPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">CREAR CUENTA</button>
       <div class="auth-err" id="suErr"></div>
       <div class="auth-alt">¿Ya tienes cuenta? <button type="button" id="goLogin">Entrar</button></div>
+    </form>
+    <!-- ---- He olvidado la contraseña: pedir el enlace ---- -->
+    <form id="recoverForm" data-mode="reset" style="display:none">
+      <h1 class="auth-title"><span class="title-out">RECUPERAR</span> ACCESO</h1>
+      <p class="auth-sub">Te mandamos un enlace al correo con el que te registraste. Al abrirlo podrás poner una contraseña nueva.</p>
+      <label class="auth-field">
+        <span class="label">Email</span>
+        <input id="rcEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
+      </label>
+      <button type="submit" class="btn-primary">ENVIARME EL ENLACE</button>
+      <div class="auth-err" id="rcErr"></div>
+      <div class="auth-alt">¿Ya te acuerdas? <button type="button" id="goLoginDesdeRc">Entrar</button></div>
+    </form>
+
+    <!-- ---- Volver del enlace del correo: escribir la contraseña nueva ---- -->
+    <form id="newPassForm" data-mode="newpass" style="display:none">
+      <h1 class="auth-title"><span class="title-out">NUEVA</span> CONTRASEÑA</h1>
+      <p class="auth-sub">El enlace es válido: elige una contraseña nueva y entras directo.</p>
+      <label class="auth-field">
+        <span class="label">Contraseña nueva</span>
+        <span class="pass-wrap">
+          <input id="npPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="npPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
+      </label>
+      <button type="submit" class="btn-primary">GUARDAR Y ENTRAR</button>
+      <div class="auth-err" id="npErr"></div>
     </form>
   </div>
 </div>
@@ -2371,6 +2415,14 @@
 // a que cargue el módulo cloud (que viene de la red y puede tardar o fallar).
 (() => {
   const veil = document.getElementById('bootVeil');
+  // Vuelta del enlace de «he olvidado la contraseña»: el token viene en el hash
+  // y supabase-js lo consume nada más cargar, así que hay que mirarlo YA.
+  window.__RECOVERY = /type=recovery/.test(location.hash || '');
+  if (window.__RECOVERY) {
+    document.getElementById('loginOverlay').classList.add('open');
+    veil.classList.remove('open');
+    return;
+  }
   const haySesion = Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
   if (!haySesion) {
     if (!localStorage.getItem('fitness_login_skipped')) document.getElementById('loginOverlay').classList.add('open');
@@ -5739,13 +5791,83 @@ const authVeil = $('loginOverlay');
 const onbVeil = $('onbOverlay');
 const showLogin = () => { authVeil.classList.add('open'); };
 const hideLogin = () => { authVeil.classList.remove('open'); };
+// Cuatro pantallas en el mismo velo: entrar, crear cuenta, pedir el enlace de
+// recuperación y escribir la contraseña nueva.
+const AUTH_FORMS = { in: 'loginForm', up: 'signupForm', reset: 'recoverForm', newpass: 'newPassForm' };
 const authMode = (mode) => {
-  $('loginForm').style.display = mode === 'up' ? 'none' : '';
-  $('signupForm').style.display = mode === 'up' ? '' : 'none';
-  $('loginErr').textContent = ''; $('suErr').textContent = '';
+  Object.entries(AUTH_FORMS).forEach(([k, id]) => { $(id).style.display = k === mode ? '' : 'none'; });
+  ['loginErr', 'suErr', 'rcErr', 'npErr'].forEach((id) => {
+    const e = $(id);
+    if (e) { e.textContent = ''; e.style.color = ''; }
+  });
 };
 $('goSignup').addEventListener('click', () => authMode('up'));
 $('goLogin').addEventListener('click', () => authMode('in'));
+$('goLoginDesdeRc').addEventListener('click', () => authMode('in'));
+$('goRecover').addEventListener('click', () => {
+  $('rcEmail').value = $('loginEmail').value.trim();
+  authMode('reset');
+});
+
+// Ojito: enseñar u ocultar lo que se escribe en cualquier campo de contraseña
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-eye]');
+  if (!b) return;
+  e.preventDefault();
+  const campo = $(b.dataset.eye);
+  if (!campo) return;
+  const verlo = campo.type === 'password';
+  campo.type = verlo ? 'text' : 'password';
+  b.classList.toggle('on', verlo);
+  b.setAttribute('aria-label', verlo ? 'Ocultar la contraseña' : 'Ver la contraseña');
+});
+
+// ---- He olvidado la contraseña ----
+// La respuesta es siempre la misma, exista o no la cuenta: si dijéramos
+// «ese correo no está registrado» estaríamos contando quién tiene cuenta.
+$('recoverForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('rcErr');
+  err.textContent = ''; err.style.color = '';
+  const btn = $('recoverForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'ENVIANDO…';
+  const { error } = await sb.auth.resetPasswordForEmail($('rcEmail').value.trim(), {
+    redirectTo: location.origin + location.pathname,
+  });
+  btn.disabled = false; btn.textContent = 'ENVIARME EL ENLACE';
+  err.style.color = 'var(--muted)';
+  err.textContent = error
+    ? 'No se ha podido enviar: ' + error.message
+    : 'Si esa cuenta existe, el enlace ya va de camino. Mira también en spam.';
+});
+
+// ---- Contraseña nueva, al volver del enlace del correo ----
+$('newPassForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('npErr');
+  err.textContent = '';
+  const pass = $('npPass').value;
+  if (pass.length < 6) { err.textContent = 'Mínimo 6 caracteres.'; return; }
+  const btn = $('newPassForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
+  const { error } = await sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'GUARDAR Y ENTRAR';
+  if (error) {
+    err.textContent = /expired|invalid/i.test(error.message)
+      ? 'Ese enlace ya ha caducado. Pide otro desde «¿Has olvidado la contraseña?».'
+      : 'No se ha podido guardar: ' + error.message;
+    return;
+  }
+  window.__RECOVERY = false;
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) checkUserSwitch(user.id);
+  localStorage.removeItem(SKIP_KEY);
+  hideLogin();
+  boot(true);
+});
+
+// Si venimos del enlace del correo, lo único que toca es la contraseña nueva
+if (window.__RECOVERY) { authMode('newpass'); showLogin(); }
 
 // El enlace de invitación trae el código puesto: aturi212.github.io/fitness/#invita=ONIX-XXXXX
 // Se mira al arrancar y también al cambiar el hash: si la app ya está abierta
@@ -6558,6 +6680,8 @@ function onProgramChange() {
 const hideBoot = () => $('bootVeil')?.classList.remove('open');
 
 async function boot(loggedIn) {
+  // Con el enlace de recuperación abierto, la app espera: primero la contraseña
+  if (window.__RECOVERY && !loggedIn) { hideBoot(); return; }
   if (!loggedIn) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
