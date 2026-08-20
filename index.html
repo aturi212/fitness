@@ -1520,19 +1520,26 @@
       <div class="hsheet nutri-sheet" id="maSheet">
         <div class="ns-title" id="maTitle"></div>
         <div class="ma-btns">
-          <!-- Editar y Periódico en la misma línea; Periódico es un interruptor:
-               marcado = el alimento se repite todos los días -->
+          <!-- Las tres acciones del deslizamiento, con sus mismos colores:
+               periódico gris (naranja cuando está puesto), mañana naranja y
+               eliminar rojo. Periódico es un interruptor: marcado = todos los días. -->
           <div class="ma-row">
-            <button type="button" id="maEdit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-              <span>Editar</span>
-            </button>
-            <button type="button" id="maRecur" aria-pressed="false">
+            <button type="button" id="maRecur" class="ma-recur" aria-pressed="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9"/><path d="M3.5 12A8.5 8.5 0 0 1 18.1 6.1"/><path d="M18.4 2.6v3.9h-3.9"/><path d="M5.6 21.4v-3.9h3.9"/></svg>
               <span>Periódico</span>
             </button>
+            <button type="button" id="maNext" class="ma-next">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"/><path d="M10.5 7l4.5 5-4.5 5"/><path d="M19.5 5v14"/></svg>
+              <span>Mañana</span>
+            </button>
+            <button type="button" id="maDelete" class="ma-danger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              <span>Eliminar</span>
+            </button>
           </div>
-          <button type="button" id="maDelete" class="ma-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Eliminar</button>
+          <button type="button" id="maEdit" class="ma-edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Editar
+          </button>
         </div>
       </div>
 
@@ -1968,26 +1975,48 @@
                            padding: 12px 0 13px; transition: transform var(--t-base) var(--ease); }
     #mealList .meal-item.dragging .meal-face { transition: none; }
     #mealList .meal-item:active .meal-face { opacity: .72; }
-    .sw-act { position: absolute; top: 0; bottom: 0; width: 76px; z-index: 0;
-              display: grid; place-items: center; padding: 0; }
+    /* Dos tiras de acciones: a la derecha del dedo salen periódico y "mañana",
+       a la izquierda la papelera. El -16px las lleva hasta el borde de la pantalla. */
+    #mealList .sw-side { position: absolute; top: 0; bottom: 0; z-index: 0; display: flex; }
+    #mealList .sw-side--left  { left: -16px; }
+    #mealList .sw-side--right { right: -16px; }
+    /* El botón del extremo se estira 16px de más para llegar al borde de la
+       tarjeta; el relleno vuelve a centrar el icono en sus 76px de siempre. */
+    #mealList .sw-side--left  .sw-act:first-child { width: 92px; padding-left: 16px; }
+    #mealList .sw-side--right .sw-act:last-child  { width: 92px; padding-right: 16px; }
+    .sw-act { width: 76px; display: grid; place-items: center; padding: 0; }
     .sw-act svg { width: 20px; height: 20px; }
-    .sw-left  { left: -16px;  padding-left: 16px;  background: var(--s4); color: var(--muted); }
-    .sw-left.on { background: var(--hot); color: var(--hot-ink); }
-    .sw-right { right: -16px; padding-right: 16px;
-                background: color-mix(in srgb, var(--danger) 84%, #000); color: #fff; }
+    .sw-recur { background: var(--s4); color: var(--muted); }
+    .sw-recur.on { background: var(--hot); color: var(--hot-ink); }
+    .sw-next  { background: var(--hot); color: var(--hot-ink); }
+    .sw-del   { background: color-mix(in srgb, var(--danger) 84%, #000); color: #fff; }
+
+    /* Aviso flotante (Nutrición): va por encima de la barra de navegación */
+    .nutri-toast { position: fixed; z-index: 60; left: 50%; bottom: calc(var(--nav-h) + var(--nav-gap) + 16px + env(safe-area-inset-bottom));
+                   transform: translateX(-50%) translateY(8px);
+                   max-width: min(86vw, 380px); padding: 11px 16px; text-align: center;
+                   background: rgba(20,20,22,.94); backdrop-filter: blur(20px) saturate(160%);
+                   -webkit-backdrop-filter: blur(20px) saturate(160%);
+                   border: 1px solid var(--line-2); border-radius: var(--r-6); box-shadow: var(--sh-float);
+                   font: 500 12.5px/1.35 var(--f-ui); color: var(--text);
+                   opacity: 0; pointer-events: none;
+                   transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease); }
+    .nutri-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* Marca de "se repite todos los días" en la propia fila */
     .meal-recur { flex-shrink: 0; display: inline-grid; place-items: center;
                   width: 15px; height: 15px; color: var(--hot-text); opacity: .9; }
     .meal-recur svg { width: 100%; height: 100%; }
 
-    /* Hoja de acciones: editar y periódico en una línea */
-    #maSheet .ma-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    /* Hoja de acciones: las tres del deslizamiento en una línea, con sus colores */
+    #maSheet .ma-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
     #maSheet .ma-row button { display: flex; flex-direction: column; align-items: center; justify-content: center;
-                              gap: 7px; padding: 15px 8px; text-align: center; }
+                              gap: 7px; padding: 15px 6px; text-align: center; }
     #maSheet .ma-row button svg { width: 18px; height: 18px; }
+    #maSheet .ma-row .ma-next { background: var(--hot); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
+    #maSheet .ma-row .ma-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 34%, transparent); }
     #maSheet #maRecur.on { background: var(--hot); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
-    #maSheet .ma-btns > .ma-danger { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    #maSheet .ma-btns > .ma-edit { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 
     /* ════════ Navegador de día (Nutrición · Diario) ════════ */
     .daynav { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; }
@@ -5162,6 +5191,34 @@ function nutriDayLabelLargo(iso) {
   return `${DOW_LARGO[new Date(y, m - 1, d).getDay()]} ${d} ${MESES_LARGO[m]}`;
 }
 
+// "hoy" / "mañana" / "el 25 de agosto": para contar a dónde ha ido una comida.
+const etiquetaDiaCorta = (iso) => {
+  const hoy = nutriIso();
+  if (iso === hoy) return 'hoy';
+  if (iso === nutriAddDays(hoy, 1)) return 'mañana';
+  if (iso === nutriAddDays(hoy, -1)) return 'ayer';
+  const [, m, d] = iso.split('-').map(Number);
+  return `el ${d} de ${MESES_LARGO[m].toLowerCase()}`;
+};
+
+// Aviso flotante. Lo pide "apuntar mañana": la comida se va a un día que no se
+// está viendo, así que sin esto no hay forma de saber que ha pasado algo.
+let nutriToastT = null;
+function nutriToast(msg) {
+  let t = $('nutriToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'nutriToast';
+    t.className = 'nutri-toast';
+    t.setAttribute('role', 'status');
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(nutriToastT);
+  nutriToastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
 // Bloques que el usuario ha plegado (se recuerda entre renders)
 // Los bloques arrancan SIEMPRE plegados: al abrir la app y cada vez que se
 // cambia de día. Solo se abre el que el usuario despliega, y ese estado vive en
@@ -5225,13 +5282,20 @@ function renderNutriDaily() {
   // La cara lleva fondo opaco para tapar las acciones mientras no se desliza.
   const ICO_RECUR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9"/><path d="M3.5 12A8.5 8.5 0 0 1 18.1 6.1"/><path d="M18.4 2.6v3.9h-3.9"/><path d="M5.6 21.4v-3.9h3.9"/></svg>`;
   const ICO_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
+  const ICO_NEXT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"/><path d="M10.5 7l4.5 5-4.5 5"/><path d="M19.5 5v14"/></svg>`;
   const mealRow = (m) => {
     const esPeriodica = !!activeRecurringOf(m);
     return `
     <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">
-      <button type="button" class="sw-act sw-left${esPeriodica ? ' on' : ''}" data-act="recur"
-        aria-label="${esPeriodica ? 'Quitar periódico' : 'Hacer periódico'}">${ICO_RECUR}</button>
-      <button type="button" class="sw-act sw-right" data-act="del" aria-label="Eliminar">${ICO_DEL}</button>
+      <div class="sw-side sw-side--left">
+        <button type="button" class="sw-act sw-recur${esPeriodica ? ' on' : ''}" data-act="recur"
+          aria-label="${esPeriodica ? 'Quitar periódico' : 'Hacer periódico'}">${ICO_RECUR}</button>
+        <button type="button" class="sw-act sw-next" data-act="next"
+          aria-label="Apuntar también el día siguiente">${ICO_NEXT}</button>
+      </div>
+      <div class="sw-side sw-side--right">
+        <button type="button" class="sw-act sw-del" data-act="del" aria-label="Eliminar">${ICO_DEL}</button>
+      </div>
       <div class="meal-face">
         <div class="meal-top">
           <span class="meal-name">${m.description}</span>
@@ -5553,7 +5617,9 @@ $('mealList').addEventListener('click', (e) => {
 (() => {
   const lista = $('mealList');
   if (!lista) return;
-  const ANCHO = 76;     // lo que se abre la fila
+  const ANCHO = 76;            // ancho de cada botón
+  const ABRE_DER = ANCHO * 2;  // hacia la derecha salen dos: periódico y mañana
+  const ABRE_IZQ = ANCHO;      // hacia la izquierda, solo la papelera
   const UMBRAL = 38;    // a partir de aquí se queda abierta al soltar
   let row = null, face = null, x0 = 0, y0 = 0, eje = null, dx = 0;
 
@@ -5586,7 +5652,7 @@ $('mealList').addEventListener('click', (e) => {
     }
     if (eje !== 'x') return;
     e.preventDefault();   // mientras se desliza en horizontal, no se desplaza la página
-    dx = Math.max(-ANCHO, Math.min(ANCHO, ddx));
+    dx = Math.max(-ABRE_IZQ, Math.min(ABRE_DER, ddx));
     face.style.transform = `translateX(${dx}px)`;
   }, { passive: false });
 
@@ -5597,7 +5663,7 @@ $('mealList').addEventListener('click', (e) => {
     r.classList.remove('dragging');
     if (ejeFin !== 'x') return;
     const abierta = Math.abs(d) > UMBRAL;
-    f.style.transform = abierta ? `translateX(${d > 0 ? ANCHO : -ANCHO}px)` : '';
+    f.style.transform = abierta ? `translateX(${d > 0 ? ABRE_DER : -ABRE_IZQ}px)` : '';
     r.classList.toggle('open', abierta);
     // Traga el clic que cierra el gesto para que no abra la hoja de acciones
     r.classList.add('swiping');
@@ -5615,7 +5681,9 @@ $('mealList').addEventListener('click', (e) => {
     const meal = loadMeals().find((m) => String(m.id) === r?.dataset.meal);
     if (!meal) return;
     if (btn.dataset.act === 'del') await deleteMeal(meal);
+    else if (btn.dataset.act === 'next') await copiarAlDiaSiguiente(meal);
     else await toggleRecurring(meal);
+    cerrarTodas(null);
   });
 
   // Tocar fuera cierra la fila abierta
@@ -5647,6 +5715,38 @@ $('maDelete').addEventListener('click', async () => {
   const meal = loadMeals().find((m) => m.id === maMealId);
   if (await deleteMeal(meal)) closeSheets();
 });
+
+$('maNext').addEventListener('click', async () => {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  if (!meal) return;
+  closeSheets();               // la comida se va a otro día: aquí no hay nada que ver
+  await copiarAlDiaSiguiente(meal);
+});
+
+// Repite una comida en el día siguiente y SOLO en ese: para cuando cocinas
+// para dos días. No tiene nada que ver con lo periódico (eso es todos los días)
+// y por eso la copia no arrastra el recurring_id: es una comida suelta más.
+async function copiarAlDiaSiguiente(meal) {
+  if (!meal) return;
+  const destino = nutriAddDays(meal.date, 1);
+  const repetida = loadMeals().some((m) => m.date === destino
+    && m.description === meal.description
+    && (m.meal_type || 'other') === (meal.meal_type || 'other'));
+  if (repetida) { nutriToast(`«${meal.description}» ya estaba apuntada ${etiquetaDiaCorta(destino)}`); return; }
+  const { data, error } = await sb.from('meals').insert({
+    date: destino,
+    description: meal.description,
+    meal_type: meal.meal_type || 'other',
+    protein_g: meal.protein_g, carbs_g: meal.carbs_g,
+    fat_g: meal.fat_g, fiber_g: meal.fiber_g, kcal: meal.kcal,
+    source: (meal.source && meal.source !== 'recurring') ? meal.source : 'text',
+  }).select().single();
+  if (error) { nutriToast('No se pudo apuntar: ' + error.message); return; }
+  saveMeals(loadMeals().concat(data));
+  if (navigator.vibrate) navigator.vibrate(30);
+  nutriToast(`Apuntada ${etiquetaDiaCorta(destino)}: ${meal.description}`);
+  renderNutrition();
+}
 
 async function toggleRecurring(meal) {
   if (!meal) return;
@@ -6336,16 +6436,23 @@ let chatLastTs = 0;
 let chatIdleTimer = null;
 localStorage.removeItem('fitness_chat_history_v1'); // limpia restos de la versión con historial
 
+// La vista del chat NO persigue al entrenador mientras escribe: se baja sola
+// cuando el que habla es el usuario (para ver su mensaje) y a partir de ahí se
+// queda quieta, que si no te mueve el texto de debajo de los ojos mientras lees.
+const chatAlFondo = () => { const b = $('chatBox'); if (b) b.scrollTop = b.scrollHeight; };
+
 function chatBubble(cls, text) {
   const d = document.createElement('div');
   d.className = 'chat-msg ' + cls;
   d.textContent = String(text).replace(/\*\*/g, ''); // sin negritas markdown en burbujas
   chatLog.appendChild(d);
-  const box = $('chatBox');
-  if (box) box.scrollTop = box.scrollHeight;
   return d;
 }
+// Repinta el hilo entero dejando la vista donde estaba: al terminar la
+// respuesta se vuelve a pintar todo, y sin esto saltaría al principio.
 function renderChat() {
+  const box = $('chatBox');
+  const y = box ? box.scrollTop : 0;
   chatLog.innerHTML = '';
   if (!chatHistory.length) {
     const d = document.createElement('div');
@@ -6363,6 +6470,7 @@ function renderChat() {
       chatLog.appendChild(c);
     });
   });
+  if (box) box.scrollTop = Math.min(y, box.scrollHeight);
 }
 renderChat();
 
@@ -6380,6 +6488,7 @@ async function sendChat(text) {
   const estado = chatBubble('bot typing', 'Pensando…');
   const burbuja = chatBubble('bot', '');
   burbuja.style.display = 'none';
+  chatAlFondo();   // el último salto de la vista: de aquí en adelante, manda el dedo
   chatSend.disabled = true;
   const acciones = [];
   let respuesta = '';
@@ -6414,8 +6523,6 @@ async function sendChat(text) {
         estado.style.display = 'none';
         burbuja.style.display = '';
         burbuja.textContent = respuesta.replace(/\*\*/g, '');
-        const caja = $('chatBox');
-        if (caja) caja.scrollTop = caja.scrollHeight;
       } else if (ev.t === 'tool') {
         if (ev.v) { estado.style.display = ''; estado.textContent = ev.v; }
       } else if (ev.t === 'action') {
