@@ -1168,6 +1168,12 @@
         <div id="planBlocks"></div>
       </div>
 
+      <!-- Mientras no se haya hecho la primera sesión, aquí no se escribe:
+           lo único que se puede hacer es empezarla. -->
+      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      </div>
+
       <form class="chat-input" id="chatForm">
         <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
         <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
@@ -1222,6 +1228,9 @@
         max-width: calc(var(--maxw) - 32px); margin: 0 auto; }
       .chat-input::before { content: ''; position: absolute; left: -16px; right: -16px; bottom: -22px; top: -26px;
         background: linear-gradient(180deg, transparent, #050505 26%); z-index: -1; pointer-events: none; }
+      .chat-locked button { flex: 1; height: 46px; border-radius: 23px; background: var(--white);
+        color: var(--white-ink); font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+      .chat-locked button:active { transform: scale(.99); }
       .chat-input input { flex: 1; min-width: 0; height: 46px; background: #111214;
         border: 1px solid var(--line-2); color: var(--text); border-radius: 23px; padding: 0 18px; font-size: 16px; }
       .chat-input input:focus { outline: none; border-color: var(--hot-line); }
@@ -1864,6 +1873,16 @@
       transition: border-color var(--t-fast) var(--ease);
     }
     .auth-veil input:focus { outline: none; border-color: var(--line-3); }
+    /* Ojito para ver la contraseña: sin esto se escribe a ciegas y en el móvil
+       es la primera causa de «no puedo entrar». */
+    .pass-wrap { position: relative; display: block; }
+    .pass-wrap input { padding-right: 48px; }
+    .pass-eye { position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+                width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+                color: var(--ghost); background: none; border: 0; }
+    .pass-eye svg { width: 19px; height: 19px; }
+    .pass-eye.on { color: var(--text); }
+    .pass-eye.on .eye-off { display: none; }
     .auth-veil input.ok { border-color: var(--hot-line); }
     .btn-primary { width: 100%; background: var(--white); color: var(--white-ink); font-weight: 700;
                    border-radius: var(--r-5); padding: 15px; font-size: 15px; letter-spacing: -.01em;
@@ -1903,6 +1922,8 @@
     /* Los días son 7: rejilla fija, o la última fila se estira y desencaja */
     .pick.cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
     .pick.cols button { justify-content: center; padding: 15px 0; font-size: 15px; }
+    .coach-hi { font-size: 15px; line-height: 1.55; color: var(--text); margin: 0 0 14px; max-width: 34ch; }
+    .coach-hi.muted-hi { color: var(--muted); font-size: 13.5px; margin-bottom: 22px; }
     .onb-nav { display: flex; gap: 10px; margin-top: 18px; }
     .onb-nav .btn-primary, .onb-nav .btn-ghost { margin-top: 0; }
     .onb-nav .btn-ghost { width: 92px; flex-shrink: 0; }
@@ -2380,11 +2401,15 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+        <span class="pass-wrap">
+          <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pass-eye" data-eye="loginPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">ENTRAR</button>
       <div class="auth-err" id="loginErr"></div>
       <div class="auth-alt">¿No tienes cuenta? <button type="button" id="goSignup">Crear una</button></div>
+      <button type="button" class="auth-skip" id="goRecover">¿Has olvidado la contraseña?</button>
       <button type="button" class="auth-skip" id="loginSkip">Seguir sin conexión</button>
     </form>
 
@@ -2407,11 +2432,41 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+        <span class="pass-wrap">
+          <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="suPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">CREAR CUENTA</button>
       <div class="auth-err" id="suErr"></div>
       <div class="auth-alt">¿Ya tienes cuenta? <button type="button" id="goLogin">Entrar</button></div>
+    </form>
+    <!-- ---- He olvidado la contraseña: pedir el enlace ---- -->
+    <form id="recoverForm" data-mode="reset" style="display:none">
+      <h1 class="auth-title"><span class="title-out">RECUPERAR</span> ACCESO</h1>
+      <p class="auth-sub">Te mandamos un enlace al correo con el que te registraste. Al abrirlo podrás poner una contraseña nueva.</p>
+      <label class="auth-field">
+        <span class="label">Email</span>
+        <input id="rcEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
+      </label>
+      <button type="submit" class="btn-primary">ENVIARME EL ENLACE</button>
+      <div class="auth-err" id="rcErr"></div>
+      <div class="auth-alt">¿Ya te acuerdas? <button type="button" id="goLoginDesdeRc">Entrar</button></div>
+    </form>
+
+    <!-- ---- Volver del enlace del correo: escribir la contraseña nueva ---- -->
+    <form id="newPassForm" data-mode="newpass" style="display:none">
+      <h1 class="auth-title"><span class="title-out">NUEVA</span> CONTRASEÑA</h1>
+      <p class="auth-sub">El enlace es válido: elige una contraseña nueva y entras directo.</p>
+      <label class="auth-field">
+        <span class="label">Contraseña nueva</span>
+        <span class="pass-wrap">
+          <input id="npPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="npPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
+      </label>
+      <button type="submit" class="btn-primary">GUARDAR Y ENTRAR</button>
+      <div class="auth-err" id="npErr"></div>
     </form>
   </div>
 </div>
@@ -2422,6 +2477,14 @@
 // a que cargue el módulo cloud (que viene de la red y puede tardar o fallar).
 (() => {
   const veil = document.getElementById('bootVeil');
+  // Vuelta del enlace de «he olvidado la contraseña»: el token viene en el hash
+  // y supabase-js lo consume nada más cargar, así que hay que mirarlo YA.
+  window.__RECOVERY = /type=recovery/.test(location.hash || '');
+  if (window.__RECOVERY) {
+    document.getElementById('loginOverlay').classList.add('open');
+    veil.classList.remove('open');
+    return;
+  }
   const haySesion = Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
   if (!haySesion) {
     if (!localStorage.getItem('fitness_login_skipped')) document.getElementById('loginOverlay').classList.add('open');
@@ -2540,6 +2603,22 @@
   <button type="button" class="sb-act" id="syncBarBtn"></button>
 </div>
 
+<!-- ============ PRIMERA SESIÓN · el Coach se presenta ============
+     Sale una sola vez, al terminar la bienvenida. A partir de ahí el
+     recordatorio vive en el chat, que no deja escribir otra cosa hasta que
+     esta conversación esté hecha. -->
+<div class="auth-veil" id="coachVeil">
+  <div class="auth-box">
+    <span class="logo auth-logo" aria-label="ONIX"><i></i><i></i></span>
+    <h1 class="auth-title"><span class="title-out">TU</span> COACH</h1>
+    <p class="coach-hi">Hola<span id="coachHiName"></span>, soy tu coach. A partir de ahora entreno contigo: te monto el plan, te lo ajusto cuando la vida se tuerce y te digo qué toca cada día.</p>
+    <p class="coach-hi">Antes de nada quiero conocerte. Dame cinco minutos de charla y salgo de ahí con tus objetivos, tus entrenos y tu semana montada.</p>
+    <p class="coach-hi muted-hi">Si prefieres cotillear la app primero, adelante. Te espero en el chat.</p>
+    <button type="button" class="btn-primary" id="coachGo">CREAR MI PLAN</button>
+    <button type="button" class="btn-ghost" id="coachLater" style="margin-top:10px">Ahora no, quiero mirar</button>
+  </div>
+</div>
+
 <!-- ============ CAJONES LATERALES ============
      El del logo entra por la izquierda (menú de la app); el de ajustes de
      Perfil entra por la derecha. Tocar fuera los cierra. -->
@@ -2556,6 +2635,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 6.3 5.7L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 13.7 5.3L20 16"/><path d="M20 20v-4h-4"/></svg>
         <span>Entrenos sin sincronizar</span>
         <span class="ld-badge" id="ldSyncBadge" hidden></span>
+      </button>
+      <button type="button" class="drawer-item" id="ldRestart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Rehacer plan</span>
       </button>
       <button type="button" class="drawer-item danger" id="ldLogout">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
@@ -5288,7 +5371,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) flus
 async function pullProgram() {
   const [ex, ro, rex, plan, ovr] = await Promise.all([
     sb.from('exercises').select('*').order('id'),
-    sb.from('routines').select('*'),
+    sb.from('routines').select('*').eq('archived', false),
     sb.from('routine_exercises').select('*').order('position'),
     sb.from('plan').select('*').eq('status', 'active').limit(1).maybeSingle(),
     sb.from('week_overrides').select('*'),
@@ -6104,13 +6187,83 @@ const authVeil = $('loginOverlay');
 const onbVeil = $('onbOverlay');
 const showLogin = () => { authVeil.classList.add('open'); };
 const hideLogin = () => { authVeil.classList.remove('open'); };
+// Cuatro pantallas en el mismo velo: entrar, crear cuenta, pedir el enlace de
+// recuperación y escribir la contraseña nueva.
+const AUTH_FORMS = { in: 'loginForm', up: 'signupForm', reset: 'recoverForm', newpass: 'newPassForm' };
 const authMode = (mode) => {
-  $('loginForm').style.display = mode === 'up' ? 'none' : '';
-  $('signupForm').style.display = mode === 'up' ? '' : 'none';
-  $('loginErr').textContent = ''; $('suErr').textContent = '';
+  Object.entries(AUTH_FORMS).forEach(([k, id]) => { $(id).style.display = k === mode ? '' : 'none'; });
+  ['loginErr', 'suErr', 'rcErr', 'npErr'].forEach((id) => {
+    const e = $(id);
+    if (e) { e.textContent = ''; e.style.color = ''; }
+  });
 };
 $('goSignup').addEventListener('click', () => authMode('up'));
 $('goLogin').addEventListener('click', () => authMode('in'));
+$('goLoginDesdeRc').addEventListener('click', () => authMode('in'));
+$('goRecover').addEventListener('click', () => {
+  $('rcEmail').value = $('loginEmail').value.trim();
+  authMode('reset');
+});
+
+// Ojito: enseñar u ocultar lo que se escribe en cualquier campo de contraseña
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-eye]');
+  if (!b) return;
+  e.preventDefault();
+  const campo = $(b.dataset.eye);
+  if (!campo) return;
+  const verlo = campo.type === 'password';
+  campo.type = verlo ? 'text' : 'password';
+  b.classList.toggle('on', verlo);
+  b.setAttribute('aria-label', verlo ? 'Ocultar la contraseña' : 'Ver la contraseña');
+});
+
+// ---- He olvidado la contraseña ----
+// La respuesta es siempre la misma, exista o no la cuenta: si dijéramos
+// «ese correo no está registrado» estaríamos contando quién tiene cuenta.
+$('recoverForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('rcErr');
+  err.textContent = ''; err.style.color = '';
+  const btn = $('recoverForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'ENVIANDO…';
+  const { error } = await sb.auth.resetPasswordForEmail($('rcEmail').value.trim(), {
+    redirectTo: location.origin + location.pathname,
+  });
+  btn.disabled = false; btn.textContent = 'ENVIARME EL ENLACE';
+  err.style.color = 'var(--muted)';
+  err.textContent = error
+    ? 'No se ha podido enviar: ' + error.message
+    : 'Si esa cuenta existe, el enlace ya va de camino. Mira también en spam.';
+});
+
+// ---- Contraseña nueva, al volver del enlace del correo ----
+$('newPassForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('npErr');
+  err.textContent = '';
+  const pass = $('npPass').value;
+  if (pass.length < 6) { err.textContent = 'Mínimo 6 caracteres.'; return; }
+  const btn = $('newPassForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
+  const { error } = await sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'GUARDAR Y ENTRAR';
+  if (error) {
+    err.textContent = /expired|invalid/i.test(error.message)
+      ? 'Ese enlace ya ha caducado. Pide otro desde «¿Has olvidado la contraseña?».'
+      : 'No se ha podido guardar: ' + error.message;
+    return;
+  }
+  window.__RECOVERY = false;
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) checkUserSwitch(user.id);
+  localStorage.removeItem(SKIP_KEY);
+  hideLogin();
+  boot(true);
+});
+
+// Si venimos del enlace del correo, lo único que toca es la contraseña nueva
+if (window.__RECOVERY) { authMode('newpass'); showLogin(); }
 
 // El enlace de invitación trae el código puesto: aturi212.github.io/fitness/#invita=ONIX-XXXXX
 // Se mira al arrancar y también al cambiar el hash: si la app ya está abierta
@@ -6156,6 +6309,7 @@ async function pullProfile() {
   if (error) { console.warn('No se pudo leer el perfil:', error.message); return null; }
   window.__profile = data || null;
   window.appRenderProfile?.();
+  pintarBloqueoChat();
   aplicarOrden();          // el orden de las tarjetas viaja en el perfil
   return data;
 }
@@ -6371,6 +6525,44 @@ $('onbNext').addEventListener('click', async () => {
   onb.step++; onbPaint();
 });
 
+// ---------- Primera sesión con el Coach ----------
+// Mientras `first_session_done` sea false, el usuario todavía no tiene plan:
+// la ventana de presentación sale una vez y el chat solo deja empezarla.
+const INTRO_KEY = 'fitness_coach_intro_visto';
+const coachVeil = $('coachVeil');
+
+function faltaPrimeraSesion() {
+  return !!window.__profile && !window.__profile.first_session_done;
+}
+function pintarBloqueoChat() {
+  const bloqueado = faltaPrimeraSesion();
+  const form = $('chatForm'), locked = $('chatLocked');
+  if (!form || !locked) return;
+  form.style.display = bloqueado ? 'none' : '';
+  locked.style.display = bloqueado ? '' : 'none';
+}
+function mostrarIntroCoach() {
+  if (!faltaPrimeraSesion() || localStorage.getItem(INTRO_KEY)) return;
+  const nombre = (window.__profile?.display_name || '').trim();
+  $('coachHiName').textContent = nombre ? `, ${nombre}` : '';
+  coachVeil.classList.add('open');
+}
+function cerrarIntroCoach() {
+  localStorage.setItem(INTRO_KEY, '1');
+  coachVeil.classList.remove('open');
+}
+
+// Arrancar la conversación: el saludo ya lo ha dado la ventana, así que el
+// mensaje que la dispara no se enseña — el primero que se lee es el del Coach.
+function empezarPrimeraSesion() {
+  cerrarIntroCoach();
+  document.querySelector('[data-go="chat"]')?.click();
+  setTimeout(() => sendChat('Quiero crear mi plan.', { oculto: true }), 250);
+}
+$('coachGo').addEventListener('click', empezarPrimeraSesion);
+$('coachLater').addEventListener('click', cerrarIntroCoach);
+$('chatStartPlan').addEventListener('click', () => sendChat('Quiero crear mi plan.', { oculto: true }));
+
 // ---------- Cajones laterales ----------
 const drawerVeil = $('drawerVeil');
 const logoDrawer = $('logoDrawer');
@@ -6514,6 +6706,23 @@ window.appSyncChanged = () => {
   if ($('ldSyncPane')?.style.display !== 'none') pintarSync();
 };
 window.appSyncChanged();
+
+// Rehacer el plan: no se borra nada. El plan y los entrenos se archivan (el
+// Coach los puede consultar) y se vuelve a empezar por la primera sesión.
+$('ldRestart').addEventListener('click', async () => {
+  if (!confirm('¿Rehacer tu plan?\n\nGuardaremos el que tienes ahora (el coach podrá consultarlo) y montaréis uno nuevo hablando. Tus entrenos registrados y tus comidas no se tocan.')) return;
+  const { error } = await sb.rpc('restart_plan');
+  if (error) { alert('No se ha podido rehacer el plan: ' + error.message); return; }
+  localStorage.removeItem(INTRO_KEY);
+  localStorage.removeItem('fitness_week_override_v1');
+  cerrarCajones();
+  chatHistory = [];
+  renderChat();
+  await pullProfile();
+  await pullProgram();
+  window.appRerender?.();
+  mostrarIntroCoach();
+});
 
 $('ldLogout').addEventListener('click', async () => {
   if (!confirm('¿Cerrar sesión?\n\nSe borrarán los datos guardados en este móvil. Siguen a salvo en la nube y vuelven al entrar.')) return;
@@ -6835,6 +7044,7 @@ function renderChat() {
     return;
   }
   chatHistory.forEach((m) => {
+    if (m.oculto) return;
     chatBubble(m.role === 'user' ? 'user' : 'bot', m.content);
     (m.actions || []).forEach((a) => {
       const c = document.createElement('div');
@@ -6846,13 +7056,15 @@ function renderChat() {
 }
 renderChat();
 
-async function sendChat(text) {
+async function sendChat(text, opciones = {}) {
   if (!text || chatSend.disabled) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showLogin(); return; }
 
   chatLastTs = Date.now();
-  chatHistory.push({ role: 'user', content: text });
+  // `oculto`: el mensaje viaja al Coach pero no se pinta. Lo usa el botón de
+  // CREAR MI PLAN, donde la presentación ya la ha hecho la ventana emergente.
+  chatHistory.push({ role: 'user', content: text, oculto: !!opciones.oculto });
   if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
   // La respuesta llega EN DIRECTO: el estado ("Mirando tu historial…") vive en
@@ -6927,6 +7139,9 @@ async function sendChat(text) {
       await pullMeals();
       renderNutrition();
     }
+    // El Coach puede haber cerrado la primera sesión: si es así, se desbloquea
+    // el chat sin que el usuario tenga que recargar.
+    if (faltaPrimeraSesion()) await pullProfile();
   } catch (err) {
     estado.remove();
     burbuja.remove();
@@ -7044,6 +7259,8 @@ function onProgramChange() {
 const hideBoot = () => $('bootVeil')?.classList.remove('open');
 
 async function boot(loggedIn) {
+  // Con el enlace de recuperación abierto, la app espera: primero la contraseña
+  if (window.__RECOVERY && !loggedIn) { hideBoot(); return; }
   if (!loggedIn) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
@@ -7073,6 +7290,7 @@ async function boot(loggedIn) {
   await flushStaleThreads();
   renderNutrition();
   if (ok) window.appRerender?.();
+  mostrarIntroCoach();
   rt?.unsubscribe?.();
   rt = sb.channel('program')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, onProgramChange)
