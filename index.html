@@ -496,6 +496,34 @@
   /* §12.7 · Mínimo .68: por debajo, el peso anterior deja de leerse */
   table.sets tr.completed { opacity: .68; }
 
+  /* Ficha de cardio: no hay series, hay métricas de la sesión */
+  .cardio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .cardio-field { background: var(--bg-elev-2); border: 1px solid var(--line); border-radius: var(--r-4); padding: 10px 12px; }
+  .cardio-field .label-sm { display: block; margin-bottom: 6px; }
+  .cardio-field input { width: 100%; background: none; border: 0; color: var(--text);
+                        font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; padding: 0; }
+  .cardio-field input:focus { outline: none; }
+  .cardio-field input::-webkit-outer-spin-button, .cardio-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .cardio-field.calc { opacity: .82; }
+  .cardio-field .calc-val { font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+  .cardio-field small { font: 500 10px/1 var(--f-mono); color: var(--ghost); margin-left: 4px; }
+  .cardio-done { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .cardio-done button { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-elev-2);
+                        border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0; }
+  .cardio-done button svg { width: 17px; height: 17px; stroke-width: 3.2; }
+  .cardio-done button.checked { background: var(--hot-solid); border-color: transparent; color: var(--hot-ink); }
+  .cardio-done span { font: 500 10px/1 var(--f-mono); letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+
+  /* Notas: las mías y las del coach, en dos pestañas */
+  .ex-notes { margin-top: 14px; }
+  .ex-notes-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ex-notes-tabs button { flex: 1; padding: 8px 6px; border-radius: var(--r-4); background: var(--s2);
+                          border: 1px solid var(--line); color: var(--muted);
+                          font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; }
+  .ex-notes-tabs button.on { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  .coach-note { margin: 0; padding: 12px 13px; background: var(--bg-elev-2); border: 1px solid var(--line);
+                border-radius: var(--r-4); font-size: 13.5px; line-height: 1.5; color: var(--text); }
+  .coach-note.vacia { color: var(--ghost); }
   .notes-input { width: 100%; margin-top: 10px; padding: 10px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; font-size: 13px; resize: none; }
   .notes-input:focus { outline: none; border-color: var(--accent); }
 
@@ -985,6 +1013,7 @@
     padding: calc(env(safe-area-inset-top) + 12px) var(--gutter) 12px; border-bottom: 1px solid var(--line); }
   .rv-body { flex: 1; overflow-y: auto; padding: 20px var(--gutter) 24px; }
   .rv-title { font-size: 46px; line-height: .9; margin: 0 0 14px; }
+  .rv-title span { display: block; }
   .rv-title .out { -webkit-text-stroke-width: 1.5px; }
   .rv-foot { flex-shrink: 0; padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 14px);
     border-top: 1px solid var(--line); background: var(--bg); }
@@ -1168,6 +1197,12 @@
         <div id="planBlocks"></div>
       </div>
 
+      <!-- Mientras no se haya hecho la primera sesión, aquí no se escribe:
+           lo único que se puede hacer es empezarla. -->
+      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      </div>
+
       <form class="chat-input" id="chatForm">
         <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
         <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
@@ -1222,6 +1257,9 @@
         max-width: calc(var(--maxw) - 32px); margin: 0 auto; }
       .chat-input::before { content: ''; position: absolute; left: -16px; right: -16px; bottom: -22px; top: -26px;
         background: linear-gradient(180deg, transparent, #050505 26%); z-index: -1; pointer-events: none; }
+      .chat-locked button { flex: 1; height: 46px; border-radius: 23px; background: var(--white);
+        color: var(--white-ink); font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+      .chat-locked button:active { transform: scale(.99); }
       .chat-input input { flex: 1; min-width: 0; height: 46px; background: #111214;
         border: 1px solid var(--line-2); color: var(--text); border-radius: 23px; padding: 0 18px; font-size: 16px; }
       .chat-input input:focus { outline: none; border-color: var(--hot-line); }
@@ -1745,8 +1783,11 @@
 
     /* Héroe: titular + línea de datos + acción */
     .home-hero { position: relative; z-index: 2; margin-top: auto; padding-bottom: 26px; }
-    .home-title { font-size: 92px; line-height: .88; letter-spacing: -.05em; white-space: nowrap;
+    /* El nombre del entreno lo pone el Coach y puede ser largo: el titular se
+       parte en dos líneas y el tamaño se calcula para que quepa (ajustarTitular). */
+    .home-title { font-size: 92px; line-height: .88; letter-spacing: -.05em;
                   margin: 0 0 14px; color: #fff; }
+    .home-title span { display: block; }
     .home-title .out { color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.9); }
     .home-stats { display: flex; align-items: center; gap: 9px; margin-bottom: 18px;
                   font: 500 10px/1 var(--f-mono); letter-spacing: .14em; color: rgba(255,255,255,.86); }
@@ -1871,6 +1912,16 @@
       transition: border-color var(--t-fast) var(--ease);
     }
     .auth-veil input:focus { outline: none; border-color: var(--line-3); }
+    /* Ojito para ver la contraseña: sin esto se escribe a ciegas y en el móvil
+       es la primera causa de «no puedo entrar». */
+    .pass-wrap { position: relative; display: block; }
+    .pass-wrap input { padding-right: 48px; }
+    .pass-eye { position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+                width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+                color: var(--ghost); background: none; border: 0; }
+    .pass-eye svg { width: 19px; height: 19px; }
+    .pass-eye.on { color: var(--text); }
+    .pass-eye.on .eye-off { display: none; }
     .auth-veil input.ok { border-color: var(--hot-line); }
     .btn-primary { width: 100%; background: var(--white); color: var(--white-ink); font-weight: 700;
                    border-radius: var(--r-5); padding: 15px; font-size: 15px; letter-spacing: -.01em;
@@ -1910,6 +1961,8 @@
     /* Los días son 7: rejilla fija, o la última fila se estira y desencaja */
     .pick.cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
     .pick.cols button { justify-content: center; padding: 15px 0; font-size: 15px; }
+    .coach-hi { font-size: 15px; line-height: 1.55; color: var(--text); margin: 0 0 14px; max-width: 34ch; }
+    .coach-hi.muted-hi { color: var(--muted); font-size: 13.5px; margin-bottom: 22px; }
     .onb-nav { display: flex; gap: 10px; margin-top: 18px; }
     .onb-nav .btn-primary, .onb-nav .btn-ghost { margin-top: 0; }
     .onb-nav .btn-ghost { width: 92px; flex-shrink: 0; }
@@ -2032,6 +2085,28 @@
     /* Solo el día de hoy va en naranja; el resto en blanco */
     .daynav-label.is-today { color: var(--hot-text); }
 
+    /* ════════ AVISO DE SIN SINCRONIZAR ════════
+       Tarjeta flotante justo encima de la barra de navegación. Solo se ve si
+       hay algo pendiente, y se toca para resolverlo. Por debajo del entreno
+       (100+) y del acceso (200): mientras entrenas no estorba. */
+    .syncbar { position: fixed; z-index: 51;
+               left: var(--nav-side); right: var(--nav-side);
+               bottom: calc(var(--nav-gap) + var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+               max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
+               display: flex; align-items: center; gap: 10px;
+               padding: 11px 12px; border-radius: var(--r-5);
+               background: var(--s2); border: 1px solid var(--hot-line);
+               box-shadow: var(--sh-float); }
+    .syncbar[hidden] { display: none; }
+    .syncbar .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+                       background: var(--hot-solid); animation: sb-pulse 1.6s var(--ease) infinite; }
+    @keyframes sb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+    .syncbar .sb-txt { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.35; color: var(--text); }
+    .syncbar .sb-act { flex-shrink: 0; height: 30px; padding: 0 12px; border-radius: var(--r-3);
+                       background: var(--white); color: var(--white-ink); border: none;
+                       font: 700 10px/1 var(--f-mono); letter-spacing: .12em; }
+    .syncbar .sb-act:active { transform: scale(.96); }
+
     /* ════════ CAJONES LATERALES ════════
        El del logo entra por la izquierda; el de ajustes de Perfil por la
        derecha. Por encima de todo menos del acceso (200) y del entreno (170). */
@@ -2071,6 +2146,35 @@
     .drawer-foot { margin-top: auto; padding-top: 18px; font: 500 10px/1.4 var(--f-mono);
                    letter-spacing: .08em; color: var(--ghost-2); word-break: break-all; }
     .drawer-hint { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 4px 14px; }
+    .ld-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+                background: var(--hot-solid); color: #fff; font: 700 11px/20px var(--f-mono);
+                text-align: center; flex-shrink: 0; }
+    .ld-badge[hidden] { display: none; }
+
+    /* Panel de recuperación (cajón de la izquierda) */
+    .rec-block { margin-bottom: 18px; }
+    .rec-block > .label { display: block; margin: 0 2px 8px; }
+    .rec-card { padding: 12px; border-radius: var(--r-5); background: var(--s2);
+                border: 1px solid var(--line); margin-bottom: 8px; }
+    .rec-card b { display: block; font-size: 14px; margin-bottom: 3px; }
+    .rec-card p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted);
+                  white-space: pre-wrap; word-break: break-word; }
+    .rec-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .rec-actions button { flex: 1; height: 34px; border-radius: var(--r-3); font-size: 12px;
+                          background: var(--s4); border: 1px solid var(--line); color: var(--text); }
+    .rec-actions button.go { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
+    .rec-note { display: flex; gap: 10px; align-items: flex-start; padding: 10px 11px;
+                border-radius: var(--r-5); background: var(--s2); border: 1px solid var(--line);
+                margin-bottom: 7px; }
+    .rec-note input[type="checkbox"] { margin-top: 2px; width: 17px; height: 17px;
+                                       accent-color: var(--hot-solid); flex-shrink: 0; }
+    .rec-note .rn-txt { flex: 1; min-width: 0; }
+    .rec-note .rn-txt b { display: block; font-size: 13px; margin-bottom: 2px; }
+    .rec-note .rn-txt span { font-size: 12px; color: var(--muted); word-break: break-word; }
+    .rec-date { width: 100%; margin: 4px 0 10px; padding: 10px; border-radius: var(--r-5);
+                background: var(--s2); border: 1px solid var(--line); color: var(--text);
+                font-size: 13px; color-scheme: dark; }
+    .rec-ok { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 2px; }
     .drawer-reset { margin-top: 16px; width: 100%; padding: 12px; border-radius: var(--r-5);
                     background: none; border: 1px solid var(--line); color: var(--dim); font-size: 13px; }
 
@@ -2358,11 +2462,15 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+        <span class="pass-wrap">
+          <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pass-eye" data-eye="loginPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">ENTRAR</button>
       <div class="auth-err" id="loginErr"></div>
       <div class="auth-alt">¿No tienes cuenta? <button type="button" id="goSignup">Crear una</button></div>
+      <button type="button" class="auth-skip" id="goRecover">¿Has olvidado la contraseña?</button>
       <button type="button" class="auth-skip" id="loginSkip">Seguir sin conexión</button>
     </form>
 
@@ -2385,11 +2493,41 @@
       </label>
       <label class="auth-field">
         <span class="label">Contraseña</span>
-        <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+        <span class="pass-wrap">
+          <input id="suPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="suPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
       </label>
       <button type="submit" class="btn-primary">CREAR CUENTA</button>
       <div class="auth-err" id="suErr"></div>
       <div class="auth-alt">¿Ya tienes cuenta? <button type="button" id="goLogin">Entrar</button></div>
+    </form>
+    <!-- ---- He olvidado la contraseña: pedir el enlace ---- -->
+    <form id="recoverForm" data-mode="reset" style="display:none">
+      <h1 class="auth-title"><span class="title-out">RECUPERAR</span> ACCESO</h1>
+      <p class="auth-sub">Te mandamos un enlace al correo con el que te registraste. Al abrirlo podrás poner una contraseña nueva.</p>
+      <label class="auth-field">
+        <span class="label">Email</span>
+        <input id="rcEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
+      </label>
+      <button type="submit" class="btn-primary">ENVIARME EL ENLACE</button>
+      <div class="auth-err" id="rcErr"></div>
+      <div class="auth-alt">¿Ya te acuerdas? <button type="button" id="goLoginDesdeRc">Entrar</button></div>
+    </form>
+
+    <!-- ---- Volver del enlace del correo: escribir la contraseña nueva ---- -->
+    <form id="newPassForm" data-mode="newpass" style="display:none">
+      <h1 class="auth-title"><span class="title-out">NUEVA</span> CONTRASEÑA</h1>
+      <p class="auth-sub">El enlace es válido: elige una contraseña nueva y entras directo.</p>
+      <label class="auth-field">
+        <span class="label">Contraseña nueva</span>
+        <span class="pass-wrap">
+          <input id="npPass" type="password" required autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" data-eye="npPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
+        </span>
+      </label>
+      <button type="submit" class="btn-primary">GUARDAR Y ENTRAR</button>
+      <div class="auth-err" id="npErr"></div>
     </form>
   </div>
 </div>
@@ -2400,6 +2538,14 @@
 // a que cargue el módulo cloud (que viene de la red y puede tardar o fallar).
 (() => {
   const veil = document.getElementById('bootVeil');
+  // Vuelta del enlace de «he olvidado la contraseña»: el token viene en el hash
+  // y supabase-js lo consume nada más cargar, así que hay que mirarlo YA.
+  window.__RECOVERY = /type=recovery/.test(location.hash || '');
+  if (window.__RECOVERY) {
+    document.getElementById('loginOverlay').classList.add('open');
+    veil.classList.remove('open');
+    return;
+  }
   const haySesion = Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
   if (!haySesion) {
     if (!localStorage.getItem('fitness_login_skipped')) document.getElementById('loginOverlay').classList.add('open');
@@ -2508,23 +2654,71 @@
   </div>
 </div>
 
+<!-- ============ AVISO DE ENTRENO SIN SINCRONIZAR ============
+     Tarjeta fija encima de la barra de navegación. Solo aparece si hay algo
+     pendiente: un borrador de entreno sin guardar o una sesión que no ha
+     llegado a la nube. Se toca para resolverlo. -->
+<div class="syncbar" id="syncBar" hidden>
+  <span class="sb-dot" aria-hidden="true"></span>
+  <span class="sb-txt" id="syncBarTxt"></span>
+  <button type="button" class="sb-act" id="syncBarBtn"></button>
+</div>
+
+<!-- ============ PRIMERA SESIÓN · el Coach se presenta ============
+     Sale una sola vez, al terminar la bienvenida. A partir de ahí el
+     recordatorio vive en el chat, que no deja escribir otra cosa hasta que
+     esta conversación esté hecha. -->
+<div class="auth-veil" id="coachVeil">
+  <div class="auth-box">
+    <span class="logo auth-logo" aria-label="ONIX"><i></i><i></i></span>
+    <h1 class="auth-title"><span class="title-out">TU</span> COACH</h1>
+    <p class="coach-hi">Hola<span id="coachHiName"></span>, soy tu coach. A partir de ahora entreno contigo: te monto el plan, te lo ajusto cuando la vida se tuerce y te digo qué toca cada día.</p>
+    <p class="coach-hi">Antes de nada quiero conocerte. Dame cinco minutos de charla y salgo de ahí con tus objetivos, tus entrenos y tu semana montada.</p>
+    <p class="coach-hi muted-hi">Si prefieres cotillear la app primero, adelante. Te espero en el chat.</p>
+    <button type="button" class="btn-primary" id="coachGo">CREAR MI PLAN</button>
+    <button type="button" class="btn-ghost" id="coachLater" style="margin-top:10px">Ahora no, quiero mirar</button>
+  </div>
+</div>
+
 <!-- ============ CAJONES LATERALES ============
      El del logo entra por la izquierda (menú de la app); el de ajustes de
      Perfil entra por la derecha. Tocar fuera los cierra. -->
 <div class="drawer-veil" id="drawerVeil"></div>
 
 <aside class="drawer drawer--left" id="logoDrawer" aria-hidden="true">
-  <div class="drawer-brand">
-    <span class="logo logo--xl" aria-label="ONIX"><i></i><i></i></span>
-    <span class="drawer-name">ONIX</span>
+  <div id="ldMain">
+    <div class="drawer-brand">
+      <span class="logo logo--xl" aria-label="ONIX"><i></i><i></i></span>
+      <span class="drawer-name">ONIX</span>
+    </div>
+    <div class="drawer-list">
+      <button type="button" class="drawer-item" id="ldSync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 6.3 5.7L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 13.7 5.3L20 16"/><path d="M20 20v-4h-4"/></svg>
+        <span>Entrenos sin sincronizar</span>
+        <span class="ld-badge" id="ldSyncBadge" hidden></span>
+      </button>
+      <button type="button" class="drawer-item" id="ldRestart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Rehacer plan</span>
+      </button>
+      <button type="button" class="drawer-item danger" id="ldLogout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+    <div class="drawer-foot" id="ldEmail"></div>
   </div>
-  <div class="drawer-list">
-    <button type="button" class="drawer-item danger" id="ldLogout">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
-      <span>Cerrar sesión</span>
-    </button>
+
+  <!-- Recuperación: borradores a medias, cola sin subir y notas sueltas -->
+  <div id="ldSyncPane" style="display:none">
+    <div class="drawer-head">
+      <button type="button" class="drawer-back" id="ldSyncBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="label">Sin sincronizar</span>
+    </div>
+    <div id="ldSyncBody"></div>
   </div>
-  <div class="drawer-foot" id="ldEmail"></div>
 </aside>
 
 <aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
@@ -2637,6 +2831,9 @@
   let EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e]));
   window.refreshCatalog = () => { EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e])); };
   const getExercise = id => EX_BY_ID[id] || { id, name: 'Ejercicio no encontrado: ' + id, group: 'other' };
+  // Cómo se apunta cada ejercicio: kilos y repeticiones, distancia y ritmo, o
+  // solo tiempo. Lo que no venga marcado es de fuerza, que es lo más común.
+  const tipoRegistro = (id) => getExercise(id).logType || 'fuerza';
   const groupLabel = g => window.GROUP_LABELS[g] || g;
   const eqIcon = e => window.EQUIPMENT_ICONS[e] || '·';
 
@@ -2670,10 +2867,14 @@
   function saveHistory(h) {
     localStorage.setItem(LS_KEY, JSON.stringify(h));
   }
+  // Última sesión CON SERIES: las sesiones apuntadas solo con nota (una salida
+  // a correr, por ejemplo) no deben borrar el "anterior" de las casillas.
   function getLastSession(exerciseId) {
-    const h = loadHistory();
-    const recs = h[exerciseId];
-    return (recs && recs.length) ? recs[recs.length - 1] : null;
+    const recs = loadHistory()[exerciseId] || [];
+    for (let i = recs.length - 1; i >= 0; i--) {
+      if ((recs[i].sets || []).length) return recs[i];
+    }
+    return null;
   }
   function getPrev(exerciseId) {
     const last = getLastSession(exerciseId);
@@ -2831,6 +3032,27 @@
   // ===== Home §8.1: una sola pregunta que responder — «¿qué toca hoy?» =====
   // El titular parte el nombre del entreno: todo hueco salvo la ÚLTIMA palabra.
   // Una sola palabra → maciza (§2.2).
+  // Cuánto ocupa de ancho un texto con la tipografía del titular, medido de
+  // verdad (no a ojo con el número de letras: la display tiene anchos muy
+  // distintos entre una I y una M).
+  function anchoTexto(texto, fuente) {
+    const ctx = anchoTexto._ctx || (anchoTexto._ctx = document.createElement('canvas').getContext('2d'));
+    ctx.font = fuente;
+    return ctx.measureText(texto).width;
+  }
+  // Baja el tamaño del titular hasta que la línea más larga entre en su caja.
+  function ajustarTitular(el, maxPx) {
+    if (!el) return;
+    const lineas = [...el.querySelectorAll('span')].map((x) => x.textContent.trim()).filter(Boolean);
+    if (!lineas.length) { el.style.fontSize = ''; return; }
+    const disponible = el.clientWidth || el.parentElement?.clientWidth || 340;
+    const familia = getComputedStyle(el).fontFamily;
+    // Se mide una vez a 100px y se escala: el ancho es proporcional al tamaño
+    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `700 100px ${familia}`) / 100));
+    if (!porPixel) return;
+    el.style.fontSize = Math.max(26, Math.min(maxPx, Math.floor(disponible * 0.98 / porPixel))) + 'px';
+  }
+
   function homeTitleHtml(name) {
     const words = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '';
@@ -2869,6 +3091,7 @@
       const estMin = Math.round(totalSets * 2.5);
       const pos = planned.findIndex(x => x.id === heroId) + 1;
       titleEl.innerHTML = homeTitleHtml(r.name);
+      ajustarTitular(titleEl, 92);
       // Línea de datos: SESIÓN 02/03 ——— 88 MIN ——— 8 EJ
       statsEl.innerHTML =
         (pos > 0 ? `<span>SESIÓN ${String(pos).padStart(2,'0')}/${String(planned.length).padStart(2,'0')}</span><i></i>` : '') +
@@ -2880,6 +3103,7 @@
       document.getElementById('homeMini').dataset.rid = heroId;
     } else {
       titleEl.innerHTML = homeTitleHtml('REST');
+      ajustarTitular(titleEl, 92);
       const hechos = week.length;
       statsEl.innerHTML = `<span>HOY NO TOCA</span><i></i><span>${hechos} DE ${target} ESTA SEMANA</span>`;
       ctaEl.style.display = 'none';
@@ -3159,9 +3383,8 @@
     const r = window.ROUTINES.routines[rid];
     if (!r) return;
     const sets = (r.exercises || []).reduce((a, e) => a + (e.sets || 0), 0);
-    document.getElementById('rvTitle').innerHTML =
-      (() => { const w = r.name.trim().split(/\s+/); if (w.length === 1) return `<span>${w[0]}</span>`;
-               const last = w.pop(); return `<span class="out">${w.join(' ')}</span> <span>${last}</span>`; })();
+    document.getElementById('rvTitle').innerHTML = homeTitleHtml(r.name);
+    ajustarTitular(document.getElementById('rvTitle'), 46);
     document.getElementById('rvMeta').innerHTML =
       `<span>${r.exercises.length} EJ</span><i></i><span>${sets} SERIES</span><i></i><span>${routineMins(r)} MIN</span>`;
     document.getElementById('rvList').innerHTML = (r.exercises || []).map((ex, i) => {
@@ -4231,6 +4454,7 @@
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
+    renderSyncBar();
     pausedMs = 0; pausedAt = null;
     setPaused(false);
     clearInterval(workoutTimer);
@@ -4260,19 +4484,27 @@
 
   const trackerBody = document.getElementById('trackerBody');
 
+  // Cualquier tecla dentro del tracker (kg, reps o nota) guarda borrador.
+  // Se delega una sola vez: renderTracker rehace el HTML en cada sesión.
+  trackerBody.addEventListener('input', (e) => {
+    if (e.target.matches('input[data-field], .notes-input')) scheduleDraft();
+  });
+
   // Notas persistentes por ejercicio. Arrancan con la del entrenador (viene de
   // routine_exercises.notes) y, si Adrián la edita, manda la suya. Si la borra,
   // se borra: no vuelve a aparecer.
   const EXNOTE_KEY = 'fitness_ex_notes_v1';
   const loadExNotes = () => { try { return JSON.parse(localStorage.getItem(EXNOTE_KEY) || '{}'); } catch { return {}; } };
-  function exNoteFor(exId, fallback) {
-    const mine = loadExNotes()[exId];
-    return mine === undefined ? (fallback || '') : mine;
+  // Solo las notas del usuario. La del coach vive aparte, en su pestaña.
+  function exNoteFor(exId) {
+    return loadExNotes()[exId] || '';
   }
   function saveExNote(exId, text) {
     const all = loadExNotes();
     all[exId] = text;
     localStorage.setItem(EXNOTE_KEY, JSON.stringify(all));
+    // A la nube: son las notas que el Coach lee en sus revisiones
+    window.cloudPushExNote?.({ type: 'exnote', exercise_id: exId, note: text });
   }
 
   // Superseries: la fuente de verdad es la columna `superset_group` de
@@ -4307,8 +4539,10 @@
     // Se quita la frase del marcador entera («SUPERSERIE A1 con hanging-leg-raise.»),
     // no solo las dos primeras palabras, que dejaba la nota empezando a media frase.
     const notaBase = (item.notes || '').replace(/^\s*(?:SUPER|TRI|BI)SERIE\s+[A-Z]\d?[^.]*\.\s*/i, '').trim();
+    const tipo = tipoRegistro(item.exerciseId);
+    const tabla = tablaDeSeries(item, tipo);
     return `
-      <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}">
+      <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}" data-log="${tipo}">
         <div class="tk-kicker">
           <span class="label-sm">Ejercicio ${String(slotIdx + 1).padStart(2, '0')}</span>
           <span class="rule"></span>
@@ -4317,39 +4551,96 @@
         <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
         <div class="tk-chips">
           <div class="tk-chips-scroll">
-            <span class="tk-chip">${item.sets} SERIES · ${repsCorto(item.repsTarget)}</span>
-            ${item.restSec ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
+            <span class="tk-chip">${tipo === 'cardio' ? repsCorto(item.repsTarget).toUpperCase() : `${item.sets} SERIES · ${repsCorto(item.repsTarget)}`}</span>
+            ${(item.restSec && tipo !== 'cardio') ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
           </div>
           <button type="button" class="tk-chip tk-chip--swap" onclick="openSwap(${slotIdx})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
             CAMBIAR
           </button>
         </div>
-        <table class="sets">
-          <thead>
-            <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th><th>KG</th><th>REPS</th><th style="width:44px" aria-label="Hecha"></th></tr>
-          </thead>
-          <tbody>
-            ${Array.from({length: item.sets}, (_, s) => {
-              const prevSet = getLastSet(item.exerciseId, s);
-              const prevTxt = prevSet ? `${prevSet.kg ?? '—'} × ${prevSet.reps ?? '—'}` : '—';
-              return `
-              <tr data-set="${s}">
-                <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
-                <td class="prev-val">${prevTxt}</td>
-                <td><input type="number" inputmode="decimal" placeholder="—" data-field="kg"></td>
-                <td><input type="number" inputmode="numeric" placeholder="—" data-field="reps"></td>
-                <td class="done"><button onclick="toggleSet(this, ${item.restSec})" aria-label="Marcar serie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button></td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-        <div class="ex-note-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
-          <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
-            placeholder="Nota del ejercicio…">${exNoteFor(item.exerciseId, notaBase)}</textarea>
+        ${tabla}
+        <div class="ex-notes">
+          <div class="ex-notes-tabs">
+            <button type="button" class="on" data-nota="mias">Mis notas</button>
+            <button type="button" data-nota="coach">Del coach</button>
+          </div>
+          <div data-pane="mias">
+            <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
+              placeholder="Lo que quieras recordar para la próxima…">${exNoteFor(item.exerciseId)}</textarea>
+          </div>
+          <div data-pane="coach" style="display:none">
+            <p class="coach-note ${notaBase ? '' : 'vacia'}">${notaBase || 'Tu coach no ha dejado ninguna nota en este ejercicio.'}</p>
+          </div>
         </div>
       </div>`;
+  }
+
+  // Lo que se apuntó la última vez, dicho según el tipo de ejercicio
+  function resumenAnterior(tipo, st) {
+    if (!st) return '—';
+    if (tipo === 'cardio') {
+      const km = st.distance_m ? (st.distance_m / 1000).toFixed(2).replace('.', ',') + ' km' : null;
+      const min = st.seconds ? Math.round(st.seconds / 60) + ' min' : null;
+      return [km, min].filter(Boolean).join(' · ') || '—';
+    }
+    if (tipo === 'tiempo') return st.seconds ? st.seconds + '″' : '—';
+    return `${st.kg ?? '—'} × ${st.reps ?? '—'}`;
+  }
+
+  // La zona de apuntar, distinta para cada tipo
+  function tablaDeSeries(item, tipo) {
+    const check = (rest) => `<button onclick="toggleSet(this, ${rest})" aria-label="Marcar serie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+
+    if (tipo === 'cardio') {
+      const prev = getLastSet(item.exerciseId, 0);
+      return `
+        <div class="cardio-grid">
+          <div class="cardio-field">
+            <span class="label-sm">Distancia (km)</span>
+            <input type="number" inputmode="decimal" step="0.01" placeholder="—" data-field="km">
+          </div>
+          <div class="cardio-field">
+            <span class="label-sm">Tiempo (min)</span>
+            <input type="number" inputmode="decimal" step="1" placeholder="—" data-field="min">
+          </div>
+          <div class="cardio-field calc">
+            <span class="label-sm">Ritmo</span>
+            <span class="calc-val" data-calc="ritmo">—</span><small>MIN/KM</small>
+          </div>
+          <div class="cardio-field">
+            <span class="label-sm">Pulso medio</span>
+            <input type="number" inputmode="numeric" placeholder="—" data-field="hr">
+          </div>
+        </div>
+        <div class="cardio-done">
+          ${check(0)}
+          <span>Anterior: ${resumenAnterior('cardio', prev)}</span>
+        </div>`;
+    }
+
+    const columnas = tipo === 'tiempo'
+      ? '<th>SEG</th>'
+      : '<th>KG</th><th>REPS</th>';
+    const campos = tipo === 'tiempo'
+      ? '<td><input type="number" inputmode="numeric" placeholder="—" data-field="seg"></td>'
+      : '<td><input type="number" inputmode="decimal" placeholder="—" data-field="kg"></td>'
+        + '<td><input type="number" inputmode="numeric" placeholder="—" data-field="reps"></td>';
+    return `
+      <table class="sets">
+        <thead>
+          <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th>${columnas}<th style="width:44px" aria-label="Hecha"></th></tr>
+        </thead>
+        <tbody>
+          ${Array.from({ length: item.sets }, (_, s) => `
+            <tr data-set="${s}">
+              <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
+              <td class="prev-val">${resumenAnterior(tipo, getLastSet(item.exerciseId, s))}</td>
+              ${campos}
+              <td class="done">${check(item.restSec)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
   }
 
   function renderTracker() {
@@ -4361,9 +4652,36 @@
           p.slots.length === 2 ? 'Superserie' : (p.slots.length === 3 ? 'Triserie' : 'Circuito')
         } · sin descanso</div>` : ''}
         ${p.slots.map((i) => renderCard(i, session.exercises.length)).join('')}
-        ${nextUpHtml(p.slots[p.slots.length - 1])}
       </section>`).join('');
     document.getElementById('trackerName').textContent = session.routineName;
+    // Pestañas de notas: las mías (se escriben) y las del coach (se leen)
+    trackerBody.querySelectorAll('.ex-notes').forEach((caja) => {
+      caja.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-nota]');
+        if (!b) return;
+        caja.querySelectorAll('[data-nota]').forEach((x) => x.classList.toggle('on', x === b));
+        caja.querySelectorAll('[data-pane]').forEach((x) => {
+          x.style.display = x.dataset.pane === b.dataset.nota ? '' : 'none';
+        });
+      });
+    });
+    // Cardio: el ritmo sale solo de la distancia y el tiempo
+    trackerBody.querySelectorAll('[data-log="cardio"]').forEach((card) => {
+      const km = card.querySelector('[data-field="km"]');
+      const min = card.querySelector('[data-field="min"]');
+      const salida = card.querySelector('[data-calc="ritmo"]');
+      if (!km || !min || !salida) return;
+      const pintar = () => {
+        const d = parseFloat(km.value), t = parseFloat(min.value);
+        if (!(d > 0) || !(t > 0)) { salida.textContent = '—'; return; }
+        const porKm = t / d;
+        const m = Math.floor(porKm);
+        const seg = Math.round((porKm - m) * 60);
+        salida.textContent = `${m}:${String(seg).padStart(2, '0')}`;
+      };
+      km.addEventListener('input', pintar);
+      min.addEventListener('input', pintar);
+    });
     // Notas: crecen con el texto y se guardan al salir del campo
     trackerBody.querySelectorAll('.notes-input').forEach((ta) => {
       const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
@@ -4373,26 +4691,6 @@
     });
     updateTrackerPos(0);
     watchDeck();
-  }
-
-  // «A continuación»: los 2-3 siguientes, con su carga de la última vez
-  function nextUpHtml(fromSlot) {
-    const restantes = session.exercises.slice(fromSlot + 1, fromSlot + 4);
-    if (!restantes.length) return '';
-    return `
-      <div class="sec-head">
-        <span class="label">A continuación</span>
-        <span class="rule"></span>
-        <span class="data-sm">${session.exercises.length - fromSlot - 1} EJ MÁS</span>
-      </div>
-      ${restantes.map((it, k) => {
-        const e = getExercise(it.exerciseId);
-        return `<div class="row">
-          <span class="idx">${String(fromSlot + k + 2).padStart(2, '0')}</span>
-          <div class="rt-info"><div class="rt-name" style="font-size:15px">${e.name}</div></div>
-          <span class="data">${it.sets} × ${repsCorto(it.repsTarget)}</span>
-        </div>`;
-      }).join('')}`;
   }
 
   // Posición actual (EJ n DE m) y barra de progreso.
@@ -4423,7 +4721,9 @@
   }
 
   document.getElementById('closeTracker').addEventListener('click', () => {
-    if (confirm('¿Salir sin guardar el entreno?')) closeTracker();
+    // Salir sin guardar es una decisión explícita: se tira también el
+    // borrador, si no reaparecería como "entreno sin guardar".
+    if (confirm('¿Salir sin guardar el entreno?')) { clearTimeout(draftTimer); clearDraft(); closeTracker(); }
   });
 
   // Trainer: pestañas y navegación entre semanas
@@ -4458,8 +4758,25 @@
   // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
   // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
-    persistSession();
+    const guardado = persistSession();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // "Queda guardado" solo se dice cuando es verdad. Si la sesión está en el
+    // outbox esperando red, se avisa aquí mismo en vez de dar por buena una
+    // subida que no ha ocurrido.
+    const sub = document.querySelector('#doneVeil .done-sub');
+    if (!guardado) {
+      sub.textContent = 'No había nada que guardar: ni series, ni notas, ni tiempo.';
+    } else if (window.appOutboxCount?.()) {
+      sub.textContent = 'Guardado en el móvil. Sin conexión con la nube: se subirá solo en cuanto haya red.';
+    } else {
+      sub.textContent = 'Subiendo a la nube… Queda guardado en el móvil pase lo que pase.';
+      // La subida es asíncrona: en cuanto el outbox se vacía, se confirma.
+      setTimeout(() => {
+        sub.textContent = window.appOutboxCount?.()
+          ? 'Guardado en el móvil. La subida a la nube no se ha confirmado: se reintenta sola.'
+          : '¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.';
+      }, 2500);
+    }
     const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
     const segs = Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000));
     const series = trackerBody.querySelectorAll('td.done button.checked').length;
@@ -4485,72 +4802,305 @@
   });
 
   // ============ Sincronización en la nube v2 (Supabase) ============
-  // La lógica de red vive en el módulo cloud del final del archivo
-  // (window.cloudPushWorkout / window.cloudPushOverride). Aquí solo se
-  // construye el payload y se encola en el outbox si el módulo aún no
-  // está listo o no hay conexión (se reintenta al abrir la app).
+  // La lógica de red vive en el módulo cloud del final del archivo. Aquí se
+  // construye el payload y SIEMPRE se deja primero en el outbox: si el móvil
+  // se queda sin batería o sin red a mitad de la subida, el entreno sigue
+  // apuntado y se reintenta solo. Nada depende de que la subida salga bien
+  // a la primera.
   const OUTBOX_KEY = 'fitness_sync_outbox_v2';
   function loadOutbox() { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } }
   function saveOutbox(o) { localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); }
-  function enqueue(item) { const o = loadOutbox(); o.push(item); saveOutbox(o); }
+  function enqueue(item) {
+    const o = loadOutbox();
+    // Un entreno se reencola POR ID: volver a guardarlo sustituye la copia
+    // pendiente en vez de acumular dos que luego suben lo mismo dos veces.
+    const i = (item.type === 'workout' && item.workout?.id)
+      ? o.findIndex(x => x.type === 'workout' && x.workout?.id === item.workout.id)
+      : -1;
+    if (i >= 0) o[i] = item; else o.push(item);
+    saveOutbox(o);
+    window.appSyncChanged?.();
+  }
   window.fitnessEnqueue = enqueue;
 
-  function persistSession() {
-    const hist = loadHistory();
+  // ---------- Borrador del entreno en curso ----------
+  // Antes no se escribía NADA hasta pulsar FINALIZAR: si iOS mataba la app,
+  // se cerraba la pestaña o la sesión no llegaba a terminarse, se perdía todo
+  // lo escrito — notas incluidas. Ahora cada cambio se vuelca a localStorage
+  // y al volver a abrir la app se ofrece recuperarlo.
+  const DRAFT_KEY = 'fitness_session_draft_v1';
+  function loadDraft() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { return null; } }
+  function clearDraft() { localStorage.removeItem(DRAFT_KEY); window.appSyncChanged?.(); }
+  function saveDraft() {
+    const snap = readTracker();
+    if (!snap || !snap.exercises.length) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      savedAt: new Date().toISOString(),
+      dateIso: snap.dateIso,
+      routineId: session.routineId,
+      routineName: session.routineName,
+      durationSec: snap.durationSec,
+      exercises: snap.exercises,
+    }));
+    window.appSyncChanged?.();
+  }
+  let draftTimer = null;
+  function scheduleDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 400); }
+  window.appLoadDraft = loadDraft;
+  window.appClearDraft = clearDraft;
+  window.appOutboxCount = () => loadOutbox().filter(i => i.type === 'workout').length;
+
+  // Al irse a segundo plano (bloquear el móvil, cambiar de app) se guarda YA,
+  // sin esperar al temporizador: es justo cuando iOS puede matar la pestaña.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && session && document.getElementById('tracker').classList.contains('open')) {
+      clearTimeout(draftTimer); saveDraft();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    if (session && document.getElementById('tracker').classList.contains('open')) { clearTimeout(draftTimer); saveDraft(); }
+  });
+
+  // ---------- Lectura del tracker ----------
+  // Foto de lo que hay AHORA MISMO en las tarjetas. Un ejercicio cuenta si
+  // tiene series con algo escrito o marcado, O si tiene nota: una nota sola
+  // también es un dato del entreno (aquí se perdía la sesión de running).
+  function readTracker() {
+    if (!session) return null;
     const cards = trackerBody.querySelectorAll('.exercise-card');
-    const dateIso = new Date().toISOString();
-    const sessionExercises = [];
+    if (!cards.length) return null;
+    const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
+    const durationSec = workoutStart
+      ? Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000))
+      : null;
+    const exercises = [];
     cards.forEach(card => {
-      const slotIdx = parseInt(card.dataset.slot, 10);
-      const slot = session.exercises[slotIdx];
-      const sets = [];
-      card.querySelectorAll('tbody tr').forEach(tr => {
-        const kg = parseFloat(tr.querySelector('input[data-field="kg"]').value);
-        const reps = parseInt(tr.querySelector('input[data-field="reps"]').value, 10);
-        const done = tr.querySelector('.done button').classList.contains('checked');
-        if (done || !isNaN(kg) || !isNaN(reps)) {
-          sets.push({ kg: isNaN(kg) ? null : kg, reps: isNaN(reps) ? null : reps, done });
-        }
-      });
-      if (!sets.length) return;
-      const notes = card.querySelector('.notes-input').value.trim();
-      const rec = { date: dateIso, routineId: session.routineId, sets, notes };
-      if (!hist[slot.exerciseId]) hist[slot.exerciseId] = [];
-      hist[slot.exerciseId].push(rec);
-      sessionExercises.push({ exerciseId: slot.exerciseId, name: getExercise(slot.exerciseId).name, sets, notes, swapped: !!slot.swapped });
-    });
-    saveHistory(hist);
-    // Sincroniza la sesión en la nube (modelo workouts + workout_sets)
-    if (sessionExercises.length) {
-      const durationSec = workoutStart ? Math.floor((Date.now() - workoutStart - pausedMs) / 1000) : null;
-      const workout = {
-        id: (crypto.randomUUID ? crypto.randomUUID() : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
-        date: dateIso.slice(0, 10),
-        routine_id: session.routineId || null,
-        duration_sec: durationSec,
+      const slot = session.exercises[parseInt(card.dataset.slot, 10)];
+      if (!slot) return;
+      // Cada tipo de ejercicio se apunta distinto: kilos y reps, una sesión de
+      // cardio con distancia y tiempo, o solo segundos.
+      const tipo = card.dataset.log || 'fuerza';
+      const leer = (raiz, campo, entero) => {
+        const el = raiz.querySelector(`input[data-field="${campo}"]`);
+        if (!el) return null;
+        const v = entero ? parseInt(el.value, 10) : parseFloat(el.value);
+        return isNaN(v) ? null : v;
       };
-      const rows = [];
-      sessionExercises.forEach((ex, slotIdx) => {
-        ex.sets.forEach((st, setIdx) => {
-          if (!st.done) return; // solo series realizadas
+      const sets = [];
+      if (tipo === 'cardio') {
+        // Una sesión de cardio es un registro, no una lista de series
+        const km = leer(card, 'km'), min = leer(card, 'min'), hr = leer(card, 'hr', true);
+        const done = !!card.querySelector('.cardio-done button')?.classList.contains('checked');
+        if (done || km != null || min != null || hr != null) {
+          sets.push({
+            kg: null, reps: null, done,
+            distance_m: km != null ? Math.round(km * 1000) : null,
+            seconds: min != null ? Math.round(min * 60) : null,
+            hr,
+          });
+        }
+      } else {
+        card.querySelectorAll('tbody tr').forEach(tr => {
+          const kg = leer(tr, 'kg'), reps = leer(tr, 'reps', true), seg = leer(tr, 'seg', true);
+          const done = tr.querySelector('.done button').classList.contains('checked');
+          if (done || kg != null || reps != null || seg != null) {
+            sets.push({ kg, reps, seconds: seg, done });
+          }
+        });
+      }
+      const notes = (card.querySelector('.notes-input')?.value || '').trim();
+      if (!sets.length && !notes) return; // tarjeta vacía del todo
+      exercises.push({
+        exerciseId: slot.exerciseId,
+        name: getExercise(slot.exerciseId).name,
+        sets, notes, swapped: !!slot.swapped,
+      });
+    });
+    return { dateIso: new Date().toISOString(), durationSec, exercises };
+  }
+
+  // ---------- De la foto del entreno a las filas de la nube ----------
+  // Se guarda si hay CUALQUIER dato: una serie marcada, algo escrito en una
+  // casilla, una nota, o al menos un minuto de sesión. Devuelve null solo si
+  // no hay absolutamente nada que guardar.
+  const MIN_DURACION_SOLA = 60;
+  // Lo escrito en una serie, en texto, sea del tipo que sea. Devuelve cadena
+  // vacía si de verdad no hay nada: es lo que decide si se rescata o no.
+  function resumenSerie(st) {
+    const trozos = [];
+    if (st.distance_m != null) trozos.push(`${(st.distance_m / 1000).toFixed(2).replace('.', ',')} km`);
+    if (st.seconds != null) {
+      trozos.push(st.seconds >= 120 ? `${Math.round(st.seconds / 60)} min` : `${st.seconds}s`);
+    }
+    if (st.hr != null) trozos.push(`${st.hr} ppm`);
+    if (st.kg != null || st.reps != null) trozos.push(`${st.kg ?? '—'}×${st.reps ?? '—'}`);
+    return trozos.join(' · ');
+  }
+
+  function buildWorkoutPayload(snap, routineId) {
+    const exercises = snap.exercises || [];
+    const haySeries = exercises.some(e => (e.sets || []).length);
+    const hayNotas = exercises.some(e => e.notes);
+    const hayTiempo = (snap.durationSec || 0) >= MIN_DURACION_SOLA;
+    if (!haySeries && !hayNotas && !hayTiempo) return null;
+
+    const workout = {
+      id: snap.workoutId || (crypto.randomUUID ? crypto.randomUUID()
+           : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
+      date: (snap.dateIso || new Date().toISOString()).slice(0, 10),
+      routine_id: routineId || null,
+      duration_sec: snap.durationSec ?? null,
+      notes: null,
+    };
+    const rows = [];
+    const lineas = [];
+    exercises.forEach((ex, slotIdx) => {
+      let setIdx = 0;
+      const sinMarcar = [];
+      (ex.sets || []).forEach(st => {
+        if (st.done) {
+          // workout_sets solo guarda series HECHAS: no hay columna para
+          // distinguirlas y las estadísticas cuentan filas.
+          setIdx++;
           rows.push({
             workout_id: workout.id,
             exercise_id: ex.exerciseId,
             slot_index: slotIdx + 1,
-            set_index: setIdx + 1,
-            weight_kg: st.kg,
-            reps: st.reps,
+            set_index: setIdx,
+            weight_kg: st.kg ?? null,
+            reps: st.reps ?? null,
+            seconds: st.seconds ?? null,
+            distance_m: st.distance_m ?? null,
+            avg_hr: st.hr ?? null,
             swapped: !!ex.swapped,
-            notes: (setIdx === 0 && ex.notes) ? ex.notes : null,
+            // La nota va en la PRIMERA fila que se sube, no en la serie 1:
+            // si la serie 1 no se marcaba, la nota se perdía.
+            notes: (setIdx === 1 && ex.notes) ? ex.notes : null,
           });
-        });
+        } else if (resumenSerie(st)) {
+          // Escrito pero sin marcar. Antes solo se rescataban kilos y reps: una
+          // sesión de cardio con distancia y tiempo pero sin tocar la casilla
+          // se perdía entera y en silencio.
+          sinMarcar.push(resumenSerie(st));
+        }
       });
-      if (window.cloudPushWorkout) window.cloudPushWorkout(workout, rows);
-      else enqueue({ type: 'workout', workout, sets: rows });
-    }
+      // Todo lo que no cabe en workout_sets se escribe en workouts.notes:
+      // así una sesión de solo notas (running) llega entera a la nube.
+      if (ex.notes) lineas.push(`${ex.name} · ${ex.notes}`);
+      if (sinMarcar.length) lineas.push(`${ex.name} · sin marcar: ${sinMarcar.join(', ')}`);
+    });
+    workout.notes = lineas.length ? lineas.join('\n') : null;
+    return { workout, sets: rows };
   }
+
+  // Deja el entreno en el outbox y empuja de inmediato. La confirmación la da
+  // el módulo cloud vaciando el outbox; hasta entonces se ve "sin sincronizar".
+  function pushWorkout(payload) {
+    enqueue({ type: 'workout', workout: payload.workout, sets: payload.sets });
+    window.cloudFlushNow?.();
+  }
+
+  function persistSession() {
+    const snap = readTracker();
+    if (!snap) { clearDraft(); return null; }
+    // Historial local: TODO lo que haya, también un ejercicio con nota y sin
+    // series (antes se descartaba entero y ni siquiera quedaba en el móvil).
+    const hist = loadHistory();
+    snap.exercises.forEach(ex => {
+      (hist[ex.exerciseId] ||= []).push({
+        date: snap.dateIso, routineId: session.routineId, sets: ex.sets, notes: ex.notes,
+      });
+    });
+    saveHistory(hist);
+    const payload = buildWorkoutPayload(snap, session.routineId);
+    if (payload) pushWorkout(payload);
+    // La sesión ya está en el historial y en el outbox: el borrador sobra.
+    clearDraft();
+    return payload;
+  }
+
+  // ---------- Aviso visible de "sin sincronizar" ----------
+  // Un fallo de guardado ya no se lo traga nadie: mientras quede algo por
+  // subir o un borrador sin guardar, la barra está a la vista y se puede
+  // tocar para resolverlo.
+  const syncBar = document.getElementById('syncBar');
+  const syncTxt = document.getElementById('syncBarTxt');
+  const syncBtn = document.getElementById('syncBarBtn');
+  let syncAccion = null;
+
+  const fechaCorta = (iso) => {
+    const d = new Date(iso);
+    return isNaN(d) ? '' : `${d.getDate()} ${months[d.getMonth()].toLowerCase()}`;
+  };
+
+  function renderSyncBar() {
+    const draft = loadDraft();
+    const abierto = document.getElementById('tracker').classList.contains('open');
+    const pend = loadOutbox().filter(i => i.type === 'workout');
+    // El borrador del entreno que está abierto ahora mismo no es un aviso.
+    if (draft && !abierto) {
+      syncTxt.textContent = `Entreno sin guardar · ${draft.routineName || ''} ${fechaCorta(draft.dateIso)}`.trim();
+      syncBtn.textContent = 'GUARDAR';
+      syncAccion = () => { recoverDraft(); };
+    } else if (pend.length) {
+      syncTxt.textContent = pend.length === 1
+        ? 'Entreno sin sincronizar: sigue solo en este móvil.'
+        : `${pend.length} entrenos sin sincronizar: siguen solo en este móvil.`;
+      syncBtn.textContent = 'REINTENTAR';
+      syncAccion = () => { syncBtn.textContent = 'SUBIENDO…'; window.cloudFlushNow?.(true); };
+    } else {
+      syncAccion = null;
+      syncBar.hidden = true;
+      return;
+    }
+    syncBar.hidden = false;
+  }
+  syncBtn.addEventListener('click', () => syncAccion?.());
+  window.appSyncChanged = renderSyncBar;
+
+  // ---------- Recuperar un borrador ----------
+  // Vuelca al historial local y al outbox lo que quedó a medias. Se usa desde
+  // la barra de aviso y desde el cajón (Entrenos sin sincronizar).
+  function recoverDraft(d) {
+    const draft = d || loadDraft();
+    if (!draft) return null;
+    const payload = buildWorkoutPayload(draft, draft.routineId);
+    const hist = loadHistory();
+    (draft.exercises || []).forEach(ex => {
+      const yaEsta = (hist[ex.exerciseId] || []).some(r =>
+        (r.date || '').slice(0, 10) === (draft.dateIso || '').slice(0, 10) &&
+        JSON.stringify(r.sets || []) === JSON.stringify(ex.sets || []) &&
+        (r.notes || '') === (ex.notes || ''));
+      if (!yaEsta) (hist[ex.exerciseId] ||= []).push({
+        date: draft.dateIso, routineId: draft.routineId, sets: ex.sets, notes: ex.notes,
+      });
+    });
+    saveHistory(hist);
+    if (payload) pushWorkout(payload);
+    clearDraft();
+    renderHome(); renderTrainer(); renderStats();
+    return payload;
+  }
+  window.appRecoverDraft = recoverDraft;
+
+  // Guardar a mano una sesión que no pasó por el tracker (rescate de notas).
+  // exercises: [{ exerciseId, name, sets, notes }]
+  window.appSaveManualSession = function(dateIso, routineId, exercises, durationSec) {
+    const snap = { dateIso, durationSec: durationSec ?? null, exercises };
+    const payload = buildWorkoutPayload(snap, routineId || null);
+    if (!payload) return null;
+    const hist = loadHistory();
+    exercises.forEach(ex => {
+      (hist[ex.exerciseId] ||= []).push({ date: dateIso, routineId: routineId || null, sets: ex.sets || [], notes: ex.notes || '' });
+    });
+    saveHistory(hist);
+    pushWorkout(payload);
+    renderHome(); renderTrainer(); renderStats();
+    return payload;
+  };
   function closeTracker() {
     document.getElementById('tracker').classList.remove('open');
+    renderSyncBar();
     clearInterval(workoutTimer);
     stopRest();
     setPaused(false);
@@ -4572,17 +5122,22 @@
   // Si te equivocas, desmarcas, corriges y vuelves a marcar.
   window.toggleSet = function(btn, restSec) {
     btn.classList.toggle('checked');
-    const tr = btn.closest('tr');
     const marcada = btn.classList.contains('checked');
-    tr.classList.toggle('completed', marcada);
+    // Las fichas de cardio no tienen filas: su casilla vive suelta en la
+    // tarjeta. Antes se daba por hecho que siempre había un <tr> y marcarla
+    // reventaba (y con ella el borrador, que se guarda justo después).
+    const fila = btn.closest('tr');
+    const ancla = fila || btn.closest('.exercise-card');
+    fila?.classList.toggle('completed', marcada);
+    scheduleDraft();
     if (marcada) {
       navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
       // En una superserie el descanso solo va al terminar la última serie del grupo
-      const panel = tr.closest('.tk-panel');
+      const panel = ancla?.closest('.tk-panel');
       const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
       const esUltimaDelGrupo = !esSuperserie ||
-        (tr.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
-      if (esUltimaDelGrupo) startRest(restSec);
+        (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
+      if (esUltimaDelGrupo && restSec > 0) startRest(restSec);
     }
   };
   function startRest(sec) {
@@ -4845,7 +5400,10 @@
   document.getElementById('resetAll').addEventListener('click', resetAll);
 
   // Hook para que el módulo cloud repinte la UI tras un pull
-  window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); };
+  window.appRerender = () => { renderHome(); renderTrainer(); renderStats(); renderSyncBar(); };
+
+  // Al arrancar: si quedó un entreno a medias o algo sin subir, se ve enseguida.
+  renderSyncBar();
 
   // ¿Ese día cuenta como día de entreno? Lo usa Nutrición para elegir entre
   // los macros de entreno y los de descanso. Regla acordada con Adrián:
@@ -4905,12 +5463,33 @@ async function pushOverrideNow(item) {
   });
   if (error) throw error;
 }
-window.cloudPushWorkout = (workout, sets) => {
-  pushWorkoutNow(workout, sets).catch(() => window.fitnessEnqueue({ type: 'workout', workout, sets }));
-};
+// Los entrenos NO tienen camino directo: la app los deja en el outbox y de
+// ahí los sube flushOutbox. Así una subida a medias (batería, túnel, pestaña
+// cerrada) nunca pierde la sesión: sigue en la cola hasta que se confirma.
 window.cloudPushOverride = (item) => {
   pushOverrideNow(item).catch(() => window.fitnessEnqueue(item));
 };
+async function pushExNoteNow(item) {
+  const { error } = await sb.from('exercise_notes').upsert({
+    exercise_id: item.exercise_id, note: item.note, updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+window.cloudPushExNote = (item) => {
+  pushExNoteNow(item).catch(() => window.fitnessEnqueue(item));
+};
+
+// Las notas del usuario, de la nube al móvil. La nube gana: si escribió desde
+// otro dispositivo, esa es la buena.
+async function pullExNotes() {
+  const { data, error } = await sb.from('exercise_notes').select('exercise_id, note');
+  if (error || !data) return;
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem('fitness_ex_notes_v1') || '{}'); } catch { local = {}; }
+  data.forEach((n) => { local[n.exercise_id] = n.note; });
+  localStorage.setItem('fitness_ex_notes_v1', JSON.stringify(local));
+}
+
 async function pushWeightNow(item) {
   const { error } = await sb.from('body_weight').upsert({
     date: item.date, weight_kg: item.kg, note: item.note || null,
@@ -4938,27 +5517,82 @@ window.cloudAddExercise = (ex) => {
   addExerciseNow({ ex }).catch(() => window.fitnessEnqueue({ type: 'exadd', ex }));
 };
 
-async function flushOutbox() {
-  const items = outbox();
-  if (!items.length) return;
-  const remaining = [];
-  for (const it of items) {
-    try {
-      if (it.type === 'workout') await pushWorkoutNow(it.workout, it.sets);
-      else if (it.type === 'override') await pushOverrideNow(it);
-      else if (it.type === 'weight') await pushWeightNow(it);
-      else if (it.type === 'exrename') await renameExerciseNow(it);
-      else if (it.type === 'exadd') await addExerciseNow(it);
-    } catch { remaining.push(it); }
-  }
-  saveOutbox(remaining);
+// ---------- Vaciado del outbox ----------
+// Un solo vaciado a la vez, con reintentos escalonados dentro del propio
+// intento y un temporizador de respaldo mientras quede algo. Antes solo se
+// intentaba al abrir la app y al volver la red: si las dos cosas fallaban,
+// el entreno se quedaba en el móvil para siempre y sin avisar.
+let flushing = false, flushTimer = null;
+window.__syncLastError = null;
+
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function pushItem(it) {
+  if (it.type === 'workout') return pushWorkoutNow(it.workout, it.sets);
+  if (it.type === 'override') return pushOverrideNow(it);
+  if (it.type === 'weight') return pushWeightNow(it);
+  if (it.type === 'exrename') return renameExerciseNow(it);
+  if (it.type === 'exadd') return addExerciseNow(it);
+  if (it.type === 'exnote') return pushExNoteNow(it);
+  return null; // tipo desconocido: no se reintenta eternamente
 }
+
+// Identidad de un elemento de la cola: por id de entreno cuando lo hay, y si
+// no por su contenido. Se usa para no borrar de la cola lo que ha entrado
+// MIENTRAS se subía (terminar otro entreno durante un reintento largo).
+const itemKey = (it) => (it.type === 'workout' && it.workout?.id)
+  ? `workout:${it.workout.id}` : `${it.type}:${JSON.stringify(it)}`;
+
+async function flushOutbox({ force = false } = {}) {
+  if (flushing) return;
+  const items = outbox();
+  if (!items.length) { programarReintento(); window.appSyncChanged?.(); return; }
+  if (!navigator.onLine && !force) { programarReintento(); window.appSyncChanged?.(); return; }
+  flushing = true;
+  const subidos = new Set();
+  let ultimoFallo = null;
+  try {
+    for (const it of items) {
+      let err = null;
+      // Tres intentos con espera creciente: los cortes de red del móvil
+      // suelen durar segundos, no hace falta esperar a la próxima apertura.
+      for (const espera of [0, 2000, 6000]) {
+        if (espera) await esperar(espera);
+        try { await pushItem(it); subidos.add(itemKey(it)); err = null; break; }
+        catch (e) { err = e; }
+      }
+      if (err) ultimoFallo = err;
+    }
+  } finally {
+    flushing = false;
+    // Se relee la cola: lo encolado durante la subida sigue ahí.
+    const remaining = outbox().filter((it) => !subidos.has(itemKey(it)));
+    saveOutbox(remaining);
+    window.__syncLastError = remaining.length
+      ? (ultimoFallo?.message || String(ultimoFallo || 'sin conexión')) : null;
+    window.appSyncChanged?.();
+    programarReintento();
+  }
+}
+
+// Mientras quede algo pendiente se reintenta cada minuto por su cuenta.
+function programarReintento() {
+  clearTimeout(flushTimer);
+  if (!outbox().length) return;
+  flushTimer = setTimeout(() => flushOutbox(), 60000);
+}
+
+window.cloudFlushNow = (force) => flushOutbox({ force: !!force });
+window.cloudPendingCount = () => outbox().length;
+window.addEventListener('online', () => flushOutbox());
+window.addEventListener('focus', () => flushOutbox());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) flushOutbox(); });
 
 // ---------- Bajada: programa (catálogo + rutinas + plan + overrides) ----------
 async function pullProgram() {
   const [ex, ro, rex, plan, ovr] = await Promise.all([
     sb.from('exercises').select('*').order('id'),
-    sb.from('routines').select('*'),
+    sb.from('routines').select('*').eq('archived', false),
     sb.from('routine_exercises').select('*').order('position'),
     sb.from('plan').select('*').eq('status', 'active').limit(1).maybeSingle(),
     sb.from('week_overrides').select('*'),
@@ -4968,6 +5602,7 @@ async function pullProgram() {
 
   const exercises = ex.data.map(e => ({
     id: e.id, name: e.name, group: e.muscle_group, pattern: e.pattern, equipment: e.equipment,
+    logType: e.log_type || 'fuerza',
   }));
   const routines = {};
   ro.data.forEach(r => {
@@ -5025,7 +5660,17 @@ async function pullHistory() {
       const rec = {
         date: wk.date + 'T12:00:00.000Z',
         routineId: wk.routine_id,
-        sets: rs.map(r => ({ kg: r.weight_kg != null ? Number(r.weight_kg) : null, reps: r.reps, done: true })),
+        // Todo lo que sepa la fila, no solo kilos y reps: si no, al bajar de
+        // la nube una carrera se queda sin distancia ni tiempo y el ANTERIOR
+        // de la ficha sale vacío.
+        sets: rs.map(r => ({
+          kg: r.weight_kg != null ? Number(r.weight_kg) : null,
+          reps: r.reps,
+          seconds: r.seconds ?? null,
+          distance_m: r.distance_m != null ? Number(r.distance_m) : null,
+          hr: r.avg_hr ?? null,
+          done: true,
+        })),
         notes: rs.find(r => r.notes)?.notes || '',
       };
       const list = (hist[exId] ||= []);
@@ -5043,7 +5688,13 @@ async function pullHistory() {
   // de las SERIES, así que una sesión sin series registradas no aparecería;
   // esta lista permite que cuente igual para el calendario y la racha.
   localStorage.setItem('fitness_sessions_v1', JSON.stringify(
-    w.data.map(wk => ({ date: wk.date, routineId: wk.routine_id, sets: (setsByWorkout[wk.id] || []).length }))
+    w.data.map(wk => ({
+      date: wk.date, routineId: wk.routine_id,
+      sets: (setsByWorkout[wk.id] || []).length,
+      // Las notas de la sesión viven en workouts.notes: es lo único que queda
+      // de un entreno apuntado solo con notas (p. ej. una salida a correr).
+      notes: wk.notes || '', durationSec: wk.duration_sec ?? null,
+    }))
   ));
 }
 
@@ -5839,13 +6490,83 @@ const authVeil = $('loginOverlay');
 const onbVeil = $('onbOverlay');
 const showLogin = () => { authVeil.classList.add('open'); };
 const hideLogin = () => { authVeil.classList.remove('open'); };
+// Cuatro pantallas en el mismo velo: entrar, crear cuenta, pedir el enlace de
+// recuperación y escribir la contraseña nueva.
+const AUTH_FORMS = { in: 'loginForm', up: 'signupForm', reset: 'recoverForm', newpass: 'newPassForm' };
 const authMode = (mode) => {
-  $('loginForm').style.display = mode === 'up' ? 'none' : '';
-  $('signupForm').style.display = mode === 'up' ? '' : 'none';
-  $('loginErr').textContent = ''; $('suErr').textContent = '';
+  Object.entries(AUTH_FORMS).forEach(([k, id]) => { $(id).style.display = k === mode ? '' : 'none'; });
+  ['loginErr', 'suErr', 'rcErr', 'npErr'].forEach((id) => {
+    const e = $(id);
+    if (e) { e.textContent = ''; e.style.color = ''; }
+  });
 };
 $('goSignup').addEventListener('click', () => authMode('up'));
 $('goLogin').addEventListener('click', () => authMode('in'));
+$('goLoginDesdeRc').addEventListener('click', () => authMode('in'));
+$('goRecover').addEventListener('click', () => {
+  $('rcEmail').value = $('loginEmail').value.trim();
+  authMode('reset');
+});
+
+// Ojito: enseñar u ocultar lo que se escribe en cualquier campo de contraseña
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-eye]');
+  if (!b) return;
+  e.preventDefault();
+  const campo = $(b.dataset.eye);
+  if (!campo) return;
+  const verlo = campo.type === 'password';
+  campo.type = verlo ? 'text' : 'password';
+  b.classList.toggle('on', verlo);
+  b.setAttribute('aria-label', verlo ? 'Ocultar la contraseña' : 'Ver la contraseña');
+});
+
+// ---- He olvidado la contraseña ----
+// La respuesta es siempre la misma, exista o no la cuenta: si dijéramos
+// «ese correo no está registrado» estaríamos contando quién tiene cuenta.
+$('recoverForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('rcErr');
+  err.textContent = ''; err.style.color = '';
+  const btn = $('recoverForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'ENVIANDO…';
+  const { error } = await sb.auth.resetPasswordForEmail($('rcEmail').value.trim(), {
+    redirectTo: location.origin + location.pathname,
+  });
+  btn.disabled = false; btn.textContent = 'ENVIARME EL ENLACE';
+  err.style.color = 'var(--muted)';
+  err.textContent = error
+    ? 'No se ha podido enviar: ' + error.message
+    : 'Si esa cuenta existe, el enlace ya va de camino. Mira también en spam.';
+});
+
+// ---- Contraseña nueva, al volver del enlace del correo ----
+$('newPassForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('npErr');
+  err.textContent = '';
+  const pass = $('npPass').value;
+  if (pass.length < 6) { err.textContent = 'Mínimo 6 caracteres.'; return; }
+  const btn = $('newPassForm').querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
+  const { error } = await sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'GUARDAR Y ENTRAR';
+  if (error) {
+    err.textContent = /expired|invalid/i.test(error.message)
+      ? 'Ese enlace ya ha caducado. Pide otro desde «¿Has olvidado la contraseña?».'
+      : 'No se ha podido guardar: ' + error.message;
+    return;
+  }
+  window.__RECOVERY = false;
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) checkUserSwitch(user.id);
+  localStorage.removeItem(SKIP_KEY);
+  hideLogin();
+  boot(true);
+});
+
+// Si venimos del enlace del correo, lo único que toca es la contraseña nueva
+if (window.__RECOVERY) { authMode('newpass'); showLogin(); }
 
 // El enlace de invitación trae el código puesto: aturi212.github.io/fitness/#invita=ONIX-XXXXX
 // Se mira al arrancar y también al cambiar el hash: si la app ya está abierta
@@ -5891,6 +6612,7 @@ async function pullProfile() {
   if (error) { console.warn('No se pudo leer el perfil:', error.message); return null; }
   window.__profile = data || null;
   window.appRenderProfile?.();
+  pintarBloqueoChat();
   aplicarOrden();          // el orden de las tarjetas viaja en el perfil
   return data;
 }
@@ -6106,6 +6828,44 @@ $('onbNext').addEventListener('click', async () => {
   onb.step++; onbPaint();
 });
 
+// ---------- Primera sesión con el Coach ----------
+// Mientras `first_session_done` sea false, el usuario todavía no tiene plan:
+// la ventana de presentación sale una vez y el chat solo deja empezarla.
+const INTRO_KEY = 'fitness_coach_intro_visto';
+const coachVeil = $('coachVeil');
+
+function faltaPrimeraSesion() {
+  return !!window.__profile && !window.__profile.first_session_done;
+}
+function pintarBloqueoChat() {
+  const bloqueado = faltaPrimeraSesion();
+  const form = $('chatForm'), locked = $('chatLocked');
+  if (!form || !locked) return;
+  form.style.display = bloqueado ? 'none' : '';
+  locked.style.display = bloqueado ? '' : 'none';
+}
+function mostrarIntroCoach() {
+  if (!faltaPrimeraSesion() || localStorage.getItem(INTRO_KEY)) return;
+  const nombre = (window.__profile?.display_name || '').trim();
+  $('coachHiName').textContent = nombre ? `, ${nombre}` : '';
+  coachVeil.classList.add('open');
+}
+function cerrarIntroCoach() {
+  localStorage.setItem(INTRO_KEY, '1');
+  coachVeil.classList.remove('open');
+}
+
+// Arrancar la conversación: el saludo ya lo ha dado la ventana, así que el
+// mensaje que la dispara no se enseña — el primero que se lee es el del Coach.
+function empezarPrimeraSesion() {
+  cerrarIntroCoach();
+  document.querySelector('[data-go="chat"]')?.click();
+  setTimeout(() => sendChat('Quiero crear mi plan.', { oculto: true }), 250);
+}
+$('coachGo').addEventListener('click', empezarPrimeraSesion);
+$('coachLater').addEventListener('click', cerrarIntroCoach);
+$('chatStartPlan').addEventListener('click', () => sendChat('Quiero crear mi plan.', { oculto: true }));
+
 // ---------- Cajones laterales ----------
 const drawerVeil = $('drawerVeil');
 const logoDrawer = $('logoDrawer');
@@ -6118,21 +6878,153 @@ function cerrarCajones() {
   });
   drawerVeil.classList.remove('open');
 }
-async function abrirCajon(el) {
+function abrirCajon(el) {
   cerrarCajones();
-  if (el === logoDrawer) {
-    const { data: { user } } = await sb.auth.getUser();
-    $('ldEmail').textContent = user?.email || '';
-  }
+  if (el === logoDrawer) panelMenu();
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
   drawerVeil.classList.add('open');
+  // El email se rellena después y sin bloquear: sin conexión, `getUser()`
+  // se queda colgado o falla, y el cajón no llegaba a abrirse — justo cuando
+  // más falta hace (es donde se ve lo que está sin sincronizar).
+  if (el === logoDrawer) {
+    sb.auth.getUser()
+      .then(({ data }) => { $('ldEmail').textContent = data?.user?.email || ''; })
+      .catch(() => {});
+  }
 }
 drawerVeil.addEventListener('click', cerrarCajones);
 
 // El logo de CUALQUIER pantalla abre el menú de la app
 document.addEventListener('click', (e) => {
   if (e.target.closest('.logo') && !e.target.closest('.drawer')) abrirCajon(logoDrawer);
+});
+
+// ---------- Panel "Sin sincronizar" (cajón de la izquierda) ----------
+// Tres cosas en un sitio: el entreno que quedó a medias, la cola que no ha
+// subido, y las notas de ejercicio que siguen en el móvil (de ahí se rescata
+// una sesión apuntada solo con notas que nunca llegó a la nube).
+const panelMenu = () => { $('ldMain').style.display = ''; $('ldSyncPane').style.display = 'none'; };
+const panelSync = () => { $('ldMain').style.display = 'none'; $('ldSyncPane').style.display = ''; pintarSync(); };
+$('ldSyncBack').addEventListener('click', panelMenu);
+$('ldSync').addEventListener('click', panelSync);
+
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const hoyIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+function pintarSync() {
+  const body = $('ldSyncBody');
+  const pend = (() => { try { return JSON.parse(localStorage.getItem('fitness_sync_outbox_v2') || '[]'); } catch { return []; } })();
+  const draft = window.appLoadDraft?.();
+  const notas = (() => { try { return JSON.parse(localStorage.getItem('fitness_ex_notes_v1') || '{}'); } catch { return {}; } })();
+  const conNota = Object.entries(notas).filter(([, v]) => v && String(v).trim());
+  let html = '';
+
+  if (draft) {
+    const series = (draft.exercises || []).reduce((n, e) => n + (e.sets || []).length, 0);
+    const conNotas = (draft.exercises || []).filter(e => e.notes).length;
+    html += `
+      <div class="rec-block">
+        <span class="label">Entreno a medias</span>
+        <div class="rec-card">
+          <b>${esc(draft.routineName || 'Entreno')} · ${esc((draft.dateIso || '').slice(0, 10))}</b>
+          <p>${series} serie${series === 1 ? '' : 's'} · ${conNotas} nota${conNotas === 1 ? '' : 's'}${draft.durationSec ? ` · ${Math.round(draft.durationSec / 60)} min` : ''}</p>
+          <div class="rec-actions">
+            <button type="button" class="go" id="recDraftSave">GUARDARLO</button>
+            <button type="button" id="recDraftDrop">DESCARTAR</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  html += `
+    <div class="rec-block">
+      <span class="label">Cola de subida</span>`;
+  if (!pend.length) {
+    html += `<p class="rec-ok">Todo subido. No queda nada esperando.</p>`;
+  } else {
+    html += pend.map((it) => {
+      if (it.type === 'workout') {
+        const n = (it.sets || []).length;
+        return `<div class="rec-card"><b>Entreno · ${esc(it.workout?.date || '')}</b>
+          <p>${n} serie${n === 1 ? '' : 's'}${it.workout?.notes ? `\n${esc(it.workout.notes)}` : ''}</p></div>`;
+      }
+      return `<div class="rec-card"><b>${esc(it.type)}</b><p>Pendiente de subir.</p></div>`;
+    }).join('');
+    if (window.__syncLastError) html += `<p class="rec-ok">Último error: ${esc(window.__syncLastError)}</p>`;
+    html += `<div class="rec-actions"><button type="button" class="go" id="recFlush">REINTENTAR AHORA</button></div>`;
+  }
+  html += `</div>`;
+
+  if (conNota.length) {
+    html += `
+      <div class="rec-block">
+        <span class="label">Rescatar notas del móvil</span>
+        <p class="rec-hint rec-ok" style="margin-bottom:10px">Notas guardadas en este móvil por ejercicio. Marca las que sean de una sesión que no llegó a la nube, elige el día y guárdalas como entreno.</p>
+        <input type="date" class="rec-date" id="recDate" value="${hoyIso()}" max="${hoyIso()}">
+        ${conNota.map(([id, txt]) => `
+          <label class="rec-note">
+            <input type="checkbox" data-ex="${esc(id)}">
+            <span class="rn-txt"><b>${esc(window.EXERCISES?.find(e => e.id === id)?.name || id)}</b><span>${esc(txt)}</span></span>
+          </label>`).join('')}
+        <div class="rec-actions"><button type="button" class="go" id="recSaveNotes">GUARDAR COMO ENTRENO</button></div>
+      </div>`;
+  }
+
+  body.innerHTML = html;
+
+  $('recDraftSave')?.addEventListener('click', () => { window.appRecoverDraft?.(); pintarSync(); });
+  $('recDraftDrop')?.addEventListener('click', () => {
+    if (confirm('¿Descartar el entreno a medias? No se puede deshacer.')) { window.appClearDraft?.(); pintarSync(); }
+  });
+  $('recFlush')?.addEventListener('click', async (e) => {
+    e.currentTarget.textContent = 'SUBIENDO…';
+    await window.cloudFlushNow?.(true);
+    pintarSync();
+  });
+  $('recSaveNotes')?.addEventListener('click', () => {
+    const marcadas = [...body.querySelectorAll('.rec-note input:checked')].map(i => i.dataset.ex);
+    if (!marcadas.length) { alert('No has marcado ninguna nota.'); return; }
+    const fecha = $('recDate').value || hoyIso();
+    const ejercicios = marcadas.map(id => ({
+      exerciseId: id,
+      name: window.EXERCISES?.find(e => e.id === id)?.name || id,
+      sets: [],
+      notes: String(notas[id] || '').trim(),
+    }));
+    const ok = window.appSaveManualSession?.(`${fecha}T12:00:00.000Z`, null, ejercicios, null);
+    if (!ok) { alert('No se ha podido preparar el entreno.'); return; }
+    alert(`Entreno del ${fecha} guardado con ${ejercicios.length} nota${ejercicios.length === 1 ? '' : 's'}. Se sube a la nube en cuanto haya red.`);
+    pintarSync();
+  });
+}
+
+// El badge del menú refleja lo que queda pendiente
+const _syncChangedPrev = window.appSyncChanged;
+window.appSyncChanged = () => {
+  _syncChangedPrev?.();
+  const n = (window.cloudPendingCount?.() || 0) + (window.appLoadDraft?.() ? 1 : 0);
+  const badge = $('ldSyncBadge');
+  if (badge) { badge.hidden = !n; badge.textContent = String(n); }
+  if ($('ldSyncPane')?.style.display !== 'none') pintarSync();
+};
+window.appSyncChanged();
+
+// Rehacer el plan: no se borra nada. El plan y los entrenos se archivan (el
+// Coach los puede consultar) y se vuelve a empezar por la primera sesión.
+$('ldRestart').addEventListener('click', async () => {
+  if (!confirm('¿Rehacer tu plan?\n\nGuardaremos el que tienes ahora (el coach podrá consultarlo) y montaréis uno nuevo hablando. Tus entrenos registrados y tus comidas no se tocan.')) return;
+  const { error } = await sb.rpc('restart_plan');
+  if (error) { alert('No se ha podido rehacer el plan: ' + error.message); return; }
+  localStorage.removeItem(INTRO_KEY);
+  localStorage.removeItem('fitness_week_override_v1');
+  cerrarCajones();
+  chatHistory = [];
+  renderChat();
+  await pullProfile();
+  await pullProgram();
+  window.appRerender?.();
+  mostrarIntroCoach();
 });
 
 $('ldLogout').addEventListener('click', async () => {
@@ -6462,6 +7354,7 @@ function renderChat() {
     return;
   }
   chatHistory.forEach((m) => {
+    if (m.oculto) return;
     chatBubble(m.role === 'user' ? 'user' : 'bot', m.content);
     (m.actions || []).forEach((a) => {
       const c = document.createElement('div');
@@ -6474,13 +7367,15 @@ function renderChat() {
 }
 renderChat();
 
-async function sendChat(text) {
+async function sendChat(text, opciones = {}) {
   if (!text || chatSend.disabled) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showLogin(); return; }
 
   chatLastTs = Date.now();
-  chatHistory.push({ role: 'user', content: text });
+  // `oculto`: el mensaje viaja al Coach pero no se pinta. Lo usa el botón de
+  // CREAR MI PLAN, donde la presentación ya la ha hecho la ventana emergente.
+  chatHistory.push({ role: 'user', content: text, oculto: !!opciones.oculto });
   if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
   // La respuesta llega EN DIRECTO: el estado ("Mirando tu historial…") vive en
@@ -6554,6 +7449,9 @@ async function sendChat(text) {
       await pullMeals();
       renderNutrition();
     }
+    // El Coach puede haber cerrado la primera sesión: si es así, se desbloquea
+    // el chat sin que el usuario tenga que recargar.
+    if (faltaPrimeraSesion()) await pullProfile();
   } catch (err) {
     estado.remove();
     burbuja.remove();
@@ -6671,6 +7569,8 @@ function onProgramChange() {
 const hideBoot = () => $('bootVeil')?.classList.remove('open');
 
 async function boot(loggedIn) {
+  // Con el enlace de recuperación abierto, la app espera: primero la contraseña
+  if (window.__RECOVERY && !loggedIn) { hideBoot(); return; }
   if (!loggedIn) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
@@ -6695,11 +7595,13 @@ async function boot(loggedIn) {
   const ok = await pullProgram();
   await pullHistory();
   await pullBodyWeight();
+  await pullExNotes();
   await pullMeals();
   await materializeRecurring();
   await flushStaleThreads();
   renderNutrition();
   if (ok) window.appRerender?.();
+  mostrarIntroCoach();
   rt?.unsubscribe?.();
   rt = sb.channel('program')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, onProgramChange)
@@ -6708,7 +7610,6 @@ async function boot(loggedIn) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'week_overrides' }, onProgramChange)
     .subscribe((status, err) => { window.__rtStatus = status; window.__rtErr = err ? String(err) : null; });
   window.__rt = rt;
-  window.addEventListener('online', flushOutbox);
 }
 boot(false);
 </script>
