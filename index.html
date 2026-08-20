@@ -1168,6 +1168,12 @@
         <div id="planBlocks"></div>
       </div>
 
+      <!-- Mientras no se haya hecho la primera sesión, aquí no se escribe:
+           lo único que se puede hacer es empezarla. -->
+      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      </div>
+
       <form class="chat-input" id="chatForm">
         <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
         <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
@@ -1222,6 +1228,9 @@
         max-width: calc(var(--maxw) - 32px); margin: 0 auto; }
       .chat-input::before { content: ''; position: absolute; left: -16px; right: -16px; bottom: -22px; top: -26px;
         background: linear-gradient(180deg, transparent, #050505 26%); z-index: -1; pointer-events: none; }
+      .chat-locked button { flex: 1; height: 46px; border-radius: 23px; background: var(--white);
+        color: var(--white-ink); font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+      .chat-locked button:active { transform: scale(.99); }
       .chat-input input { flex: 1; min-width: 0; height: 46px; background: #111214;
         border: 1px solid var(--line-2); color: var(--text); border-radius: 23px; padding: 0 18px; font-size: 16px; }
       .chat-input input:focus { outline: none; border-color: var(--hot-line); }
@@ -1913,6 +1922,8 @@
     /* Los días son 7: rejilla fija, o la última fila se estira y desencaja */
     .pick.cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
     .pick.cols button { justify-content: center; padding: 15px 0; font-size: 15px; }
+    .coach-hi { font-size: 15px; line-height: 1.55; color: var(--text); margin: 0 0 14px; max-width: 34ch; }
+    .coach-hi.muted-hi { color: var(--muted); font-size: 13.5px; margin-bottom: 22px; }
     .onb-nav { display: flex; gap: 10px; margin-top: 18px; }
     .onb-nav .btn-primary, .onb-nav .btn-ghost { margin-top: 0; }
     .onb-nav .btn-ghost { width: 92px; flex-shrink: 0; }
@@ -2531,6 +2542,22 @@
   </div>
 </div>
 
+<!-- ============ PRIMERA SESIÓN · el Coach se presenta ============
+     Sale una sola vez, al terminar la bienvenida. A partir de ahí el
+     recordatorio vive en el chat, que no deja escribir otra cosa hasta que
+     esta conversación esté hecha. -->
+<div class="auth-veil" id="coachVeil">
+  <div class="auth-box">
+    <span class="logo auth-logo" aria-label="ONIX"><i></i><i></i></span>
+    <h1 class="auth-title"><span class="title-out">TU</span> COACH</h1>
+    <p class="coach-hi">Hola<span id="coachHiName"></span>, soy tu coach. A partir de ahora entreno contigo: te monto el plan, te lo ajusto cuando la vida se tuerce y te digo qué toca cada día.</p>
+    <p class="coach-hi">Antes de nada quiero conocerte. Dame cinco minutos de charla y salgo de ahí con tus objetivos, tus entrenos y tu semana montada.</p>
+    <p class="coach-hi muted-hi">Si prefieres cotillear la app primero, adelante. Te espero en el chat.</p>
+    <button type="button" class="btn-primary" id="coachGo">CREAR MI PLAN</button>
+    <button type="button" class="btn-ghost" id="coachLater" style="margin-top:10px">Ahora no, quiero mirar</button>
+  </div>
+</div>
+
 <!-- ============ CAJONES LATERALES ============
      El del logo entra por la izquierda (menú de la app); el de ajustes de
      Perfil entra por la derecha. Tocar fuera los cierra. -->
@@ -2542,6 +2569,10 @@
     <span class="drawer-name">ONIX</span>
   </div>
   <div class="drawer-list">
+    <button type="button" class="drawer-item" id="ldRestart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      <span>Rehacer plan</span>
+    </button>
     <button type="button" class="drawer-item danger" id="ldLogout">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17l5-5-5-5"/><path d="M20 12H9"/><path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
       <span>Cerrar sesión</span>
@@ -4981,7 +5012,7 @@ async function flushOutbox() {
 async function pullProgram() {
   const [ex, ro, rex, plan, ovr] = await Promise.all([
     sb.from('exercises').select('*').order('id'),
-    sb.from('routines').select('*'),
+    sb.from('routines').select('*').eq('archived', false),
     sb.from('routine_exercises').select('*').order('position'),
     sb.from('plan').select('*').eq('status', 'active').limit(1).maybeSingle(),
     sb.from('week_overrides').select('*'),
@@ -5913,6 +5944,7 @@ async function pullProfile() {
   if (error) { console.warn('No se pudo leer el perfil:', error.message); return null; }
   window.__profile = data || null;
   window.appRenderProfile?.();
+  pintarBloqueoChat();
   aplicarOrden();          // el orden de las tarjetas viaja en el perfil
   return data;
 }
@@ -6128,6 +6160,44 @@ $('onbNext').addEventListener('click', async () => {
   onb.step++; onbPaint();
 });
 
+// ---------- Primera sesión con el Coach ----------
+// Mientras `first_session_done` sea false, el usuario todavía no tiene plan:
+// la ventana de presentación sale una vez y el chat solo deja empezarla.
+const INTRO_KEY = 'fitness_coach_intro_visto';
+const coachVeil = $('coachVeil');
+
+function faltaPrimeraSesion() {
+  return !!window.__profile && !window.__profile.first_session_done;
+}
+function pintarBloqueoChat() {
+  const bloqueado = faltaPrimeraSesion();
+  const form = $('chatForm'), locked = $('chatLocked');
+  if (!form || !locked) return;
+  form.style.display = bloqueado ? 'none' : '';
+  locked.style.display = bloqueado ? '' : 'none';
+}
+function mostrarIntroCoach() {
+  if (!faltaPrimeraSesion() || localStorage.getItem(INTRO_KEY)) return;
+  const nombre = (window.__profile?.display_name || '').trim();
+  $('coachHiName').textContent = nombre ? `, ${nombre}` : '';
+  coachVeil.classList.add('open');
+}
+function cerrarIntroCoach() {
+  localStorage.setItem(INTRO_KEY, '1');
+  coachVeil.classList.remove('open');
+}
+
+// Arrancar la conversación: el saludo ya lo ha dado la ventana, así que el
+// mensaje que la dispara no se enseña — el primero que se lee es el del Coach.
+function empezarPrimeraSesion() {
+  cerrarIntroCoach();
+  document.querySelector('[data-go="chat"]')?.click();
+  setTimeout(() => sendChat('Quiero crear mi plan.', { oculto: true }), 250);
+}
+$('coachGo').addEventListener('click', empezarPrimeraSesion);
+$('coachLater').addEventListener('click', cerrarIntroCoach);
+$('chatStartPlan').addEventListener('click', () => sendChat('Quiero crear mi plan.', { oculto: true }));
+
 // ---------- Cajones laterales ----------
 const drawerVeil = $('drawerVeil');
 const logoDrawer = $('logoDrawer');
@@ -6155,6 +6225,23 @@ drawerVeil.addEventListener('click', cerrarCajones);
 // El logo de CUALQUIER pantalla abre el menú de la app
 document.addEventListener('click', (e) => {
   if (e.target.closest('.logo') && !e.target.closest('.drawer')) abrirCajon(logoDrawer);
+});
+
+// Rehacer el plan: no se borra nada. El plan y los entrenos se archivan (el
+// Coach los puede consultar) y se vuelve a empezar por la primera sesión.
+$('ldRestart').addEventListener('click', async () => {
+  if (!confirm('¿Rehacer tu plan?\n\nGuardaremos el que tienes ahora (el coach podrá consultarlo) y montaréis uno nuevo hablando. Tus entrenos registrados y tus comidas no se tocan.')) return;
+  const { error } = await sb.rpc('restart_plan');
+  if (error) { alert('No se ha podido rehacer el plan: ' + error.message); return; }
+  localStorage.removeItem(INTRO_KEY);
+  localStorage.removeItem('fitness_week_override_v1');
+  cerrarCajones();
+  chatHistory = [];
+  renderChat();
+  await pullProfile();
+  await pullProgram();
+  window.appRerender?.();
+  mostrarIntroCoach();
 });
 
 $('ldLogout').addEventListener('click', async () => {
@@ -6477,6 +6564,7 @@ function renderChat() {
     return;
   }
   chatHistory.forEach((m) => {
+    if (m.oculto) return;
     chatBubble(m.role === 'user' ? 'user' : 'bot', m.content);
     (m.actions || []).forEach((a) => {
       const c = document.createElement('div');
@@ -6488,13 +6576,15 @@ function renderChat() {
 }
 renderChat();
 
-async function sendChat(text) {
+async function sendChat(text, opciones = {}) {
   if (!text || chatSend.disabled) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showLogin(); return; }
 
   chatLastTs = Date.now();
-  chatHistory.push({ role: 'user', content: text });
+  // `oculto`: el mensaje viaja al Coach pero no se pinta. Lo usa el botón de
+  // CREAR MI PLAN, donde la presentación ya la ha hecho la ventana emergente.
+  chatHistory.push({ role: 'user', content: text, oculto: !!opciones.oculto });
   if (chatHistory.length > 60) chatHistory = chatHistory.slice(-60);
   renderChat();
   // La respuesta llega EN DIRECTO: el estado ("Mirando tu historial…") vive en
@@ -6563,6 +6653,9 @@ async function sendChat(text) {
     // Si el entrenador tocó la BD, refresca el programa al momento
     // (el realtime también lo haría, esto lo hace instantáneo)
     if (acciones.length && (await pullProgram())) window.appRerender?.();
+    // El Coach puede haber cerrado la primera sesión: si es así, se desbloquea
+    // el chat sin que el usuario tenga que recargar.
+    if (faltaPrimeraSesion()) await pullProfile();
   } catch (err) {
     estado.remove();
     burbuja.remove();
@@ -6711,6 +6804,7 @@ async function boot(loggedIn) {
   await flushStaleThreads();
   renderNutrition();
   if (ok) window.appRerender?.();
+  mostrarIntroCoach();
   rt?.unsubscribe?.();
   rt = sb.channel('program')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, onProgramChange)
