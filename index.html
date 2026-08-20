@@ -6438,9 +6438,15 @@ async function sendChat(text) {
     burbuja.remove();
     chatHistory.push({ role: 'assistant', content: respuesta || '(sin respuesta)', actions: acciones });
     renderChat();
-    // Si el entrenador tocó la BD, refresca el programa al momento
-    // (el realtime también lo haría, esto lo hace instantáneo)
-    if (acciones.length && (await pullProgram())) window.appRerender?.();
+    // Si el entrenador tocó la BD, refresca al momento lo que se ve
+    // (el realtime lo haría con el programa, pero `meals` no va por realtime:
+    // sin esto, una comida que apunte el Coach no sale en Nutrición hasta
+    // reabrir la app)
+    if (acciones.length) {
+      if (await pullProgram()) window.appRerender?.();
+      await pullMeals();
+      renderNutrition();
+    }
   } catch (err) {
     estado.remove();
     burbuja.remove();
