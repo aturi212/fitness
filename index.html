@@ -496,6 +496,34 @@
   /* §12.7 · Mínimo .68: por debajo, el peso anterior deja de leerse */
   table.sets tr.completed { opacity: .68; }
 
+  /* Ficha de cardio: no hay series, hay métricas de la sesión */
+  .cardio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .cardio-field { background: var(--bg-elev-2); border: 1px solid var(--line); border-radius: var(--r-4); padding: 10px 12px; }
+  .cardio-field .label-sm { display: block; margin-bottom: 6px; }
+  .cardio-field input { width: 100%; background: none; border: 0; color: var(--text);
+                        font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; padding: 0; }
+  .cardio-field input:focus { outline: none; }
+  .cardio-field input::-webkit-outer-spin-button, .cardio-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .cardio-field.calc { opacity: .82; }
+  .cardio-field .calc-val { font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+  .cardio-field small { font: 500 10px/1 var(--f-mono); color: var(--ghost); margin-left: 4px; }
+  .cardio-done { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .cardio-done button { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-elev-2);
+                        border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0; }
+  .cardio-done button svg { width: 17px; height: 17px; stroke-width: 3.2; }
+  .cardio-done button.checked { background: var(--hot-solid); border-color: transparent; color: var(--hot-ink); }
+  .cardio-done span { font: 500 10px/1 var(--f-mono); letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+
+  /* Notas: las mías y las del coach, en dos pestañas */
+  .ex-notes { margin-top: 14px; }
+  .ex-notes-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ex-notes-tabs button { flex: 1; padding: 8px 6px; border-radius: var(--r-4); background: var(--s2);
+                          border: 1px solid var(--line); color: var(--muted);
+                          font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; }
+  .ex-notes-tabs button.on { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  .coach-note { margin: 0; padding: 12px 13px; background: var(--bg-elev-2); border: 1px solid var(--line);
+                border-radius: var(--r-4); font-size: 13.5px; line-height: 1.5; color: var(--text); }
+  .coach-note.vacia { color: var(--ghost); }
   .notes-input { width: 100%; margin-top: 10px; padding: 10px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; font-size: 13px; resize: none; }
   .notes-input:focus { outline: none; border-color: var(--accent); }
 
@@ -985,6 +1013,7 @@
     padding: calc(env(safe-area-inset-top) + 12px) var(--gutter) 12px; border-bottom: 1px solid var(--line); }
   .rv-body { flex: 1; overflow-y: auto; padding: 20px var(--gutter) 24px; }
   .rv-title { font-size: 46px; line-height: .9; margin: 0 0 14px; }
+  .rv-title span { display: block; }
   .rv-title .out { -webkit-text-stroke-width: 1.5px; }
   .rv-foot { flex-shrink: 0; padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 14px);
     border-top: 1px solid var(--line); background: var(--bg); }
@@ -1747,8 +1776,11 @@
 
     /* Héroe: titular + línea de datos + acción */
     .home-hero { position: relative; z-index: 2; margin-top: auto; padding-bottom: 26px; }
-    .home-title { font-size: 92px; line-height: .88; letter-spacing: -.05em; white-space: nowrap;
+    /* El nombre del entreno lo pone el Coach y puede ser largo: el titular se
+       parte en dos líneas y el tamaño se calcula para que quepa (ajustarTitular). */
+    .home-title { font-size: 92px; line-height: .88; letter-spacing: -.05em;
                   margin: 0 0 14px; color: #fff; }
+    .home-title span { display: block; }
     .home-title .out { color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.9); }
     .home-stats { display: flex; align-items: center; gap: 9px; margin-bottom: 18px;
                   font: 500 10px/1 var(--f-mono); letter-spacing: .14em; color: rgba(255,255,255,.86); }
@@ -2691,6 +2723,9 @@
   let EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e]));
   window.refreshCatalog = () => { EX_BY_ID = Object.fromEntries(window.EXERCISES.map(e => [e.id, e])); };
   const getExercise = id => EX_BY_ID[id] || { id, name: 'Ejercicio no encontrado: ' + id, group: 'other' };
+  // Cómo se apunta cada ejercicio: kilos y repeticiones, distancia y ritmo, o
+  // solo tiempo. Lo que no venga marcado es de fuerza, que es lo más común.
+  const tipoRegistro = (id) => getExercise(id).logType || 'fuerza';
   const groupLabel = g => window.GROUP_LABELS[g] || g;
   const eqIcon = e => window.EQUIPMENT_ICONS[e] || '·';
 
@@ -2885,6 +2920,27 @@
   // ===== Home §8.1: una sola pregunta que responder — «¿qué toca hoy?» =====
   // El titular parte el nombre del entreno: todo hueco salvo la ÚLTIMA palabra.
   // Una sola palabra → maciza (§2.2).
+  // Cuánto ocupa de ancho un texto con la tipografía del titular, medido de
+  // verdad (no a ojo con el número de letras: la display tiene anchos muy
+  // distintos entre una I y una M).
+  function anchoTexto(texto, fuente) {
+    const ctx = anchoTexto._ctx || (anchoTexto._ctx = document.createElement('canvas').getContext('2d'));
+    ctx.font = fuente;
+    return ctx.measureText(texto).width;
+  }
+  // Baja el tamaño del titular hasta que la línea más larga entre en su caja.
+  function ajustarTitular(el, maxPx) {
+    if (!el) return;
+    const lineas = [...el.querySelectorAll('span')].map((x) => x.textContent.trim()).filter(Boolean);
+    if (!lineas.length) { el.style.fontSize = ''; return; }
+    const disponible = el.clientWidth || el.parentElement?.clientWidth || 340;
+    const familia = getComputedStyle(el).fontFamily;
+    // Se mide una vez a 100px y se escala: el ancho es proporcional al tamaño
+    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `700 100px ${familia}`) / 100));
+    if (!porPixel) return;
+    el.style.fontSize = Math.max(26, Math.min(maxPx, Math.floor(disponible * 0.98 / porPixel))) + 'px';
+  }
+
   function homeTitleHtml(name) {
     const words = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '';
@@ -2923,6 +2979,7 @@
       const estMin = Math.round(totalSets * 2.5);
       const pos = planned.findIndex(x => x.id === heroId) + 1;
       titleEl.innerHTML = homeTitleHtml(r.name);
+      ajustarTitular(titleEl, 92);
       // Línea de datos: SESIÓN 02/03 ——— 88 MIN ——— 8 EJ
       statsEl.innerHTML =
         (pos > 0 ? `<span>SESIÓN ${String(pos).padStart(2,'0')}/${String(planned.length).padStart(2,'0')}</span><i></i>` : '') +
@@ -2934,6 +2991,7 @@
       document.getElementById('homeMini').dataset.rid = heroId;
     } else {
       titleEl.innerHTML = homeTitleHtml('REST');
+      ajustarTitular(titleEl, 92);
       const hechos = week.length;
       statsEl.innerHTML = `<span>HOY NO TOCA</span><i></i><span>${hechos} DE ${target} ESTA SEMANA</span>`;
       ctaEl.style.display = 'none';
@@ -3213,9 +3271,8 @@
     const r = window.ROUTINES.routines[rid];
     if (!r) return;
     const sets = (r.exercises || []).reduce((a, e) => a + (e.sets || 0), 0);
-    document.getElementById('rvTitle').innerHTML =
-      (() => { const w = r.name.trim().split(/\s+/); if (w.length === 1) return `<span>${w[0]}</span>`;
-               const last = w.pop(); return `<span class="out">${w.join(' ')}</span> <span>${last}</span>`; })();
+    document.getElementById('rvTitle').innerHTML = homeTitleHtml(r.name);
+    ajustarTitular(document.getElementById('rvTitle'), 46);
     document.getElementById('rvMeta').innerHTML =
       `<span>${r.exercises.length} EJ</span><i></i><span>${sets} SERIES</span><i></i><span>${routineMins(r)} MIN</span>`;
     document.getElementById('rvList').innerHTML = (r.exercises || []).map((ex, i) => {
@@ -4319,14 +4376,16 @@
   // se borra: no vuelve a aparecer.
   const EXNOTE_KEY = 'fitness_ex_notes_v1';
   const loadExNotes = () => { try { return JSON.parse(localStorage.getItem(EXNOTE_KEY) || '{}'); } catch { return {}; } };
-  function exNoteFor(exId, fallback) {
-    const mine = loadExNotes()[exId];
-    return mine === undefined ? (fallback || '') : mine;
+  // Solo las notas del usuario. La del coach vive aparte, en su pestaña.
+  function exNoteFor(exId) {
+    return loadExNotes()[exId] || '';
   }
   function saveExNote(exId, text) {
     const all = loadExNotes();
     all[exId] = text;
     localStorage.setItem(EXNOTE_KEY, JSON.stringify(all));
+    // A la nube: son las notas que el Coach lee en sus revisiones
+    window.cloudPushExNote?.({ type: 'exnote', exercise_id: exId, note: text });
   }
 
   // Superseries: la fuente de verdad es la columna `superset_group` de
@@ -4361,8 +4420,10 @@
     // Se quita la frase del marcador entera («SUPERSERIE A1 con hanging-leg-raise.»),
     // no solo las dos primeras palabras, que dejaba la nota empezando a media frase.
     const notaBase = (item.notes || '').replace(/^\s*(?:SUPER|TRI|BI)SERIE\s+[A-Z]\d?[^.]*\.\s*/i, '').trim();
+    const tipo = tipoRegistro(item.exerciseId);
+    const tabla = tablaDeSeries(item, tipo);
     return `
-      <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}">
+      <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}" data-log="${tipo}">
         <div class="tk-kicker">
           <span class="label-sm">Ejercicio ${String(slotIdx + 1).padStart(2, '0')}</span>
           <span class="rule"></span>
@@ -4371,39 +4432,96 @@
         <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
         <div class="tk-chips">
           <div class="tk-chips-scroll">
-            <span class="tk-chip">${item.sets} SERIES · ${repsCorto(item.repsTarget)}</span>
-            ${item.restSec ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
+            <span class="tk-chip">${tipo === 'cardio' ? repsCorto(item.repsTarget).toUpperCase() : `${item.sets} SERIES · ${repsCorto(item.repsTarget)}`}</span>
+            ${(item.restSec && tipo !== 'cardio') ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
           </div>
           <button type="button" class="tk-chip tk-chip--swap" onclick="openSwap(${slotIdx})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
             CAMBIAR
           </button>
         </div>
-        <table class="sets">
-          <thead>
-            <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th><th>KG</th><th>REPS</th><th style="width:44px" aria-label="Hecha"></th></tr>
-          </thead>
-          <tbody>
-            ${Array.from({length: item.sets}, (_, s) => {
-              const prevSet = getLastSet(item.exerciseId, s);
-              const prevTxt = prevSet ? `${prevSet.kg ?? '—'} × ${prevSet.reps ?? '—'}` : '—';
-              return `
-              <tr data-set="${s}">
-                <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
-                <td class="prev-val">${prevTxt}</td>
-                <td><input type="number" inputmode="decimal" placeholder="—" data-field="kg"></td>
-                <td><input type="number" inputmode="numeric" placeholder="—" data-field="reps"></td>
-                <td class="done"><button onclick="toggleSet(this, ${item.restSec})" aria-label="Marcar serie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button></td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-        <div class="ex-note-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
-          <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
-            placeholder="Nota del ejercicio…">${exNoteFor(item.exerciseId, notaBase)}</textarea>
+        ${tabla}
+        <div class="ex-notes">
+          <div class="ex-notes-tabs">
+            <button type="button" class="on" data-nota="mias">Mis notas</button>
+            <button type="button" data-nota="coach">Del coach</button>
+          </div>
+          <div data-pane="mias">
+            <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
+              placeholder="Lo que quieras recordar para la próxima…">${exNoteFor(item.exerciseId)}</textarea>
+          </div>
+          <div data-pane="coach" style="display:none">
+            <p class="coach-note ${notaBase ? '' : 'vacia'}">${notaBase || 'Tu coach no ha dejado ninguna nota en este ejercicio.'}</p>
+          </div>
         </div>
       </div>`;
+  }
+
+  // Lo que se apuntó la última vez, dicho según el tipo de ejercicio
+  function resumenAnterior(tipo, st) {
+    if (!st) return '—';
+    if (tipo === 'cardio') {
+      const km = st.distance_m ? (st.distance_m / 1000).toFixed(2).replace('.', ',') + ' km' : null;
+      const min = st.seconds ? Math.round(st.seconds / 60) + ' min' : null;
+      return [km, min].filter(Boolean).join(' · ') || '—';
+    }
+    if (tipo === 'tiempo') return st.seconds ? st.seconds + '″' : '—';
+    return `${st.kg ?? '—'} × ${st.reps ?? '—'}`;
+  }
+
+  // La zona de apuntar, distinta para cada tipo
+  function tablaDeSeries(item, tipo) {
+    const check = (rest) => `<button onclick="toggleSet(this, ${rest})" aria-label="Marcar serie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+
+    if (tipo === 'cardio') {
+      const prev = getLastSet(item.exerciseId, 0);
+      return `
+        <div class="cardio-grid">
+          <div class="cardio-field">
+            <span class="label-sm">Distancia (km)</span>
+            <input type="number" inputmode="decimal" step="0.01" placeholder="—" data-field="km">
+          </div>
+          <div class="cardio-field">
+            <span class="label-sm">Tiempo (min)</span>
+            <input type="number" inputmode="decimal" step="1" placeholder="—" data-field="min">
+          </div>
+          <div class="cardio-field calc">
+            <span class="label-sm">Ritmo</span>
+            <span class="calc-val" data-calc="ritmo">—</span><small>MIN/KM</small>
+          </div>
+          <div class="cardio-field">
+            <span class="label-sm">Pulso medio</span>
+            <input type="number" inputmode="numeric" placeholder="—" data-field="hr">
+          </div>
+        </div>
+        <div class="cardio-done">
+          ${check(0)}
+          <span>Anterior: ${resumenAnterior('cardio', prev)}</span>
+        </div>`;
+    }
+
+    const columnas = tipo === 'tiempo'
+      ? '<th>SEG</th>'
+      : '<th>KG</th><th>REPS</th>';
+    const campos = tipo === 'tiempo'
+      ? '<td><input type="number" inputmode="numeric" placeholder="—" data-field="seg"></td>'
+      : '<td><input type="number" inputmode="decimal" placeholder="—" data-field="kg"></td>'
+        + '<td><input type="number" inputmode="numeric" placeholder="—" data-field="reps"></td>';
+    return `
+      <table class="sets">
+        <thead>
+          <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th>${columnas}<th style="width:44px" aria-label="Hecha"></th></tr>
+        </thead>
+        <tbody>
+          ${Array.from({ length: item.sets }, (_, s) => `
+            <tr data-set="${s}">
+              <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
+              <td class="prev-val">${resumenAnterior(tipo, getLastSet(item.exerciseId, s))}</td>
+              ${campos}
+              <td class="done">${check(item.restSec)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
   }
 
   function renderTracker() {
@@ -4415,9 +4533,35 @@
           p.slots.length === 2 ? 'Superserie' : (p.slots.length === 3 ? 'Triserie' : 'Circuito')
         } · sin descanso</div>` : ''}
         ${p.slots.map((i) => renderCard(i, session.exercises.length)).join('')}
-        ${nextUpHtml(p.slots[p.slots.length - 1])}
       </section>`).join('');
     document.getElementById('trackerName').textContent = session.routineName;
+    // Pestañas de notas: las mías (se escriben) y las del coach (se leen)
+    trackerBody.querySelectorAll('.ex-notes').forEach((caja) => {
+      caja.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-nota]');
+        if (!b) return;
+        caja.querySelectorAll('[data-nota]').forEach((x) => x.classList.toggle('on', x === b));
+        caja.querySelectorAll('[data-pane]').forEach((x) => {
+          x.style.display = x.dataset.pane === b.dataset.nota ? '' : 'none';
+        });
+      });
+    });
+    // Cardio: el ritmo sale solo de la distancia y el tiempo
+    trackerBody.querySelectorAll('[data-log="cardio"]').forEach((card) => {
+      const km = card.querySelector('[data-field="km"]');
+      const min = card.querySelector('[data-field="min"]');
+      const salida = card.querySelector('[data-calc="ritmo"]');
+      const pintar = () => {
+        const d = parseFloat(km.value), t = parseFloat(min.value);
+        if (!(d > 0) || !(t > 0)) { salida.textContent = '—'; return; }
+        const porKm = t / d;
+        const m = Math.floor(porKm);
+        const seg = Math.round((porKm - m) * 60);
+        salida.textContent = `${m}:${String(seg).padStart(2, '0')}`;
+      };
+      km.addEventListener('input', pintar);
+      min.addEventListener('input', pintar);
+    });
     // Notas: crecen con el texto y se guardan al salir del campo
     trackerBody.querySelectorAll('.notes-input').forEach((ta) => {
       const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
@@ -4427,26 +4571,6 @@
     });
     updateTrackerPos(0);
     watchDeck();
-  }
-
-  // «A continuación»: los 2-3 siguientes, con su carga de la última vez
-  function nextUpHtml(fromSlot) {
-    const restantes = session.exercises.slice(fromSlot + 1, fromSlot + 4);
-    if (!restantes.length) return '';
-    return `
-      <div class="sec-head">
-        <span class="label">A continuación</span>
-        <span class="rule"></span>
-        <span class="data-sm">${session.exercises.length - fromSlot - 1} EJ MÁS</span>
-      </div>
-      ${restantes.map((it, k) => {
-        const e = getExercise(it.exerciseId);
-        return `<div class="row">
-          <span class="idx">${String(fromSlot + k + 2).padStart(2, '0')}</span>
-          <div class="rt-info"><div class="rt-name" style="font-size:15px">${e.name}</div></div>
-          <span class="data">${it.sets} × ${repsCorto(it.repsTarget)}</span>
-        </div>`;
-      }).join('')}`;
   }
 
   // Posición actual (EJ n DE m) y barra de progreso.
@@ -4557,15 +4681,41 @@
     cards.forEach(card => {
       const slotIdx = parseInt(card.dataset.slot, 10);
       const slot = session.exercises[slotIdx];
+      const tipo = card.dataset.log || 'fuerza';
+      const num = (sel, entero) => {
+        const el = card.querySelector(sel);
+        if (!el) return null;
+        const v = entero ? parseInt(el.value, 10) : parseFloat(el.value);
+        return isNaN(v) ? null : v;
+      };
       const sets = [];
-      card.querySelectorAll('tbody tr').forEach(tr => {
-        const kg = parseFloat(tr.querySelector('input[data-field="kg"]').value);
-        const reps = parseInt(tr.querySelector('input[data-field="reps"]').value, 10);
-        const done = tr.querySelector('.done button').classList.contains('checked');
-        if (done || !isNaN(kg) || !isNaN(reps)) {
-          sets.push({ kg: isNaN(kg) ? null : kg, reps: isNaN(reps) ? null : reps, done });
+      if (tipo === 'cardio') {
+        // Una sesión de cardio es un solo registro, no una lista de series
+        const km = num('[data-field="km"]'), min = num('[data-field="min"]'), hr = num('[data-field="hr"]', true);
+        const done = !!card.querySelector('.cardio-done button')?.classList.contains('checked');
+        if (done || km != null || min != null || hr != null) {
+          sets.push({
+            kg: null, reps: null, done,
+            distance_m: km != null ? Math.round(km * 1000) : null,
+            seconds: min != null ? Math.round(min * 60) : null,
+            hr,
+          });
         }
-      });
+      } else {
+        card.querySelectorAll('tbody tr').forEach((tr) => {
+          const campo = (f, entero) => {
+            const el = tr.querySelector(`input[data-field="${f}"]`);
+            if (!el) return null;
+            const v = entero ? parseInt(el.value, 10) : parseFloat(el.value);
+            return isNaN(v) ? null : v;
+          };
+          const kg = campo('kg'), reps = campo('reps', true), seg = campo('seg', true);
+          const done = tr.querySelector('.done button').classList.contains('checked');
+          if (done || kg != null || reps != null || seg != null) {
+            sets.push({ kg, reps, seconds: seg, done });
+          }
+        });
+      }
       if (!sets.length) return;
       const notes = card.querySelector('.notes-input').value.trim();
       const rec = { date: dateIso, routineId: session.routineId, sets, notes };
@@ -4592,8 +4742,11 @@
             exercise_id: ex.exerciseId,
             slot_index: slotIdx + 1,
             set_index: setIdx + 1,
-            weight_kg: st.kg,
-            reps: st.reps,
+            weight_kg: st.kg ?? null,
+            reps: st.reps ?? null,
+            seconds: st.seconds ?? null,
+            distance_m: st.distance_m ?? null,
+            avg_hr: st.hr ?? null,
             swapped: !!ex.swapped,
             notes: (setIdx === 0 && ex.notes) ? ex.notes : null,
           });
@@ -4965,6 +5118,27 @@ window.cloudPushWorkout = (workout, sets) => {
 window.cloudPushOverride = (item) => {
   pushOverrideNow(item).catch(() => window.fitnessEnqueue(item));
 };
+async function pushExNoteNow(item) {
+  const { error } = await sb.from('exercise_notes').upsert({
+    exercise_id: item.exercise_id, note: item.note, updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+window.cloudPushExNote = (item) => {
+  pushExNoteNow(item).catch(() => window.fitnessEnqueue(item));
+};
+
+// Las notas del usuario, de la nube al móvil. La nube gana: si escribió desde
+// otro dispositivo, esa es la buena.
+async function pullExNotes() {
+  const { data, error } = await sb.from('exercise_notes').select('exercise_id, note');
+  if (error || !data) return;
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem('fitness_ex_notes_v1') || '{}'); } catch { local = {}; }
+  data.forEach((n) => { local[n.exercise_id] = n.note; });
+  localStorage.setItem('fitness_ex_notes_v1', JSON.stringify(local));
+}
+
 async function pushWeightNow(item) {
   const { error } = await sb.from('body_weight').upsert({
     date: item.date, weight_kg: item.kg, note: item.note || null,
@@ -5003,6 +5177,7 @@ async function flushOutbox() {
       else if (it.type === 'weight') await pushWeightNow(it);
       else if (it.type === 'exrename') await renameExerciseNow(it);
       else if (it.type === 'exadd') await addExerciseNow(it);
+      else if (it.type === 'exnote') await pushExNoteNow(it);
     } catch { remaining.push(it); }
   }
   saveOutbox(remaining);
@@ -5022,6 +5197,7 @@ async function pullProgram() {
 
   const exercises = ex.data.map(e => ({
     id: e.id, name: e.name, group: e.muscle_group, pattern: e.pattern, equipment: e.equipment,
+    logType: e.log_type || 'fuerza',
   }));
   const routines = {};
   ro.data.forEach(r => {
@@ -6799,6 +6975,7 @@ async function boot(loggedIn) {
   const ok = await pullProgram();
   await pullHistory();
   await pullBodyWeight();
+  await pullExNotes();
   await pullMeals();
   await materializeRecurring();
   await flushStaleThreads();
