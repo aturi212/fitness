@@ -841,6 +841,39 @@
   .ex-note-box textarea::placeholder { color: var(--ghost-2); }
 
   /* Barra inferior: pausar → reanudar / finalizar */
+  /* Vídeo del ejercicio */
+  .tk-chip--video { gap: 7px; background: var(--hot-soft); border-color: var(--hot-line); color: var(--hot-text); }
+  .tk-chip--video svg { width: 12px; height: 12px; }
+  .vid-modal { position: fixed; inset: 0; z-index: 200; display: none; }
+  .vid-modal.open { display: block; }
+  .vid-back { position: absolute; inset: 0; background: rgba(0,0,0,.78);
+              opacity: 0; transition: opacity var(--t-base) var(--ease); }
+  .vid-modal.on .vid-back { opacity: 1; }
+  .vid-box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -48%) scale(.97);
+             width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 40px);
+             display: flex; flex-direction: column; gap: 10px;
+             background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-8);
+             padding: 14px; box-shadow: var(--sh-float);
+             opacity: 0; transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease); }
+  .vid-modal.on .vid-box { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .vid-head { display: flex; align-items: center; gap: 10px; }
+  .vid-name { flex: 1; min-width: 0; font: 500 14px/1.25 var(--f-ui); color: var(--text);
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vid-frame { position: relative; background: #000; border-radius: var(--r-6); overflow: hidden;
+               aspect-ratio: 16 / 9; max-height: calc(100dvh - 190px); margin: 0 auto; width: 100%; }
+  /* Los shorts son verticales: en un marco 16:9 se quedan en un sello de correos */
+  .vid-frame.vertical { aspect-ratio: 9 / 16; width: auto; height: min(72dvh, 640px); }
+  .vid-frame:empty { display: none; }
+  .vid-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .vid-aviso { font: 500 12px/1.45 var(--f-ui); color: var(--muted); text-align: center;
+               background: var(--s3); border: 1px solid var(--line); border-radius: var(--r-4); padding: 10px; }
+  .vid-out { display: block; text-align: center; padding: 11px; border-radius: var(--r-4);
+             background: var(--s3); border: 1px solid var(--line-2); color: var(--muted);
+             font: 600 10px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase;
+             text-decoration: none; }
+  .vid-aviso:not([hidden]) + .vid-out { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  @media (prefers-reduced-motion: reduce) { .vid-back, .vid-box { transition: none; } }
+
   /* Coach durante el entreno: botón en la cabecera y panel emergente */
   .tk-coach-btn { position: relative; }
   .tk-coach-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%;
@@ -2492,6 +2525,25 @@
       <p class="done-sub">¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.</p>
       <div class="done-stats" id="doneStats"></div>
       <button type="button" class="btn-primary" id="doneClose">CERRAR</button>
+    </div>
+  </div>
+
+  <!-- =========== VÍDEO DEL EJERCICIO =========== -->
+  <!-- Incrustado con youtube-nocookie. El enlace para abrirlo fuera está
+       SIEMPRE: si el vídeo no deja incrustarse, es la única salida. -->
+  <div class="vid-modal" id="videoModal" aria-hidden="true">
+    <div class="vid-back" id="videoBack"></div>
+    <div class="vid-box" role="dialog" aria-modal="true" aria-labelledby="videoName">
+      <div class="vid-head">
+        <span class="label-sm">Vídeo</span>
+        <span class="vid-name" id="videoName">—</span>
+        <button type="button" class="btn-icon" id="videoClose" aria-label="Cerrar el vídeo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="vid-frame" id="videoFrame"></div>
+      <div class="vid-aviso" id="videoAviso" hidden>Este vídeo no deja verse aquí dentro.</div>
+      <a class="vid-out" id="videoOut" href="#" target="_blank" rel="noopener noreferrer">Abrir en YouTube ↗</a>
     </div>
   </div>
 
@@ -4656,6 +4708,9 @@
         <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
         <div class="tk-chips">
           <div class="tk-chips-scroll">
+            ${ex.videoUrl ? `<button type="button" class="tk-chip tk-chip--video" onclick="openVideo('${item.exerciseId}')">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>VÍDEO
+            </button>` : ''}
             <span class="tk-chip">${tipo === 'cardio' ? repsCorto(item.repsTarget).toUpperCase() : `${item.sets} SERIES · ${repsCorto(item.repsTarget)}`}</span>
             ${(item.restSec && tipo !== 'cardio') ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
           </div>
@@ -5460,6 +5515,84 @@
     document.getElementById('restT').textContent = `${m}:${s}`;
   }
 
+  // ============ Vídeo del ejercicio ============
+  // El id sale de cualquier forma de enlace de YouTube: watch, youtu.be,
+  // shorts o embed. Lo que no sea YouTube no se incrusta, se abre fuera.
+  function youtubeId(url) {
+    try {
+      const u = new URL(url, location.href);
+      const host = u.hostname.replace(/^(www|m)\./, '');
+      if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+      if (host !== 'youtube.com' && host !== 'youtube-nocookie.com') return null;
+      if (u.pathname === '/watch') return u.searchParams.get('v');
+      const m = /^\/(shorts|embed|v|live)\/([^/?#]+)/.exec(u.pathname);
+      return m ? m[2] : null;
+    } catch { return null; }
+  }
+
+  const videoModal = document.getElementById('videoModal');
+  const videoFrame = document.getElementById('videoFrame');
+  const videoAviso = document.getElementById('videoAviso');
+  let videoTimer = null, videoResponde = false;
+
+  window.openVideo = function(exId) {
+    const ex = getExercise(exId);
+    if (!ex.videoUrl) return;
+    const id = youtubeId(ex.videoUrl);
+    document.getElementById('videoName').textContent = ex.name;
+    document.getElementById('videoOut').href = ex.videoUrl;
+    clearTimeout(videoTimer);
+    videoResponde = false;
+    videoAviso.hidden = true;
+    videoFrame.classList.toggle('vertical', /\/shorts\//.test(ex.videoUrl));
+    if (id) {
+      videoFrame.innerHTML =
+        `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
+           title="Vídeo del ejercicio" loading="eager" allowfullscreen
+           allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+           referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      // Saludo al reproductor. Si no contesta, casi siempre es que el vídeo no
+      // permite incrustarse: entonces se sube el enlace de salir fuera.
+      const marco = videoFrame.querySelector('iframe');
+      marco.addEventListener('load', () => {
+        try {
+          marco.contentWindow.postMessage(
+            JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }),
+            'https://www.youtube-nocookie.com');
+        } catch { /* sin handshake: manda el temporizador */ }
+      });
+      videoTimer = setTimeout(() => { if (!videoResponde) videoAviso.hidden = false; }, 4000);
+    } else {
+      // No es YouTube: no hay nada que incrustar
+      videoFrame.innerHTML = '';
+      videoAviso.hidden = false;
+    }
+    videoModal.classList.add('open');
+    videoModal.setAttribute('aria-hidden', 'false');
+    void videoModal.offsetWidth;
+    videoModal.classList.add('on');
+  };
+
+  window.addEventListener('message', (e) => {
+    if (!/^https:\/\/(www\.)?youtube(-nocookie)?\.com$/.test(e.origin)) return;
+    videoResponde = true;
+    videoAviso.hidden = true;
+  });
+
+  function closeVideo() {
+    if (!videoModal.classList.contains('open')) return;
+    clearTimeout(videoTimer);
+    videoModal.classList.remove('on');
+    setTimeout(() => {
+      videoModal.classList.remove('open');
+      videoModal.setAttribute('aria-hidden', 'true');
+      videoFrame.innerHTML = '';   // callar el vídeo al cerrar
+    }, 200);
+  }
+  document.getElementById('videoClose').addEventListener('click', closeVideo);
+  document.getElementById('videoBack').addEventListener('click', closeVideo);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeVideo(); });
+
   // ============ SWAP modal ============
   let swapSlotIdx = null;
   let swapFilter = 'group'; // 'group' | 'all'
@@ -5895,6 +6028,7 @@ async function pullProgram() {
   const exercises = ex.data.map(e => ({
     id: e.id, name: e.name, group: e.muscle_group, pattern: e.pattern, equipment: e.equipment,
     logType: e.log_type || 'fuerza',
+    videoUrl: e.video_url || null,
   }));
   const routines = {};
   ro.data.forEach(r => {
