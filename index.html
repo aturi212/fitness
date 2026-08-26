@@ -841,6 +841,26 @@
   .ex-note-box textarea::placeholder { color: var(--ghost-2); }
 
   /* Barra inferior: pausar → reanudar / finalizar */
+  /* Salto automático al siguiente ejercicio: se ve lo que ha pasado */
+  .tk-jump { position: absolute; inset: 0; z-index: 130; display: grid; place-items: center;
+             background: rgba(5,5,5,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+             opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease); }
+  .tk-jump.on { opacity: 1; }
+  .tk-jump-in { display: flex; flex-direction: column; align-items: center; gap: 12px;
+                padding: 0 var(--gutter); text-align: center;
+                transform: translateY(10px); transition: transform 320ms var(--ease); }
+  .tk-jump.on .tk-jump-in { transform: translateY(0); }
+  .tk-jump-kicker { font: 600 9px/1 var(--f-mono); letter-spacing: .24em; text-transform: uppercase; color: var(--hot-text); }
+  .tk-jump-arrow { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+                   background: var(--hot-soft); border: 1px solid var(--hot-line); color: var(--hot-text); }
+  .tk-jump-arrow svg { width: 20px; height: 20px; }
+  .tk-jump-name { font: 700 30px/1.02 var(--f-display); letter-spacing: -.035em;
+                  text-transform: uppercase; color: #fff; max-width: 100%; }
+  .tk-jump-pos { font: 500 9px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ghost); }
+  @media (prefers-reduced-motion: reduce) {
+    .tk-jump, .tk-jump-in { transition: none; }
+  }
+
   .tk-foot { position: relative; z-index: 3; flex-shrink: 0; background: var(--bg);
     border-top: 1px solid var(--line);
     padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 12px); }
@@ -849,7 +869,18 @@
 
   /* Temporizador de descanso: contorno, nunca relleno a pantalla completa */
   .rest-timer { left: var(--gutter); right: var(--gutter); bottom: 96px; height: 70px; padding: 0 16px; z-index: 110; }
-  .rest-timer .lbl { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
+  .rest-timer .rt-left { min-width: 0; flex: 1; }
+  .rest-timer .lbl { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Descanso encadenado: el siguiente ejercicio va en su propia línea. Metido
+     al lado de «DESCANSO» se comía el nombre con puntos suspensivos. */
+  .rest-timer.with-next { height: auto; flex-wrap: wrap; row-gap: 11px; padding-top: 13px; padding-bottom: 13px; }
+  .rt-next { flex: 0 0 100%; order: 3; display: none; align-items: center; gap: 9px; min-width: 0;
+             padding-top: 11px; border-top: 1px solid var(--line);
+             font: 600 9px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--faint); }
+  .rest-timer.with-next .rt-next { display: flex; }
+  .rt-next b { min-width: 0; flex: 1; font-weight: 600; letter-spacing: .12em; color: var(--hot-text);
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rest-timer .t { font-size: 26px; margin-top: 5px; }
   .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
   .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
@@ -2343,13 +2374,28 @@
     <div class="tk-deck" id="trackerBody"></div>
 
     <div class="rest-timer" id="restTimer">
-      <div>
+      <div class="rt-left">
         <div class="lbl">Descanso</div>
         <div class="t" id="restT">02:00</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-shrink:0">
         <button onclick="adjustRest(30)">+30&Prime;</button>
-        <button class="rt-skip" onclick="stopRest()">SALTAR</button>
+        <button class="rt-skip" id="rtSkip" onclick="stopRest('saltar')">SALTAR</button>
+      </div>
+      <!-- Solo cuando el descanso encadena con el siguiente ejercicio -->
+      <div class="rt-next"><span>Luego</span><b id="restNextName">—</b></div>
+    </div>
+
+    <!-- Aviso de salto automático: sin esto el ejercicio cambiaba solo y no
+         quedaba claro qué había pasado. -->
+    <div class="tk-jump" id="tkJump" aria-hidden="true">
+      <div class="tk-jump-in">
+        <span class="tk-jump-kicker">Ejercicio completado</span>
+        <span class="tk-jump-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M12 5l7 7-7 7"/></svg>
+        </span>
+        <span class="tk-jump-name" id="tkJumpName">—</span>
+        <span class="tk-jump-pos" id="tkJumpPos"></span>
       </div>
     </div>
 
@@ -4693,6 +4739,7 @@
       ta.addEventListener('input', fit);
       ta.addEventListener('blur', () => saveExNote(ta.dataset.ex, ta.value.trim()));
     });
+    cancelarAutoAvance();
     updateTrackerPos(0);
     watchDeck();
   }
@@ -4757,7 +4804,11 @@
       const idx = deckIndex();
       const panel = (session?.panels || [])[idx];
       const slot = panel ? panel.slots[0] : 0;
-      if (slot !== deckLastSlot) { deckLastSlot = slot; updateTrackerPos(slot); }
+      if (slot !== deckLastSlot) {
+        deckLastSlot = slot;
+        updateTrackerPos(slot);
+        cancelarAutoAvance();   // pasar de ejercicio a mano anula el salto en cola
+      }
       // ¿Se ha parado la baraja?
       const x = Math.round(trackerBody.scrollLeft);
       if (x === deckLastX) deckStill++; else { deckStill = 0; deckLastX = x; }
@@ -5150,7 +5201,7 @@
     document.getElementById('tracker').classList.remove('open');
     renderSyncBar();
     clearInterval(workoutTimer);
-    stopRest();
+    stopRest('cerrar');
     setPaused(false);
     cancelarCuentaAtras();   // por si se sale con la cuenta atrás en marcha
   }
@@ -5178,19 +5229,105 @@
     const ancla = fila || btn.closest('.exercise-card');
     fila?.classList.toggle('completed', marcada);
     scheduleDraft();
-    if (marcada) {
-      navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
-      // En una superserie el descanso solo va al terminar la última serie del grupo
-      const panel = ancla?.closest('.tk-panel');
-      const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
-      const esUltimaDelGrupo = !esSuperserie ||
-        (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
-      if (esUltimaDelGrupo && restSec > 0) startRest(restSec);
+    const panel = ancla?.closest('.tk-panel');
+    if (!marcada) {
+      // Desmarcar es rectificar: si había un salto en cola, se anula
+      if (panel && deckAutoPending && deckAutoPending.desde === panelIndex(panel)) cancelarAutoAvance();
+      return;
+    }
+    navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
+    // En una superserie el descanso solo va al terminar la última serie del grupo
+    const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
+    const esUltimaDelGrupo = !esSuperserie ||
+      (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
+    // Con la última serie del ejercicio marcada se encola el salto al siguiente.
+    // Se prepara ANTES de arrancar el descanso para que el temporizador ya
+    // pueda decir a dónde lleva.
+    const completo = panelCompleto(panel);
+    if (completo) prepararAutoAvance(panel);
+    // El grupo terminado descansa aunque la casilla marcada no sea la del
+    // último ejercicio: en una superserie se pueden ir marcando en cualquier orden.
+    if (restSec > 0 && (esUltimaDelGrupo || completo)) startRest(restSec);
+    else if (deckAutoPending) {
+      // Sin descanso que encadenar (cardio, o descanso a cero): se salta igual,
+      // con una pausa corta para que dé tiempo a ver el aviso.
+      deckAutoTimer = setTimeout(dispararAutoAvance, 700);
     }
   };
+
+  // ---- Auto-avance: la última serie encadena descanso y siguiente ejercicio ----
+  let deckAutoPending = null;   // { desde, hacia, nombre }
+  let deckAutoTimer = null;
+
+  const panelIndex = (panel) =>
+    Array.prototype.indexOf.call(trackerBody.querySelectorAll('.tk-panel'), panel);
+
+  // Un panel está hecho cuando no le queda ninguna casilla sin marcar (en una
+  // superserie, las de todos los ejercicios del grupo)
+  function panelCompleto(panel) {
+    if (!panel) return false;
+    const casillas = panel.querySelectorAll('td.done button, .cardio-done button');
+    return casillas.length > 0 &&
+      Array.prototype.every.call(casillas, (b) => b.classList.contains('checked'));
+  }
+
+  function prepararAutoAvance(panel) {
+    const desde = panelIndex(panel);
+    const siguiente = (session?.panels || [])[desde + 1];
+    if (desde < 0 || !siguiente) return;   // el último ejercicio no lleva a ningún sitio
+    const nombre = getExercise(session.exercises[siguiente.slots[0]].exerciseId).name;
+    deckAutoPending = { desde, hacia: desde + 1, nombre };
+    pintarSiguienteEnDescanso();
+  }
+
+  function pintarSiguienteEnDescanso() {
+    const caja = document.getElementById('restTimer');
+    const skip = document.getElementById('rtSkip');
+    if (!caja || !skip) return;
+    caja.classList.toggle('with-next', !!deckAutoPending);
+    skip.textContent = deckAutoPending ? 'SALTAR Y PASAR' : 'SALTAR';
+    if (deckAutoPending) document.getElementById('restNextName').textContent = deckAutoPending.nombre;
+  }
+
+  // Deslizar a mano manda: cualquier cambio de panel que no sea el salto
+  // encolado lo cancela.
+  function cancelarAutoAvance() {
+    deckAutoPending = null;
+    clearTimeout(deckAutoTimer);
+    deckAutoTimer = null;
+    pintarSiguienteEnDescanso();
+  }
+
+  function dispararAutoAvance() {
+    clearTimeout(deckAutoTimer);
+    deckAutoTimer = null;
+    const salto = deckAutoPending;
+    deckAutoPending = null;          // se consume antes de mover: el cambio de
+    pintarSiguienteEnDescanso();     // panel ya no se lee como gesto del usuario
+    if (!salto) return;
+    if (!document.getElementById('tracker').classList.contains('open')) return;
+    if (deckIndex() !== salto.desde) return;   // ya se ha ido a mano: no se le mueve el sitio
+
+    const aviso = document.getElementById('tkJump');
+    document.getElementById('tkJumpName').textContent = salto.nombre;
+    const slot = session.panels[salto.hacia].slots[0];
+    document.getElementById('tkJumpPos').textContent = `EJ ${slot + 1} DE ${session.exercises.length}`;
+    aviso.setAttribute('aria-hidden', 'false');
+    void aviso.offsetWidth;
+    aviso.classList.add('on');
+    navigator.vibrate?.([25, 60, 25]);
+
+    setTimeout(() => { deckGoTo(salto.hacia); updateTrackerPos(slot); }, 380);
+    setTimeout(() => {
+      aviso.classList.remove('on');
+      setTimeout(() => aviso.setAttribute('aria-hidden', 'true'), 220);
+    }, 1250);
+  }
+
   function startRest(sec) {
     restRemaining = sec;
     updateRestUI();
+    pintarSiguienteEnDescanso();
     document.getElementById('restTimer').classList.add('show');
     clearInterval(restInterval);
     restInterval = setInterval(() => {
@@ -5198,13 +5335,17 @@
       updateRestUI();
       if (restRemaining <= 0) {
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        stopRest();
+        stopRest('fin');
       }
     }, 1000);
   }
-  window.stopRest = function() {
+  // `motivo`: 'fin' (se acabó el descanso) y 'saltar' (el botón) encadenan el
+  // siguiente ejercicio. 'cerrar' es salir del entreno: ahí no se salta nada.
+  window.stopRest = function(motivo) {
     clearInterval(restInterval);
     document.getElementById('restTimer').classList.remove('show');
+    if (motivo === 'fin' || motivo === 'saltar') dispararAutoAvance();
+    else cancelarAutoAvance();
   };
   window.adjustRest = function(delta) {
     restRemaining = Math.max(5, restRemaining + delta);
