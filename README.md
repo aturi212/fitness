@@ -21,10 +21,29 @@ El proyecto se trabaja en **dos chats paralelos** dentro del mismo proyecto FITN
 - **NO toca:** `index.html` ni nada del código de la app.
 
 **Ojo con `data/`:** la fuente de verdad del programa (rutinas, plan, calendario y objetivos)
-es Supabase, y es distinta para cada usuario. La app ya **no pinta `data/routines.js`**: si
-todavía no ha bajado nada de la nube, arranca vacía a propósito, para no enseñarle a quien
-acaba de registrarse el plan de otra persona. De `data/exercises.js` solo se usa el catálogo
-como respaldo mientras no hay sincronización.
+es Supabase, y es distinta para cada usuario. La app ya **ni carga `data/routines.js`**: era el
+plan de Adrián (con su peso, su % de grasa y sus notas) y, aunque el arranque lo sobrescribía
+siempre y nunca llegaba a pintarse, se servía a cualquiera que abriese la app. El archivo sigue
+en el repo como referencia del chat Personal Trainer, pero no viaja al navegador. De
+`data/exercises.js` sí se usa el catálogo como respaldo mientras no hay sincronización.
+
+## De dónde salen los entrenos de un usuario nuevo
+
+Quien se registra no arranca vacío: hay **siete plantillas de sistema** en Supabase
+(`routine_templates` + `routine_template_exercises`, de solo lectura para todo el mundo) y el
+alta le **copia** las que le tocan a sus propias tablas, según lo que marque en la bienvenida:
+
+| Material | 2-3 días/sem | 4+ días/sem |
+|---|---|---|
+| Gimnasio | INTRO A + INTRO B alternadas | TORSO + PIERNA alternadas |
+| Casa (mancuernas) | CASA, alternada con descanso | CASA + BODY alternadas |
+| Exterior / sin material | BODY | BODY + CARDIO |
+
+Lo hace `public.seed_starter_plan()`, que llaman dos triggers: `handle_new_user` (al crear la
+cuenta, con el supuesto seguro BODY/3 días por si abandona la bienvenida) y `on_profile_onboarded`
+(al terminarla, ya con el material y los días de verdad). En cuanto el Coach monta el plan
+(`first_session_done`), la siembra deja de tocar nada. Todo vive en
+`supabase/migrations/`, que es de donde hay que editarlo — no a mano en el panel de Supabase.
 
 ## Estructura de archivos
 
@@ -35,9 +54,11 @@ FITNESS/
 ├── sw.js                   # Service worker (offline)
 ├── icon.svg                # Icono de la app
 ├── README.md               # Este archivo
-└── data/
-    ├── routines.js         # Plan, calendario y rutinas (chat Personal Trainer)
-    └── exercises.js        # Banco de ejercicios (chat Personal Trainer)
+├── data/
+│   ├── routines.js         # Plan de referencia del chat Personal Trainer (NO se carga)
+│   └── exercises.js        # Banco de ejercicios (chat Personal Trainer)
+└── supabase/
+    └── migrations/         # Esquema, triggers y plantillas de rutinas iniciales
 ```
 
 ## Cómo añadir/cambiar una rutina

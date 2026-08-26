@@ -1359,8 +1359,11 @@
           <div class="cal-grid" id="calGrid"></div>
         </div>
         <div id="calYearView" style="display:none">
-          <div class="yg-title">2026</div>
+          <div class="yg-title" id="ygTitle"></div>
           <div id="yearGrid"></div>
+        </div>
+        <div class="nutri-empty" id="calEmpty" style="display:none">
+          Todavía no has registrado ningún entreno. Los días que entrenes se irán marcando aquí solos.
         </div>
       </div>
 
@@ -1511,6 +1514,11 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           REGISTRAR COMIDA
         </button>
+
+        <div class="nutri-empty" id="mealEmpty" style="display:none">
+          Todavía no has apuntado nada este día. Dale a REGISTRAR COMIDA: puedes
+          escribirlo, dictarlo o hacerle una foto al plato y el Coach saca los macros.
+        </div>
 
         <div id="mealList"></div>
       </div>
@@ -2784,9 +2792,15 @@
 
 <input type="file" id="avatarInput" accept="image/*" style="display:none">
 
-<!-- Data files (fallback local; la fuente de verdad ahora es Supabase) -->
+<!-- Catálogo de ejercicios: respaldo local mientras no hay sincronización.
+     Es genérico y común a todos, así que se puede servir tal cual.
+
+     `data/routines.js` YA NO SE CARGA. Contiene el plan de Adrián (objetivos,
+     peso, % de grasa, notas personales) y aunque el arranque lo sobrescribía
+     siempre — así que nunca llegó a pintarse —, se estaba sirviendo a todo el
+     que abriera la app y bastaba con mirar el inspector. La fuente de verdad
+     del programa es Supabase, y ahí cada usuario solo ve lo suyo (RLS). -->
 <script src="./data/exercises.js"></script>
-<script src="./data/routines.js"></script>
 
 <script>
 (() => {
@@ -2809,10 +2823,12 @@
   // Supabase y los cachea. Se aplican ANTES de construir la UI para que
   // la app pinte lo último conocido aunque no haya red.
   //
-  // Si NO hay caché, la app arranca VACÍA a propósito. El plan de data/
-  // routines.js es el de una persona concreta: enseñárselo a quien acaba de
-  // registrarse sería enseñarle entrenos, objetivos y macros que no son suyos.
-  // El catálogo de ejercicios sí se mantiene: es genérico y común a todos.
+  // Si NO hay caché, la app arranca VACÍA a propósito: enseñar aquí el plan de
+  // otra persona sería enseñar entrenos, objetivos y macros que no son suyos.
+  // Dura poco: en cuanto hay sesión, el módulo cloud baja las rutinas del
+  // usuario — que a una cuenta nueva se las siembra el alta a partir de las
+  // plantillas de sistema (ver README). El catálogo de ejercicios sí se
+  // mantiene de local: es genérico y común a todos.
   window.PROGRAMA_VACIO = () => ({
     goals: {}, plan: { name: '', blocks: [] }, currentPlan: null,
     weeklySchedule: {}, routines: {},
@@ -3618,14 +3634,14 @@
           `${sesiones} SESIONES`,
         ].join('<i>/</i>');
       } else {
-        ticker.innerHTML = '<b>SIN BLOQUE ACTIVO</b>';
+        ticker.innerHTML = ['<b>SIN BLOQUE ACTIVO</b>', 'PÍDESELO AL COACH'].join('<i>/</i>');
       }
     }
     const count = document.getElementById('planCount');
     if (count) count.textContent = blocks.length ? `${blocks.length} BLOQUES` : '';
 
     if (!blocks.length) {
-      planBlocks.innerHTML = '<div class="nutri-empty">Sin plan macro definido todavía.</div>';
+      planBlocks.innerHTML = '<div class="nutri-empty">Todavía no hay plan por bloques. Tus entrenos de arranque ya están puestos en la pestaña ENTRENADOR: pídele al Coach que te monte el plan y aquí aparecerá la línea de tiempo.</div>';
       return;
     }
     // Semanas acumuladas para el rango «SEM 3–6»
@@ -3857,6 +3873,7 @@
     const grid = document.getElementById('weeklyCheck');
     const all = getAllWorkouts();
     const html = [];
+    let planificados = 0;   // días de entreno de las cuatro semanas, en total
     const curMonday = wsMondayOf(localIso());
     for (let i = 3; i >= 0; i--) {
       const startIso = wsAddDays(curMonday, -i * 7);
@@ -3868,6 +3885,7 @@
         const rid = sched[new Date(y, m - 1, dd).getDay()];
         if (rid && rid !== 'rest') target++;
       }
+      planificados += target;
       const done = all.filter(w => w.date && w.date >= startIso && w.date <= endIso).length;
       let cls = 'empty';
       if (target > 0 && done >= target) cls = 'met';
@@ -3884,6 +3902,13 @@
         </div>`);
     }
     grid.innerHTML = html.join('');
+    // Cuatro casillas de «0/0 entrenos» no dicen si es que no entrenó o es que
+    // no hay semana montada. La cabecera lo aclara.
+    const meta = document.getElementById('checkGoal');
+    if (meta) {
+      const semanal = getWeeklyTarget();
+      meta.textContent = planificados === 0 ? 'SIN SEMANA MONTADA' : (semanal ? `${semanal}/SEM` : '');
+    }
 
     renderYearGrid();
     renderCalendar();
@@ -4073,6 +4098,10 @@
       cells.push(`<div class="cal-day ${dIso === todayIso ? 'today' : ''} ${trained ? 'trained' : ''}"><span class="cal-num">${d}</span></div>`);
     }
     grid.innerHTML = cells.join('');
+    // Una rejilla de números sin una sola marca no se entiende: mientras no
+    // haya ningún entreno, la tarjeta dice por qué está así.
+    const vacio = document.getElementById('calEmpty');
+    if (vacio) vacio.style.display = Object.keys(byDate).length ? 'none' : '';
   }
 
   // ===== Progresión física: peso, IMC y % de grasa =====
@@ -4180,7 +4209,7 @@
     if (!wrap) return;
     const g = (window.ROUTINES.goals || {})[goalsView];
     if (!g) {
-      wrap.innerHTML = '<div class="muted" style="font-size:12px;padding:8px 0">Sin objetivos definidos todavía.</div>';
+      wrap.innerHTML = '<div class="nutri-empty">Todavía no tienes objetivos. Los fija el Coach en la primera sesión del Chat, y ahí puedes cambiarlos cuando quieras.</div>';
       return;
     }
     const pcts = (g.targets || []).map((t) => Math.max(0, Math.min(100, Number(t.progress) || 0)));
@@ -4262,19 +4291,33 @@
     const el = document.getElementById('yearGrid');
     if (!el) return;
     const doneDates = new Set(getAllWorkouts().map((w) => w.date).filter(Boolean));
-    const today = wsIso(new Date());
-    const MONTHS = [['JUL', 6], ['AGO', 7], ['SEP', 8], ['OCT', 9], ['NOV', 10], ['DIC', 11]];
-    el.innerHTML = '<div class="yg-cols">' + MONTHS.map(([label, m]) => {
-      const daysIn = new Date(2026, m + 1, 0).getDate();
+    const hoy = new Date();
+    const today = wsIso(hoy);
+    // Ventana MÓVIL: los seis meses que acaban en el actual. Antes iba clavada a
+    // JUL–DIC de 2026, así que a una cuenta nueva de otro año (o de enero) la
+    // rejilla le salía entera vacía y sin explicación.
+    const M3 = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+    const MONTHS = [];
+    for (let k = 5; k >= 0; k--) {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth() - k, 1);
+      MONTHS.push([M3[d.getMonth()], d.getMonth(), d.getFullYear()]);
+    }
+    const tit = document.getElementById('ygTitle');
+    if (tit) {
+      const a0 = MONTHS[0][2], a1 = MONTHS[MONTHS.length - 1][2];
+      tit.textContent = a0 === a1 ? String(a0) : `${a0}–${a1}`;
+    }
+    el.innerHTML = '<div class="yg-cols">' + MONTHS.map(([label, m, y]) => {
+      const daysIn = new Date(y, m + 1, 0).getDate();
       const ranges = [[1, 7], [8, 14], [15, 21], [22, daysIn]];
       const dots = ranges.map(([a, b]) => {
-        const iso = (dd) => `2026-${String(m + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        const iso = (dd) => `${y}-${String(m + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
         let planned = 0, missed = 0;
         for (let dd = a; dd <= b; dd++) {
           const dIso = iso(dd);
           if (dIso > today) continue;
           const sched = getEffectiveSchedule(wsMondayOf(dIso));
-          const rid = sched[new Date(2026, m, dd).getDay()];
+          const rid = sched[new Date(y, m, dd).getDay()];
           if (rid && rid !== 'rest') { planned++; if (!doneDates.has(dIso)) missed++; }
         }
         let cls = 'yg-dot';
@@ -5958,6 +6001,11 @@ function renderNutriDaily() {
       </div>
     </div>`;
   };
+  // Cuatro bloques plegados con «—» no dicen si falta apuntar o si es que no
+  // se comió: mientras el día esté en blanco, se explica qué hacer.
+  const nada = $('mealEmpty');
+  if (nada) nada.style.display = meals.length ? 'none' : '';
+
   $('mealList').innerHTML = MEAL_TYPES.map((t) => {
     const items = meals.filter((m) => (m.meal_type || 'other') === t.k);
     const kcal = Math.round(items.reduce((a, m) => a + (Number(m.kcal) || 0), 0));

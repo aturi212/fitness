@@ -12,3 +12,12 @@ CLAUDE.md
 supabase/
 scripts/
 .claude/
+
+# ...pero las migraciones SÍ se versionan: son el esquema de la app (tablas,
+# políticas RLS, triggers y plantillas de rutinas) y sin ellas el repo no
+# describe la mitad del producto. No llevan claves ni datos de nadie: lo que
+# se ignora de `supabase/` es lo local del CLI (config con el ref del
+# proyecto, .branches, .temp, volcados de datos).
+!supabase/
+!supabase/migrations/
+!supabase/migrations/*.sql
