@@ -781,9 +781,13 @@
 
   /* Baraja horizontal: un panel por ejercicio o superserie */
   .tk-deck { position: relative; z-index: 2; flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
-             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+             overscroll-behavior-x: contain; }
   .tk-deck::-webkit-scrollbar { display: none; }
-  .tk-panel { flex: 0 0 100%; scroll-snap-align: start; overflow-y: auto;
+  /* Un gesto = un ejercicio: `scroll-snap-stop: always` obliga al navegador a
+     frenar en CADA panel aunque el dedo venga lanzado. Donde no lo soporta,
+     lo corrige la red de seguridad de watchDeck(). */
+  .tk-panel { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto;
               padding: 14px var(--gutter) 20px; }
 
   .tk-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -4703,21 +4707,65 @@
     document.getElementById('trackerPos').textContent = `EJ ${slot + 1} DE ${total}`;
     document.getElementById('tkProgress').style.width = `${((slot + 1) / total) * 100}%`;
   }
-  // Se vigila el desplazamiento con rAF mientras el tracker está abierto: en este
-  // contenedor con scroll-snap no llegan ni los eventos `scroll` ni el
+
+  // ---- La baraja: un gesto, un ejercicio ----
+  // El dedo lanzado llegaba a arrastrar dos y tres paneles. `scroll-snap-stop:
+  // always` lo corta en los navegadores que lo entienden; aquí queda la red de
+  // seguridad para los que no: se apunta en qué panel empezó el dedo y, cuando
+  // el desplazamiento se para, si se ha ido más de uno se vuelve al de al lado.
+  const deckPanels = () => (session?.panels || []).length;
+  const deckIndex = () => {
+    const w = trackerBody.clientWidth;
+    return w ? Math.round(trackerBody.scrollLeft / w) : 0;
+  };
+  let deckFrom = null;        // panel donde arrancó el gesto
+  let deckTouching = false;   // hay un dedo encima
+  let deckAutoUntil = 0;      // desplazamientos que hace la app, no el dedo
+  let deckLastX = -1, deckStill = 0;
+
+  // Mueve la baraja desde el código (auto-avance). No lo toca la red de
+  // seguridad: solo se vigilan los gestos del usuario.
+  function deckGoTo(idx, smooth = true) {
+    const total = deckPanels();
+    if (!total) return 0;
+    idx = Math.max(0, Math.min(total - 1, idx));
+    deckAutoUntil = Date.now() + 900;
+    deckFrom = null;
+    trackerBody.scrollTo({ left: idx * trackerBody.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    return idx;
+  }
+
+  trackerBody.addEventListener('touchstart', () => {
+    deckTouching = true;
+    // Tocar durante la inercia la corta: el punto de partida es el de AHORA
+    deckFrom = deckIndex();
+  }, { passive: true });
+  trackerBody.addEventListener('touchend', () => { deckTouching = false; }, { passive: true });
+  trackerBody.addEventListener('touchcancel', () => { deckTouching = false; }, { passive: true });
+
+  // Se vigila el desplazamiento por sondeo mientras el tracker está abierto: en
+  // este contenedor con scroll-snap no llegan ni los eventos `scroll` ni el
   // IntersectionObserver de forma fiable.
   function watchDeck() {
     clearInterval(deckRaf);
     deckLastSlot = -1;
+    deckFrom = null; deckTouching = false; deckLastX = -1; deckStill = 0;
     deckRaf = setInterval(() => {
       if (!document.getElementById('tracker').classList.contains('open')) { clearInterval(deckRaf); deckRaf = null; return; }
       const w = trackerBody.clientWidth;
       if (!w) return;
-      const idx = Math.round(trackerBody.scrollLeft / w);
+      const idx = deckIndex();
       const panel = (session?.panels || [])[idx];
       const slot = panel ? panel.slots[0] : 0;
       if (slot !== deckLastSlot) { deckLastSlot = slot; updateTrackerPos(slot); }
-    }, 120);
+      // ¿Se ha parado la baraja?
+      const x = Math.round(trackerBody.scrollLeft);
+      if (x === deckLastX) deckStill++; else { deckStill = 0; deckLastX = x; }
+      if (deckTouching || Date.now() < deckAutoUntil || deckFrom == null || deckStill < 2) return;
+      const from = deckFrom;
+      deckFrom = null;
+      if (Math.abs(idx - from) > 1) deckGoTo(from + Math.sign(idx - from));
+    }, 90);
   }
 
   document.getElementById('closeTracker').addEventListener('click', () => {
