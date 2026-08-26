@@ -841,6 +841,36 @@
   .ex-note-box textarea::placeholder { color: var(--ghost-2); }
 
   /* Barra inferior: pausar → reanudar / finalizar */
+  /* Coach durante el entreno: botón en la cabecera y panel emergente */
+  .tk-coach-btn { position: relative; }
+  .tk-coach-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%;
+                  background: var(--hot-solid); box-shadow: 0 0 0 2px rgba(0,0,0,.45); }
+  .coach-dock { position: absolute; inset: 0; z-index: 150; display: none; }
+  .coach-dock.open { display: block; }
+  .dock-back { position: absolute; inset: 0; background: rgba(0,0,0,.55);
+               opacity: 0; transition: opacity var(--t-base) var(--ease); }
+  .coach-dock.on .dock-back { opacity: 1; }
+  .dock-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 88dvh; max-height: 100%;
+                display: flex; flex-direction: column; background: var(--bg);
+                border-top: 1px solid var(--line-2); border-radius: var(--r-8) var(--r-8) 0 0;
+                box-shadow: var(--sh-float); transform: translateY(100%);
+                transition: transform var(--t-base) var(--ease); }
+  .coach-dock.on .dock-sheet { transform: translateY(0); }
+  .dock-head { display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+               padding: 16px var(--gutter) 12px; }
+  .dock-hint { flex: 1; min-width: 0; font: 500 9px/1.35 var(--f-mono); letter-spacing: .12em;
+               text-transform: uppercase; color: var(--faint); }
+  .dock-slot { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px;
+               padding: 0 var(--gutter) calc(env(safe-area-inset-bottom) + 14px); }
+  /* El chat de la pantalla Coach, prestado: se le quitan las medidas de allí */
+  .chat-box.in-dock { height: auto; flex: 1; min-height: 0; }
+  .chat-input.in-dock { position: static; left: auto; right: auto; bottom: auto;
+                        max-width: none; margin: 0; flex-shrink: 0; }
+  .chat-input.in-dock::before { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .dock-back, .dock-sheet { transition: none; }
+  }
+
   /* Salto automático al siguiente ejercicio: se ve lo que ha pasado */
   .tk-jump { position: absolute; inset: 0; z-index: 130; display: grid; place-items: center;
              background: rgba(5,5,5,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
@@ -2364,6 +2394,10 @@
         <div class="tk-name" id="trackerName">—</div>
         <div class="tk-sub"><span id="trackerTime">00:00</span> · <span id="trackerPos">EJ 1 DE 1</span></div>
       </div>
+      <button type="button" class="btn-icon btn-icon--onheat tk-coach-btn" id="tkCoach" aria-label="Hablar con el coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <i class="tk-coach-dot" id="tkCoachDot" hidden></i>
+      </button>
       <button type="button" class="btn-icon btn-icon--onheat" id="tkMenu" aria-label="Opciones">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
       </button>
@@ -2404,6 +2438,24 @@
       <div class="tk-split" id="tkSplit" style="display:none">
         <button type="button" class="btn btn--sec" id="tkResume">REANUDAR</button>
         <button type="button" class="btn btn--primary" id="finishBtn">FINALIZAR</button>
+      </div>
+    </div>
+
+    <!-- Coach a mano durante el entreno. No es otro chat: aquí se MUEVE el de
+         la pantalla Coach (mismo hilo, misma lógica) y al cerrar vuelve a su
+         sitio. La conversación aguanta todo el entreno aunque se cierre con
+         la X, y se archiva al terminar. -->
+    <div class="coach-dock" id="coachDock" aria-hidden="true">
+      <div class="dock-back" id="coachDockBack"></div>
+      <div class="dock-sheet">
+        <div class="dock-head">
+          <span class="status-chip"><i class="dot"></i>COACH</span>
+          <span class="dock-hint">La conversación sigue aquí hasta que termines</span>
+          <button type="button" class="btn-icon" id="coachDockClose" aria-label="Cerrar el chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="dock-slot" id="coachDockSlot"></div>
       </div>
     </div>
   </div>
@@ -4504,6 +4556,9 @@
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
+    // Mientras dure el entreno la conversación con el coach no se archiva sola
+    window.coachChatHold?.(true);
+    document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
     renderSyncBar();
     pausedMs = 0; pausedAt = null;
     setPaused(false);
@@ -4818,6 +4873,51 @@
       if (Math.abs(idx - from) > 1) deckGoTo(from + Math.sign(idx - from));
     }, 90);
   }
+
+  // ---- Coach a mano durante el entreno ----
+  // No se duplica nada: se PRESTA el chat de la pantalla Coach (misma caja,
+  // mismo formulario, mismo hilo) y al cerrar vuelve exactamente a su sitio.
+  const coachDock = document.getElementById('coachDock');
+  const coachDockSlot = document.getElementById('coachDockSlot');
+  let chatPrestado = null;   // dónde vivía cada trozo antes del préstamo
+
+  function coachDockOpen() {
+    if (coachDock.classList.contains('open')) return;
+    const piezas = ['chatBox', 'chatLocked', 'chatForm']
+      .map((id) => document.getElementById(id)).filter(Boolean);
+    if (!piezas.length) return;
+    if (!chatPrestado) chatPrestado = piezas.map((el) => ({ el, padre: el.parentNode, siguiente: el.nextSibling }));
+    piezas.forEach((el) => { el.classList.add('in-dock'); coachDockSlot.appendChild(el); });
+    document.getElementById('tkCoachDot').hidden = true;
+    coachDock.classList.add('open');
+    coachDock.setAttribute('aria-hidden', 'false');
+    void coachDock.offsetWidth;
+    coachDock.classList.add('on');
+    const box = document.getElementById('chatBox');
+    if (box) box.scrollTop = box.scrollHeight;
+  }
+
+  // Cerrar con la X NO borra nada: el hilo sigue vivo hasta que acabe el entreno
+  function coachDockClose() {
+    if (!coachDock.classList.contains('open')) return;
+    coachDock.classList.remove('on');
+    document.activeElement?.blur?.();
+    setTimeout(() => {
+      coachDock.classList.remove('open');
+      coachDock.setAttribute('aria-hidden', 'true');
+      (chatPrestado || []).forEach(({ el, padre, siguiente }) => {
+        el.classList.remove('in-dock');
+        padre.insertBefore(el, siguiente);
+      });
+      chatPrestado = null;
+      // Si quedó conversación, el botón lo recuerda
+      document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
+    }, 260);
+  }
+
+  document.getElementById('tkCoach').addEventListener('click', coachDockOpen);
+  document.getElementById('coachDockClose').addEventListener('click', coachDockClose);
+  document.getElementById('coachDockBack').addEventListener('click', coachDockClose);
 
   document.getElementById('closeTracker').addEventListener('click', () => {
     // Salir sin guardar es una decisión explícita: se tira también el
@@ -5198,6 +5298,9 @@
     return payload;
   };
   function closeTracker() {
+    coachDockClose();
+    // Se acabó el entreno: la conversación se archiva con las demás
+    window.coachChatArchive?.();
     document.getElementById('tracker').classList.remove('open');
     renderSyncBar();
     clearInterval(workoutTimer);
@@ -7658,9 +7761,32 @@ async function sendChat(text, opciones = {}) {
   }
 }
 
+// Durante un entreno la conversación no se archiva sola: se queda entera hasta
+// que se termina, aunque el panel del coach se cierre con la X.
+let chatEnEspera = false;
+window.coachChatTieneHilo = () => chatHistory.length > 0;
+window.coachChatHold = (on) => {
+  chatEnEspera = !!on;
+  if (chatEnEspera) clearTimeout(chatIdleTimer);
+  else scheduleChatArchive();
+};
+// Al terminar el entreno la conversación se archiva con el resto de chats
+window.coachChatArchive = async () => {
+  chatEnEspera = false;
+  clearTimeout(chatIdleTimer);
+  if (!chatHistory.length) return;
+  const ok = await archiveThread('coach', chatHistory, chatLastTs || Date.now());
+  // Lo que no se ha podido guardar no se tira: se deja vivo y se reintenta
+  if (!ok) { scheduleChatArchive(); return; }
+  saveLive('coach', [], 0);
+  chatHistory = [];
+  renderChat();
+};
+
 // A los 10 minutos sin escribir, la conversación se archiva y el chat se vacía
 function scheduleChatArchive() {
   clearTimeout(chatIdleTimer);
+  if (chatEnEspera) return;
   chatIdleTimer = setTimeout(async () => {
     if (!chatHistory.length) return;
     await archiveThread('coach', chatHistory, chatLastTs);
@@ -7679,7 +7805,7 @@ chatForm.addEventListener('submit', (e) => {
 });
 // Al volver al chat tras un rato inactivo, la conversación se archiva y se vacía
 document.querySelector('[data-go="chat"]')?.addEventListener('click', async () => {
-  if (chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
+  if (!chatEnEspera && chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
     await archiveThread('coach', chatHistory, chatLastTs);
     saveLive('coach', [], 0);
     chatHistory = [];
