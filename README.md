@@ -39,7 +39,8 @@ FITNESS/
 │   ├── routines.js         # Plan, calendario y rutinas (chat Personal Trainer)
 │   └── exercises.js        # Banco de ejercicios (chat Personal Trainer)
 └── supabase/
-    └── migrations/         # Cambios de esquema de la nube (chat App)
+    └── migrations/         # Cambios de esquema de la nube — fuera del repo
+                            # (`supabase/` está en .gitignore: repo público)
 ```
 
 ## Vídeos de los ejercicios
