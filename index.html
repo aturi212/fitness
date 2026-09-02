@@ -1295,8 +1295,8 @@
         <div id="planBlocks"></div>
       </div>
 
-      <!-- Mientras no se haya hecho la primera sesión, aquí no se escribe:
-           lo único que se puede hacer es empezarla. -->
+      <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
+           empezarla, pero el campo de escritura funciona igualmente. -->
       <div class="chat-input chat-locked" id="chatLocked" style="display:none">
         <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
       </div>
@@ -2744,11 +2744,12 @@
       <div class="onb-grid2">
         <label class="auth-field">
           <span class="label">Altura (cm)</span>
-          <input id="onbHeight" type="number" inputmode="decimal" min="120" max="230" placeholder="178">
+          <!-- Sin placeholder numérico: «178» parecía un dato ya puesto -->
+          <input id="onbHeight" type="number" inputmode="decimal" min="120" max="230" autocomplete="off">
         </label>
         <label class="auth-field">
           <span class="label">Peso (kg)</span>
-          <input id="onbWeight" type="number" inputmode="decimal" min="30" max="250" step="0.1" placeholder="84">
+          <input id="onbWeight" type="number" inputmode="decimal" min="30" max="250" step="0.1" autocomplete="off">
         </label>
       </div>
     </div>
@@ -4989,6 +4990,10 @@
       document.getElementById('chatPane').style.display = prog ? 'none' : '';
       document.getElementById('progPane').style.display = prog ? '' : 'none';
       document.getElementById('chatForm').style.display = prog ? 'none' : 'flex';
+      // La sugerencia de CREAR MI PLAN acompaña al formulario: fuera en
+      // Programa, y de vuelta solo si la primera sesión sigue pendiente.
+      const sinPlan = !!window.__profile && !window.__profile.first_session_done;
+      document.getElementById('chatLocked').style.display = (prog || !sinPlan) ? 'none' : '';
       // §8.3/§8.2: el chip de la cabecera cambia con la pestaña
       const chip = document.getElementById('chatStatus');
       chip.classList.toggle('is-week', prog);
@@ -6140,7 +6145,9 @@ async function pullBodyWeight() {
 // ---------- Nutrición (online-only: el análisis necesita la Edge Function) ----------
 const MEALS_KEY = 'fitness_meals_v1';
 localStorage.removeItem('fitness_nutri_advice_v1'); // resto de la versión con "Recomendación del día"
-const NUTRI_DEFAULT_TARGETS = { protein_g: 160, carbs_g: 220, fat_g: 70, fiber_g: 30 };
+// Sin plan no hay objetivos: todo a 0 hasta que el usuario (o el coach)
+// ponga los suyos. Unos macros inventados parecen «su plan» sin serlo.
+const NUTRI_DEFAULT_TARGETS = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 };
 const NUTRI_MACROS = [
   { k: 'protein_g', label: 'Proteína', short: 'P', color: '#FF4A1A' },
   { k: 'carbs_g', label: 'Hidratos', short: 'H', color: '#F2B23C' },
@@ -7264,11 +7271,11 @@ function faltaPrimeraSesion() {
   return !!window.__profile && !window.__profile.first_session_done;
 }
 function pintarBloqueoChat() {
-  const bloqueado = faltaPrimeraSesion();
-  const form = $('chatForm'), locked = $('chatLocked');
-  if (!form || !locked) return;
-  form.style.display = bloqueado ? 'none' : '';
-  locked.style.display = bloqueado ? '' : 'none';
+  // El botón es una SUGERENCIA, no un candado: el campo de escritura
+  // funciona siempre, haya plan o no.
+  const locked = $('chatLocked');
+  if (!locked) return;
+  locked.style.display = faltaPrimeraSesion() ? '' : 'none';
 }
 function mostrarIntroCoach() {
   if (!faltaPrimeraSesion() || localStorage.getItem(INTRO_KEY)) return;
@@ -7290,7 +7297,12 @@ function empezarPrimeraSesion() {
 }
 $('coachGo').addEventListener('click', empezarPrimeraSesion);
 $('coachLater').addEventListener('click', cerrarIntroCoach);
-$('chatStartPlan').addEventListener('click', () => sendChat('Quiero crear mi plan.', { oculto: true }));
+$('chatStartPlan').addEventListener('click', () => {
+  // La sugerencia ya cumplió: se retira y el foco pasa al campo de escritura.
+  $('chatLocked').style.display = 'none';
+  $('chatText')?.focus();
+  sendChat('Quiero crear mi plan.', { oculto: true });
+});
 
 // ---------- Cajones laterales ----------
 const drawerVeil = $('drawerVeil');
