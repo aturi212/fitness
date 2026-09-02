@@ -781,9 +781,13 @@
 
   /* Baraja horizontal: un panel por ejercicio o superserie */
   .tk-deck { position: relative; z-index: 2; flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
-             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+             overscroll-behavior-x: contain; }
   .tk-deck::-webkit-scrollbar { display: none; }
-  .tk-panel { flex: 0 0 100%; scroll-snap-align: start; overflow-y: auto;
+  /* Un gesto = un ejercicio: `scroll-snap-stop: always` obliga al navegador a
+     frenar en CADA panel aunque el dedo venga lanzado. Donde no lo soporta,
+     lo corrige la red de seguridad de watchDeck(). */
+  .tk-panel { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto;
               padding: 14px var(--gutter) 20px; }
 
   .tk-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -837,6 +841,89 @@
   .ex-note-box textarea::placeholder { color: var(--ghost-2); }
 
   /* Barra inferior: pausar → reanudar / finalizar */
+  /* Vídeo del ejercicio */
+  .tk-chip--video { gap: 7px; background: var(--hot-soft); border-color: var(--hot-line); color: var(--hot-text); }
+  .tk-chip--video svg { width: 12px; height: 12px; }
+  .vid-modal { position: fixed; inset: 0; z-index: 200; display: none; }
+  .vid-modal.open { display: block; }
+  .vid-back { position: absolute; inset: 0; background: rgba(0,0,0,.78);
+              opacity: 0; transition: opacity var(--t-base) var(--ease); }
+  .vid-modal.on .vid-back { opacity: 1; }
+  .vid-box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -48%) scale(.97);
+             width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 40px);
+             display: flex; flex-direction: column; gap: 10px;
+             background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-8);
+             padding: 14px; box-shadow: var(--sh-float);
+             opacity: 0; transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease); }
+  .vid-modal.on .vid-box { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .vid-head { display: flex; align-items: center; gap: 10px; }
+  .vid-name { flex: 1; min-width: 0; font: 500 14px/1.25 var(--f-ui); color: var(--text);
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vid-frame { position: relative; background: #000; border-radius: var(--r-6); overflow: hidden;
+               aspect-ratio: 16 / 9; max-height: calc(100dvh - 190px); margin: 0 auto; width: 100%; }
+  /* Los shorts son verticales: en un marco 16:9 se quedan en un sello de correos */
+  .vid-frame.vertical { aspect-ratio: 9 / 16; width: auto; height: min(72dvh, 640px); }
+  .vid-frame:empty { display: none; }
+  .vid-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .vid-aviso { font: 500 12px/1.45 var(--f-ui); color: var(--muted); text-align: center;
+               background: var(--s3); border: 1px solid var(--line); border-radius: var(--r-4); padding: 10px; }
+  .vid-out { display: block; text-align: center; padding: 11px; border-radius: var(--r-4);
+             background: var(--s3); border: 1px solid var(--line-2); color: var(--muted);
+             font: 600 10px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase;
+             text-decoration: none; }
+  .vid-aviso:not([hidden]) + .vid-out { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  @media (prefers-reduced-motion: reduce) { .vid-back, .vid-box { transition: none; } }
+
+  /* Coach durante el entreno: botón en la cabecera y panel emergente */
+  .tk-coach-btn { position: relative; }
+  .tk-coach-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%;
+                  background: var(--hot-solid); box-shadow: 0 0 0 2px rgba(0,0,0,.45); }
+  .coach-dock { position: absolute; inset: 0; z-index: 150; display: none; }
+  .coach-dock.open { display: block; }
+  .dock-back { position: absolute; inset: 0; background: rgba(0,0,0,.55);
+               opacity: 0; transition: opacity var(--t-base) var(--ease); }
+  .coach-dock.on .dock-back { opacity: 1; }
+  .dock-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 88dvh; max-height: 100%;
+                display: flex; flex-direction: column; background: var(--bg);
+                border-top: 1px solid var(--line-2); border-radius: var(--r-8) var(--r-8) 0 0;
+                box-shadow: var(--sh-float); transform: translateY(100%);
+                transition: transform var(--t-base) var(--ease); }
+  .coach-dock.on .dock-sheet { transform: translateY(0); }
+  .dock-head { display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+               padding: 16px var(--gutter) 12px; }
+  .dock-hint { flex: 1; min-width: 0; font: 500 9px/1.35 var(--f-mono); letter-spacing: .12em;
+               text-transform: uppercase; color: var(--faint); }
+  .dock-slot { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px;
+               padding: 0 var(--gutter) calc(env(safe-area-inset-bottom) + 14px); }
+  /* El chat de la pantalla Coach, prestado: se le quitan las medidas de allí */
+  .chat-box.in-dock { height: auto; flex: 1; min-height: 0; }
+  .chat-input.in-dock { position: static; left: auto; right: auto; bottom: auto;
+                        max-width: none; margin: 0; flex-shrink: 0; }
+  .chat-input.in-dock::before { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .dock-back, .dock-sheet { transition: none; }
+  }
+
+  /* Salto automático al siguiente ejercicio: se ve lo que ha pasado */
+  .tk-jump { position: absolute; inset: 0; z-index: 130; display: grid; place-items: center;
+             background: rgba(5,5,5,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+             opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease); }
+  .tk-jump.on { opacity: 1; }
+  .tk-jump-in { display: flex; flex-direction: column; align-items: center; gap: 12px;
+                padding: 0 var(--gutter); text-align: center;
+                transform: translateY(10px); transition: transform 320ms var(--ease); }
+  .tk-jump.on .tk-jump-in { transform: translateY(0); }
+  .tk-jump-kicker { font: 600 9px/1 var(--f-mono); letter-spacing: .24em; text-transform: uppercase; color: var(--hot-text); }
+  .tk-jump-arrow { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+                   background: var(--hot-soft); border: 1px solid var(--hot-line); color: var(--hot-text); }
+  .tk-jump-arrow svg { width: 20px; height: 20px; }
+  .tk-jump-name { font: 700 30px/1.02 var(--f-display); letter-spacing: -.035em;
+                  text-transform: uppercase; color: #fff; max-width: 100%; }
+  .tk-jump-pos { font: 500 9px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ghost); }
+  @media (prefers-reduced-motion: reduce) {
+    .tk-jump, .tk-jump-in { transition: none; }
+  }
+
   .tk-foot { position: relative; z-index: 3; flex-shrink: 0; background: var(--bg);
     border-top: 1px solid var(--line);
     padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 12px); }
@@ -845,7 +932,18 @@
 
   /* Temporizador de descanso: contorno, nunca relleno a pantalla completa */
   .rest-timer { left: var(--gutter); right: var(--gutter); bottom: 96px; height: 70px; padding: 0 16px; z-index: 110; }
-  .rest-timer .lbl { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
+  .rest-timer .rt-left { min-width: 0; flex: 1; }
+  .rest-timer .lbl { font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase;
+                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Descanso encadenado: el siguiente ejercicio va en su propia línea. Metido
+     al lado de «DESCANSO» se comía el nombre con puntos suspensivos. */
+  .rest-timer.with-next { height: auto; flex-wrap: wrap; row-gap: 11px; padding-top: 13px; padding-bottom: 13px; }
+  .rt-next { flex: 0 0 100%; order: 3; display: none; align-items: center; gap: 9px; min-width: 0;
+             padding-top: 11px; border-top: 1px solid var(--line);
+             font: 600 9px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--faint); }
+  .rest-timer.with-next .rt-next { display: flex; }
+  .rt-next b { min-width: 0; flex: 1; font-weight: 600; letter-spacing: .12em; color: var(--hot-text);
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rest-timer .t { font-size: 26px; margin-top: 5px; }
   .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
   .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
@@ -2329,6 +2427,10 @@
         <div class="tk-name" id="trackerName">—</div>
         <div class="tk-sub"><span id="trackerTime">00:00</span> · <span id="trackerPos">EJ 1 DE 1</span></div>
       </div>
+      <button type="button" class="btn-icon btn-icon--onheat tk-coach-btn" id="tkCoach" aria-label="Hablar con el coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <i class="tk-coach-dot" id="tkCoachDot" hidden></i>
+      </button>
       <button type="button" class="btn-icon btn-icon--onheat" id="tkMenu" aria-label="Opciones">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
       </button>
@@ -2339,13 +2441,28 @@
     <div class="tk-deck" id="trackerBody"></div>
 
     <div class="rest-timer" id="restTimer">
-      <div>
+      <div class="rt-left">
         <div class="lbl">Descanso</div>
         <div class="t" id="restT">02:00</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-shrink:0">
         <button onclick="adjustRest(30)">+30&Prime;</button>
-        <button class="rt-skip" onclick="stopRest()">SALTAR</button>
+        <button class="rt-skip" id="rtSkip" onclick="stopRest('saltar')">SALTAR</button>
+      </div>
+      <!-- Solo cuando el descanso encadena con el siguiente ejercicio -->
+      <div class="rt-next"><span>Luego</span><b id="restNextName">—</b></div>
+    </div>
+
+    <!-- Aviso de salto automático: sin esto el ejercicio cambiaba solo y no
+         quedaba claro qué había pasado. -->
+    <div class="tk-jump" id="tkJump" aria-hidden="true">
+      <div class="tk-jump-in">
+        <span class="tk-jump-kicker">Ejercicio completado</span>
+        <span class="tk-jump-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M12 5l7 7-7 7"/></svg>
+        </span>
+        <span class="tk-jump-name" id="tkJumpName">—</span>
+        <span class="tk-jump-pos" id="tkJumpPos"></span>
       </div>
     </div>
 
@@ -2354,6 +2471,24 @@
       <div class="tk-split" id="tkSplit" style="display:none">
         <button type="button" class="btn btn--sec" id="tkResume">REANUDAR</button>
         <button type="button" class="btn btn--primary" id="finishBtn">FINALIZAR</button>
+      </div>
+    </div>
+
+    <!-- Coach a mano durante el entreno. No es otro chat: aquí se MUEVE el de
+         la pantalla Coach (mismo hilo, misma lógica) y al cerrar vuelve a su
+         sitio. La conversación aguanta todo el entreno aunque se cierre con
+         la X, y se archiva al terminar. -->
+    <div class="coach-dock" id="coachDock" aria-hidden="true">
+      <div class="dock-back" id="coachDockBack"></div>
+      <div class="dock-sheet">
+        <div class="dock-head">
+          <span class="status-chip"><i class="dot"></i>COACH</span>
+          <span class="dock-hint">La conversación sigue aquí hasta que termines</span>
+          <button type="button" class="btn-icon" id="coachDockClose" aria-label="Cerrar el chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="dock-slot" id="coachDockSlot"></div>
       </div>
     </div>
   </div>
@@ -2390,6 +2525,25 @@
       <p class="done-sub">¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.</p>
       <div class="done-stats" id="doneStats"></div>
       <button type="button" class="btn-primary" id="doneClose">CERRAR</button>
+    </div>
+  </div>
+
+  <!-- =========== VÍDEO DEL EJERCICIO =========== -->
+  <!-- Incrustado con youtube-nocookie. El enlace para abrirlo fuera está
+       SIEMPRE: si el vídeo no deja incrustarse, es la única salida. -->
+  <div class="vid-modal" id="videoModal" aria-hidden="true">
+    <div class="vid-back" id="videoBack"></div>
+    <div class="vid-box" role="dialog" aria-modal="true" aria-labelledby="videoName">
+      <div class="vid-head">
+        <span class="label-sm">Vídeo</span>
+        <span class="vid-name" id="videoName">—</span>
+        <button type="button" class="btn-icon" id="videoClose" aria-label="Cerrar el vídeo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="vid-frame" id="videoFrame"></div>
+      <div class="vid-aviso" id="videoAviso" hidden>Este vídeo no deja verse aquí dentro.</div>
+      <a class="vid-out" id="videoOut" href="#" target="_blank" rel="noopener noreferrer">Abrir en YouTube ↗</a>
     </div>
   </div>
 
@@ -4454,6 +4608,9 @@
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
+    // Mientras dure el entreno la conversación con el coach no se archiva sola
+    window.coachChatHold?.(true);
+    document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
     renderSyncBar();
     pausedMs = 0; pausedAt = null;
     setPaused(false);
@@ -4551,6 +4708,9 @@
         <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
         <div class="tk-chips">
           <div class="tk-chips-scroll">
+            ${ex.videoUrl ? `<button type="button" class="tk-chip tk-chip--video" onclick="openVideo('${item.exerciseId}')">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>VÍDEO
+            </button>` : ''}
             <span class="tk-chip">${tipo === 'cardio' ? repsCorto(item.repsTarget).toUpperCase() : `${item.sets} SERIES · ${repsCorto(item.repsTarget)}`}</span>
             ${(item.restSec && tipo !== 'cardio') ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
           </div>
@@ -4689,6 +4849,7 @@
       ta.addEventListener('input', fit);
       ta.addEventListener('blur', () => saveExNote(ta.dataset.ex, ta.value.trim()));
     });
+    cancelarAutoAvance();
     updateTrackerPos(0);
     watchDeck();
   }
@@ -4703,22 +4864,115 @@
     document.getElementById('trackerPos').textContent = `EJ ${slot + 1} DE ${total}`;
     document.getElementById('tkProgress').style.width = `${((slot + 1) / total) * 100}%`;
   }
-  // Se vigila el desplazamiento con rAF mientras el tracker está abierto: en este
-  // contenedor con scroll-snap no llegan ni los eventos `scroll` ni el
+
+  // ---- La baraja: un gesto, un ejercicio ----
+  // El dedo lanzado llegaba a arrastrar dos y tres paneles. `scroll-snap-stop:
+  // always` lo corta en los navegadores que lo entienden; aquí queda la red de
+  // seguridad para los que no: se apunta en qué panel empezó el dedo y, cuando
+  // el desplazamiento se para, si se ha ido más de uno se vuelve al de al lado.
+  const deckPanels = () => (session?.panels || []).length;
+  const deckIndex = () => {
+    const w = trackerBody.clientWidth;
+    return w ? Math.round(trackerBody.scrollLeft / w) : 0;
+  };
+  let deckFrom = null;        // panel donde arrancó el gesto
+  let deckTouching = false;   // hay un dedo encima
+  let deckAutoUntil = 0;      // desplazamientos que hace la app, no el dedo
+  let deckLastX = -1, deckStill = 0;
+
+  // Mueve la baraja desde el código (auto-avance). No lo toca la red de
+  // seguridad: solo se vigilan los gestos del usuario.
+  function deckGoTo(idx, smooth = true) {
+    const total = deckPanels();
+    if (!total) return 0;
+    idx = Math.max(0, Math.min(total - 1, idx));
+    deckAutoUntil = Date.now() + 900;
+    deckFrom = null;
+    trackerBody.scrollTo({ left: idx * trackerBody.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    return idx;
+  }
+
+  trackerBody.addEventListener('touchstart', () => {
+    deckTouching = true;
+    // Tocar durante la inercia la corta: el punto de partida es el de AHORA
+    deckFrom = deckIndex();
+  }, { passive: true });
+  trackerBody.addEventListener('touchend', () => { deckTouching = false; }, { passive: true });
+  trackerBody.addEventListener('touchcancel', () => { deckTouching = false; }, { passive: true });
+
+  // Se vigila el desplazamiento por sondeo mientras el tracker está abierto: en
+  // este contenedor con scroll-snap no llegan ni los eventos `scroll` ni el
   // IntersectionObserver de forma fiable.
   function watchDeck() {
     clearInterval(deckRaf);
     deckLastSlot = -1;
+    deckFrom = null; deckTouching = false; deckLastX = -1; deckStill = 0;
     deckRaf = setInterval(() => {
       if (!document.getElementById('tracker').classList.contains('open')) { clearInterval(deckRaf); deckRaf = null; return; }
       const w = trackerBody.clientWidth;
       if (!w) return;
-      const idx = Math.round(trackerBody.scrollLeft / w);
+      const idx = deckIndex();
       const panel = (session?.panels || [])[idx];
       const slot = panel ? panel.slots[0] : 0;
-      if (slot !== deckLastSlot) { deckLastSlot = slot; updateTrackerPos(slot); }
-    }, 120);
+      if (slot !== deckLastSlot) {
+        deckLastSlot = slot;
+        updateTrackerPos(slot);
+        cancelarAutoAvance();   // pasar de ejercicio a mano anula el salto en cola
+      }
+      // ¿Se ha parado la baraja?
+      const x = Math.round(trackerBody.scrollLeft);
+      if (x === deckLastX) deckStill++; else { deckStill = 0; deckLastX = x; }
+      if (deckTouching || Date.now() < deckAutoUntil || deckFrom == null || deckStill < 2) return;
+      const from = deckFrom;
+      deckFrom = null;
+      if (Math.abs(idx - from) > 1) deckGoTo(from + Math.sign(idx - from));
+    }, 90);
   }
+
+  // ---- Coach a mano durante el entreno ----
+  // No se duplica nada: se PRESTA el chat de la pantalla Coach (misma caja,
+  // mismo formulario, mismo hilo) y al cerrar vuelve exactamente a su sitio.
+  const coachDock = document.getElementById('coachDock');
+  const coachDockSlot = document.getElementById('coachDockSlot');
+  let chatPrestado = null;   // dónde vivía cada trozo antes del préstamo
+
+  function coachDockOpen() {
+    if (coachDock.classList.contains('open')) return;
+    const piezas = ['chatBox', 'chatLocked', 'chatForm']
+      .map((id) => document.getElementById(id)).filter(Boolean);
+    if (!piezas.length) return;
+    if (!chatPrestado) chatPrestado = piezas.map((el) => ({ el, padre: el.parentNode, siguiente: el.nextSibling }));
+    piezas.forEach((el) => { el.classList.add('in-dock'); coachDockSlot.appendChild(el); });
+    document.getElementById('tkCoachDot').hidden = true;
+    coachDock.classList.add('open');
+    coachDock.setAttribute('aria-hidden', 'false');
+    void coachDock.offsetWidth;
+    coachDock.classList.add('on');
+    const box = document.getElementById('chatBox');
+    if (box) box.scrollTop = box.scrollHeight;
+  }
+
+  // Cerrar con la X NO borra nada: el hilo sigue vivo hasta que acabe el entreno
+  function coachDockClose() {
+    if (!coachDock.classList.contains('open')) return;
+    coachDock.classList.remove('on');
+    document.activeElement?.blur?.();
+    setTimeout(() => {
+      coachDock.classList.remove('open');
+      coachDock.setAttribute('aria-hidden', 'true');
+      (chatPrestado || []).forEach(({ el, padre, siguiente }) => {
+        el.classList.remove('in-dock');
+        padre.insertBefore(el, siguiente);
+      });
+      chatPrestado = null;
+      // Si quedó conversación, el botón lo recuerda
+      document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
+    }, 260);
+  }
+
+  document.getElementById('tkCoach').addEventListener('click', coachDockOpen);
+  document.getElementById('coachDockClose').addEventListener('click', coachDockClose);
+  document.getElementById('coachDockBack').addEventListener('click', coachDockClose);
 
   document.getElementById('closeTracker').addEventListener('click', () => {
     // Salir sin guardar es una decisión explícita: se tira también el
@@ -5099,10 +5353,13 @@
     return payload;
   };
   function closeTracker() {
+    coachDockClose();
+    // Se acabó el entreno: la conversación se archiva con las demás
+    window.coachChatArchive?.();
     document.getElementById('tracker').classList.remove('open');
     renderSyncBar();
     clearInterval(workoutTimer);
-    stopRest();
+    stopRest('cerrar');
     setPaused(false);
     cancelarCuentaAtras();   // por si se sale con la cuenta atrás en marcha
   }
@@ -5130,19 +5387,105 @@
     const ancla = fila || btn.closest('.exercise-card');
     fila?.classList.toggle('completed', marcada);
     scheduleDraft();
-    if (marcada) {
-      navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
-      // En una superserie el descanso solo va al terminar la última serie del grupo
-      const panel = ancla?.closest('.tk-panel');
-      const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
-      const esUltimaDelGrupo = !esSuperserie ||
-        (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
-      if (esUltimaDelGrupo && restSec > 0) startRest(restSec);
+    const panel = ancla?.closest('.tk-panel');
+    if (!marcada) {
+      // Desmarcar es rectificar: si había un salto en cola, se anula
+      if (panel && deckAutoPending && deckAutoPending.desde === panelIndex(panel)) cancelarAutoAvance();
+      return;
+    }
+    navigator.vibrate?.(10); // §4.6 · haptic ligero (no-op en Safari iOS)
+    // En una superserie el descanso solo va al terminar la última serie del grupo
+    const esSuperserie = panel && panel.querySelectorAll('.exercise-card').length > 1;
+    const esUltimaDelGrupo = !esSuperserie ||
+      (ancla.closest('.exercise-card') === panel.querySelector('.exercise-card:last-of-type'));
+    // Con la última serie del ejercicio marcada se encola el salto al siguiente.
+    // Se prepara ANTES de arrancar el descanso para que el temporizador ya
+    // pueda decir a dónde lleva.
+    const completo = panelCompleto(panel);
+    if (completo) prepararAutoAvance(panel);
+    // El grupo terminado descansa aunque la casilla marcada no sea la del
+    // último ejercicio: en una superserie se pueden ir marcando en cualquier orden.
+    if (restSec > 0 && (esUltimaDelGrupo || completo)) startRest(restSec);
+    else if (deckAutoPending) {
+      // Sin descanso que encadenar (cardio, o descanso a cero): se salta igual,
+      // con una pausa corta para que dé tiempo a ver el aviso.
+      deckAutoTimer = setTimeout(dispararAutoAvance, 700);
     }
   };
+
+  // ---- Auto-avance: la última serie encadena descanso y siguiente ejercicio ----
+  let deckAutoPending = null;   // { desde, hacia, nombre }
+  let deckAutoTimer = null;
+
+  const panelIndex = (panel) =>
+    Array.prototype.indexOf.call(trackerBody.querySelectorAll('.tk-panel'), panel);
+
+  // Un panel está hecho cuando no le queda ninguna casilla sin marcar (en una
+  // superserie, las de todos los ejercicios del grupo)
+  function panelCompleto(panel) {
+    if (!panel) return false;
+    const casillas = panel.querySelectorAll('td.done button, .cardio-done button');
+    return casillas.length > 0 &&
+      Array.prototype.every.call(casillas, (b) => b.classList.contains('checked'));
+  }
+
+  function prepararAutoAvance(panel) {
+    const desde = panelIndex(panel);
+    const siguiente = (session?.panels || [])[desde + 1];
+    if (desde < 0 || !siguiente) return;   // el último ejercicio no lleva a ningún sitio
+    const nombre = getExercise(session.exercises[siguiente.slots[0]].exerciseId).name;
+    deckAutoPending = { desde, hacia: desde + 1, nombre };
+    pintarSiguienteEnDescanso();
+  }
+
+  function pintarSiguienteEnDescanso() {
+    const caja = document.getElementById('restTimer');
+    const skip = document.getElementById('rtSkip');
+    if (!caja || !skip) return;
+    caja.classList.toggle('with-next', !!deckAutoPending);
+    skip.textContent = deckAutoPending ? 'SALTAR Y PASAR' : 'SALTAR';
+    if (deckAutoPending) document.getElementById('restNextName').textContent = deckAutoPending.nombre;
+  }
+
+  // Deslizar a mano manda: cualquier cambio de panel que no sea el salto
+  // encolado lo cancela.
+  function cancelarAutoAvance() {
+    deckAutoPending = null;
+    clearTimeout(deckAutoTimer);
+    deckAutoTimer = null;
+    pintarSiguienteEnDescanso();
+  }
+
+  function dispararAutoAvance() {
+    clearTimeout(deckAutoTimer);
+    deckAutoTimer = null;
+    const salto = deckAutoPending;
+    deckAutoPending = null;          // se consume antes de mover: el cambio de
+    pintarSiguienteEnDescanso();     // panel ya no se lee como gesto del usuario
+    if (!salto) return;
+    if (!document.getElementById('tracker').classList.contains('open')) return;
+    if (deckIndex() !== salto.desde) return;   // ya se ha ido a mano: no se le mueve el sitio
+
+    const aviso = document.getElementById('tkJump');
+    document.getElementById('tkJumpName').textContent = salto.nombre;
+    const slot = session.panels[salto.hacia].slots[0];
+    document.getElementById('tkJumpPos').textContent = `EJ ${slot + 1} DE ${session.exercises.length}`;
+    aviso.setAttribute('aria-hidden', 'false');
+    void aviso.offsetWidth;
+    aviso.classList.add('on');
+    navigator.vibrate?.([25, 60, 25]);
+
+    setTimeout(() => { deckGoTo(salto.hacia); updateTrackerPos(slot); }, 380);
+    setTimeout(() => {
+      aviso.classList.remove('on');
+      setTimeout(() => aviso.setAttribute('aria-hidden', 'true'), 220);
+    }, 1250);
+  }
+
   function startRest(sec) {
     restRemaining = sec;
     updateRestUI();
+    pintarSiguienteEnDescanso();
     document.getElementById('restTimer').classList.add('show');
     clearInterval(restInterval);
     restInterval = setInterval(() => {
@@ -5150,13 +5493,17 @@
       updateRestUI();
       if (restRemaining <= 0) {
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        stopRest();
+        stopRest('fin');
       }
     }, 1000);
   }
-  window.stopRest = function() {
+  // `motivo`: 'fin' (se acabó el descanso) y 'saltar' (el botón) encadenan el
+  // siguiente ejercicio. 'cerrar' es salir del entreno: ahí no se salta nada.
+  window.stopRest = function(motivo) {
     clearInterval(restInterval);
     document.getElementById('restTimer').classList.remove('show');
+    if (motivo === 'fin' || motivo === 'saltar') dispararAutoAvance();
+    else cancelarAutoAvance();
   };
   window.adjustRest = function(delta) {
     restRemaining = Math.max(5, restRemaining + delta);
@@ -5167,6 +5514,84 @@
     const s = String(restRemaining % 60).padStart(2, '0');
     document.getElementById('restT').textContent = `${m}:${s}`;
   }
+
+  // ============ Vídeo del ejercicio ============
+  // El id sale de cualquier forma de enlace de YouTube: watch, youtu.be,
+  // shorts o embed. Lo que no sea YouTube no se incrusta, se abre fuera.
+  function youtubeId(url) {
+    try {
+      const u = new URL(url, location.href);
+      const host = u.hostname.replace(/^(www|m)\./, '');
+      if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+      if (host !== 'youtube.com' && host !== 'youtube-nocookie.com') return null;
+      if (u.pathname === '/watch') return u.searchParams.get('v');
+      const m = /^\/(shorts|embed|v|live)\/([^/?#]+)/.exec(u.pathname);
+      return m ? m[2] : null;
+    } catch { return null; }
+  }
+
+  const videoModal = document.getElementById('videoModal');
+  const videoFrame = document.getElementById('videoFrame');
+  const videoAviso = document.getElementById('videoAviso');
+  let videoTimer = null, videoResponde = false;
+
+  window.openVideo = function(exId) {
+    const ex = getExercise(exId);
+    if (!ex.videoUrl) return;
+    const id = youtubeId(ex.videoUrl);
+    document.getElementById('videoName').textContent = ex.name;
+    document.getElementById('videoOut').href = ex.videoUrl;
+    clearTimeout(videoTimer);
+    videoResponde = false;
+    videoAviso.hidden = true;
+    videoFrame.classList.toggle('vertical', /\/shorts\//.test(ex.videoUrl));
+    if (id) {
+      videoFrame.innerHTML =
+        `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
+           title="Vídeo del ejercicio" loading="eager" allowfullscreen
+           allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+           referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      // Saludo al reproductor. Si no contesta, casi siempre es que el vídeo no
+      // permite incrustarse: entonces se sube el enlace de salir fuera.
+      const marco = videoFrame.querySelector('iframe');
+      marco.addEventListener('load', () => {
+        try {
+          marco.contentWindow.postMessage(
+            JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }),
+            'https://www.youtube-nocookie.com');
+        } catch { /* sin handshake: manda el temporizador */ }
+      });
+      videoTimer = setTimeout(() => { if (!videoResponde) videoAviso.hidden = false; }, 4000);
+    } else {
+      // No es YouTube: no hay nada que incrustar
+      videoFrame.innerHTML = '';
+      videoAviso.hidden = false;
+    }
+    videoModal.classList.add('open');
+    videoModal.setAttribute('aria-hidden', 'false');
+    void videoModal.offsetWidth;
+    videoModal.classList.add('on');
+  };
+
+  window.addEventListener('message', (e) => {
+    if (!/^https:\/\/(www\.)?youtube(-nocookie)?\.com$/.test(e.origin)) return;
+    videoResponde = true;
+    videoAviso.hidden = true;
+  });
+
+  function closeVideo() {
+    if (!videoModal.classList.contains('open')) return;
+    clearTimeout(videoTimer);
+    videoModal.classList.remove('on');
+    setTimeout(() => {
+      videoModal.classList.remove('open');
+      videoModal.setAttribute('aria-hidden', 'true');
+      videoFrame.innerHTML = '';   // callar el vídeo al cerrar
+    }, 200);
+  }
+  document.getElementById('videoClose').addEventListener('click', closeVideo);
+  document.getElementById('videoBack').addEventListener('click', closeVideo);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeVideo(); });
 
   // ============ SWAP modal ============
   let swapSlotIdx = null;
@@ -5603,6 +6028,7 @@ async function pullProgram() {
   const exercises = ex.data.map(e => ({
     id: e.id, name: e.name, group: e.muscle_group, pattern: e.pattern, equipment: e.equipment,
     logType: e.log_type || 'fuerza',
+    videoUrl: e.video_url || null,
   }));
   const routines = {};
   ro.data.forEach(r => {
@@ -7469,9 +7895,32 @@ async function sendChat(text, opciones = {}) {
   }
 }
 
+// Durante un entreno la conversación no se archiva sola: se queda entera hasta
+// que se termina, aunque el panel del coach se cierre con la X.
+let chatEnEspera = false;
+window.coachChatTieneHilo = () => chatHistory.length > 0;
+window.coachChatHold = (on) => {
+  chatEnEspera = !!on;
+  if (chatEnEspera) clearTimeout(chatIdleTimer);
+  else scheduleChatArchive();
+};
+// Al terminar el entreno la conversación se archiva con el resto de chats
+window.coachChatArchive = async () => {
+  chatEnEspera = false;
+  clearTimeout(chatIdleTimer);
+  if (!chatHistory.length) return;
+  const ok = await archiveThread('coach', chatHistory, chatLastTs || Date.now());
+  // Lo que no se ha podido guardar no se tira: se deja vivo y se reintenta
+  if (!ok) { scheduleChatArchive(); return; }
+  saveLive('coach', [], 0);
+  chatHistory = [];
+  renderChat();
+};
+
 // A los 10 minutos sin escribir, la conversación se archiva y el chat se vacía
 function scheduleChatArchive() {
   clearTimeout(chatIdleTimer);
+  if (chatEnEspera) return;
   chatIdleTimer = setTimeout(async () => {
     if (!chatHistory.length) return;
     await archiveThread('coach', chatHistory, chatLastTs);
@@ -7490,7 +7939,7 @@ chatForm.addEventListener('submit', (e) => {
 });
 // Al volver al chat tras un rato inactivo, la conversación se archiva y se vacía
 document.querySelector('[data-go="chat"]')?.addEventListener('click', async () => {
-  if (chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
+  if (!chatEnEspera && chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
     await archiveThread('coach', chatHistory, chatLastTs);
     saveLive('coach', [], 0);
     chatHistory = [];

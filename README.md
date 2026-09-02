@@ -35,10 +35,21 @@ FITNESS/
 ├── sw.js                   # Service worker (offline)
 ├── icon.svg                # Icono de la app
 ├── README.md               # Este archivo
-└── data/
-    ├── routines.js         # Plan, calendario y rutinas (chat Personal Trainer)
-    └── exercises.js        # Banco de ejercicios (chat Personal Trainer)
+├── data/
+│   ├── routines.js         # Plan, calendario y rutinas (chat Personal Trainer)
+│   └── exercises.js        # Banco de ejercicios (chat Personal Trainer)
+└── supabase/
+    └── migrations/         # Cambios de esquema de la nube — fuera del repo
+                            # (`supabase/` está en .gitignore: repo público)
 ```
+
+## Vídeos de los ejercicios
+
+La tabla `exercises` de Supabase tiene una columna `video_url`. Cuando un
+ejercicio la tiene puesta, la app enseña un botón ▶ junto a su nombre en el
+entreno y abre el vídeo incrustado; si es `NULL`, no hay botón. Están puestos
+cinco de ejemplo (back-squat, bench-press-barbell, romanian-deadlift, push-up,
+plank); el resto del catálogo se cura aparte.
 
 ## Cómo añadir/cambiar una rutina
 
