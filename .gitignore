@@ -8,7 +8,9 @@ Thumbs.db
 .env*.local
 
 # Internos del proyecto (no publicar: repo público)
-CLAUDE.md
-supabase/
 scripts/
 .claude/
+
+# supabase/ y CLAUDE.md SÍ se publican desde 26-ago-2026: las edge functions
+# se despliegan desde el repo y su código no lleva nada sensible (todo secreto
+# entra por Deno.env). Ver la regla de despliegue en CLAUDE.md.
