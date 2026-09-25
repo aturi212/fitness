@@ -353,7 +353,7 @@ const TOOLS = [
   {
     name: 'finish_first_session',
     description:
-      'Cierra la primera sesión: marca que el usuario ya tiene su plan montado y desbloquea el chat normal. Llamar SOLO al final, cuando ya has escrito objetivos, entrenos, calendario y macros. Si falta algo, la herramienta te lo dirá y no se marcará.',
+      'Cierra la primera sesión: marca que el usuario ya tiene su plan montado y desbloquea el chat normal. Llamar SOLO al final, cuando ya has escrito objetivos, entrenos, calendario y macros (con set_macros). Si falta algo, la herramienta te lo dirá y no se marcará.',
     input_schema: {
       type: 'object',
       properties: {
@@ -792,6 +792,8 @@ async function runTool(sb: any, name: string, input: any, userId: string, hoyIso
           if (!entrenos) falta.push('no has creado ningún entreno (upsert_routine)');
           if (!diasConEntreno) falta.push('el calendario está vacío (set_weekly_schedule)');
           if (!(p?.goals ?? {}).shortTerm) falta.push('no has escrito los objetivos (set_goals)');
+          const m = macrosPorTipo(p?.goals);
+          if (!m.entreno.protein_g && !m.descanso.protein_g) falta.push('no has guardado los macros (set_macros)');
           if (falta.length) {
             return JSON.stringify({ error: 'Aún no puedes cerrar la primera sesión: ' + falta.join('; ') });
           }
@@ -971,19 +973,21 @@ CÓMO LLEVARLA:
    - Cómo le gusta entrenar y dónde. Si en su ficha pone "un deporte concreto", pregúntale CUÁL y cuántos días le dedica.
    - De dónde parte: qué está haciendo ahora, cuánto tiempo lleva parado si lo está, lesiones o molestias.
    - Cuántos días de verdad puede entrenar, qué días de la semana le vienen bien y cuánto tiempo tiene por sesión.
-4. En cuanto tengas lo suficiente (no busques la información perfecta: cuatro o cinco intercambios bastan), PROPÓN el plan en pocas líneas: cuántos días, qué entreno cada día, en qué fases y qué objetivos. Pídele su visto bueno.
+   - Nutrición, en UNA pregunta natural y sin sermón: qué busca con la comida (perder grasa, ganar músculo, mantenerse, simplemente comer mejor…) y cómo come ahora a grandes rasgos (cuántas comidas al día, si cocina o come fuera, si hay algo que no come o no le sienta bien). Si su objetivo de entreno ya lo deja claro, confírmalo en vez de preguntarlo de cero.
+4. En cuanto tengas lo suficiente (no busques la información perfecta: cinco o seis intercambios bastan), PROPÓN el plan en pocas líneas: cuántos días, qué entreno cada día, en qué fases y qué objetivos. En el mismo mensaje propón unos macros iniciales: si entrena unos días y descansa otros, un juego para días de entreno y otro para descanso (proteína, carbohidratos, grasa y kcal de cada uno); explícalos en una o dos frases (por qué esa proteína, por qué más carbohidrato los días de entreno). Y déjale claro, con tono cercano y sin dramatismo, que no tiene que obsesionarse: son una referencia para equilibrar lo que come, no una norma que haya que clavar cada día; si un día se pasa o no llega, no pasa nada. Pídele su visto bueno a todo junto.
 5. Con su OK, escribe TODO de una tacada y sin volver a pedir permiso, en este orden:
    a) upsert_routine, uno por cada entreno del plan (usa list_exercises antes; add_exercise solo si falta algo).
    b) set_weekly_schedule con los siete días.
    c) set_goals con objetivos de corto y de largo plazo.
    d) set_plan con las fases.
-   e) set_macros con los dos juegos (entreno y descanso), calculados con su sexo, edad, altura, peso y objetivo.
+   e) set_macros con los macros que le has propuesto (los dos juegos, entreno y descanso, salvo que no tenga días de descanso), calculados con su sexo, edad, altura, peso y objetivo de nutrición. Si no quiso macros, pon igualmente unos de referencia suaves y díselo.
    f) finish_first_session.
 6. Cierra contándole en cuatro líneas qué le has dejado montado y dónde lo ve en la app: los entrenos en Trainer, el programa y los objetivos en sus pestañas, la semana en el inicio y los macros en Nutrición.
 
 REGLAS DE ESTA SESIÓN:
 - No la alargues: apunta a unos cinco minutos de conversación.
 - NO termines sin llamar a finish_first_session. Si el usuario se enrolla, reconduce con suavidad.
+- Con la comida, tono de colega, no de nutricionista: nada de listas de alimentos prohibidos, ni de pesar cada gramo, ni de culpa. Los macros orientan; lo importante es la tendencia de la semana.
 - Si dice que ahora no quiere plan o que se lo piensa, no insistas más de una vez: llama a finish_first_session con force=true para no dejarle el chat bloqueado, y dile que cuando quiera se lo montas.
 - Si es un plan REHECHO (ya había uno antes), empieza por get_previous_plans para saber de dónde viene y qué no le funcionó.`;
 
