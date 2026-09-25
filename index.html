@@ -968,6 +968,17 @@
   .rest-timer .t { font-size: 26px; margin-top: 5px; }
   .rest-timer button { height: 38px; padding: 0 14px; border-radius: var(--r-4); font: 600 11px/1 var(--f-mono); letter-spacing: .1em; }
   .rest-timer .rt-skip { background: var(--white); color: var(--white-ink); border-color: transparent; font-weight: 700; }
+  /* Dentro del tracker el descanso va EN LA COLUMNA, entre la baraja y el pie:
+     la baraja encoge y las notas (propias o del coach) quedan siempre por
+     encima del crono. Flotando encima las tapaba en móviles de 390 px. */
+  .tracker .rest-timer { position: relative; left: auto; right: auto; bottom: auto; flex-shrink: 0;
+    margin: 8px var(--gutter) 10px; }
+  /* Menú ⋯ del ejercicio */
+  #tkMenuList .sheet-option { border: 1px solid var(--line); color: var(--text); }
+  #tkMenuList .sheet-option .opt-dot svg { width: 16px; height: 16px; }
+  /* Entreno a medias: la opción principal es seguir */
+  .resume-drop { margin-top: 6px; width: 100%; padding: 12px; font: 600 11px/1 var(--f-mono);
+    letter-spacing: .14em; text-transform: uppercase; color: var(--faint); background: none; }
 
   /* ════════ STATS · §8.4 ════════ */
   /* Check semanal: la semana cumplida en bloque naranja */
@@ -2580,6 +2591,16 @@
     <div class="sheet-body" id="swapList"></div>
   </div>
 
+  <!-- =========== MENÚ ⋯ DEL EJERCICIO (tracker) =========== -->
+  <div class="sheet" id="tkMenuSheet" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3 id="tkMenuTitle">Ejercicio</h3>
+      <p id="tkMenuSub"></p>
+    </div>
+    <div class="sheet-body" id="tkMenuList"></div>
+  </div>
+
   <!-- =========== EDIT DAY BOTTOM SHEET =========== -->
   <div class="sheet" id="editDaySheet">
     <div class="sheet-handle"></div>
@@ -2868,6 +2889,21 @@
     <p class="lim-sub" id="limSub">Se renueva mañana a las 00:00</p>
     <button type="button" class="btn-primary" id="limOk">ENTENDIDO</button>
     <button type="button" class="btn-ghost" id="limMore">Quiero más</button>
+  </div>
+</div>
+
+<!-- Entreno a medias: al volver a la app (iOS la mató, se recargó…) lo
+     primero que se ofrece es SEGUIR donde se dejó. -->
+<div class="lim-modal" id="resumeModal" aria-hidden="true">
+  <div class="lim-back"></div>
+  <div class="lim-box" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
+    <div class="lim-dot" aria-hidden="true">⏱</div>
+    <span class="label-sm">ENTRENO A MEDIAS</span>
+    <h2 class="lim-title" id="resumeTitle">¿Seguimos?</h2>
+    <p class="lim-sub" id="resumeSub"></p>
+    <button type="button" class="btn-primary" id="resumeGo">CONTINUAR ENTRENO</button>
+    <button type="button" class="btn-ghost" id="resumeSave">Guardar y terminar</button>
+    <button type="button" class="resume-drop" id="resumeDrop">Descartar</button>
   </div>
 </div>
 
@@ -4642,6 +4678,11 @@
       alert('Esta rutina no tiene ejercicios definidos.');
       return;
     }
+    // Id y fecha fijos desde el primer segundo: retomar y guardar dos veces
+    // no crea dos entrenos, y uno que cruza la medianoche es del día que empezó.
+    s.workoutId = crypto.randomUUID ? crypto.randomUUID()
+      : 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    s.startedIso = new Date().toISOString();
     session = s;
     renderTracker();
     document.getElementById('tracker').classList.add('open');
@@ -4649,7 +4690,7 @@
     window.coachChatHold?.(true);
     document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
     renderSyncBar();
-    pausedMs = 0; pausedAt = null;
+    pausedMs = 0; pausedAt = null; workoutStart = null;
     setPaused(false);
     clearInterval(workoutTimer);
     document.getElementById('trackerTime').textContent = '00:00';
@@ -4658,7 +4699,9 @@
       clearInterval(workoutTimer);
       workoutTimer = setInterval(updateWorkoutTime, 1000);
       updateWorkoutTime();
+      saveDraft();   // ya se puede retomar aunque no se haya escrito nada
     });
+    startDraftBeat();
   }
 
   // Pausar / reanudar / finalizar. El tiempo pausado no cuenta como entreno.
@@ -4670,10 +4713,12 @@
   document.getElementById('tkPause').addEventListener('click', () => {
     pausedAt = Date.now();
     setPaused(true);
+    scheduleDraft();
   });
   document.getElementById('tkResume').addEventListener('click', () => {
     if (pausedAt) { pausedMs += Date.now() - pausedAt; pausedAt = null; }
     setPaused(false);
+    scheduleDraft();
   });
 
   const trackerBody = document.getElementById('trackerBody');
@@ -4955,6 +5000,7 @@
         deckLastSlot = slot;
         updateTrackerPos(slot);
         cancelarAutoAvance();   // pasar de ejercicio a mano anula el salto en cola
+        scheduleDraft();        // el ejercicio en el que está es parte de lo que se retoma
       }
       // ¿Se ha parado la baraja?
       const x = Math.round(trackerBody.scrollLeft);
@@ -5053,7 +5099,11 @@
   // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
   // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
+    clearTimeout(draftTimer);
     const guardado = persistSession();
+    // Detrás de la ventana de "completado" el tracker sigue abierto: sin esto,
+    // bloquear el móvil ahí resucitaba el borrador de un entreno ya guardado.
+    if (session) session.finished = true;
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
     // "Queda guardado" solo se dice cuando es verdad. Si la sesión está en el
     // outbox esperando red, se avisa aquí mismo en vez de dar por buena una
@@ -5126,21 +5176,168 @@
   const DRAFT_KEY = 'fitness_session_draft_v1';
   function loadDraft() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { return null; } }
   function clearDraft() { localStorage.removeItem(DRAFT_KEY); window.appSyncChanged?.(); }
+  // Además de lo apuntado (exercises, que es lo que se sube), el borrador lleva
+  // `live`: todo lo necesario para RETOMAR el entreno tal cual estaba —
+  // ejercicios (con los cambiados), cada casilla, marcas, notas, ejercicio en
+  // pantalla, crono, pausa y descanso—. Se escribe en cada cambio.
   function saveDraft() {
+    if (!session || session.finished) return;
+    if (!document.getElementById('tracker').classList.contains('open')) return;
     const snap = readTracker();
-    if (!snap || !snap.exercises.length) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-      savedAt: new Date().toISOString(),
-      dateIso: snap.dateIso,
-      routineId: session.routineId,
-      routineName: session.routineName,
-      durationSec: snap.durationSec,
-      exercises: snap.exercises,
-    }));
+    if (!snap) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        dateIso: snap.dateIso,
+        workoutId: session.workoutId,
+        routineId: session.routineId,
+        routineName: session.routineName,
+        durationSec: snap.durationSec,
+        exercises: snap.exercises,
+        live: liveState(),
+      }));
+    } catch (e) { console.error('borrador', e); }
     window.appSyncChanged?.();
+  }
+  function liveState() {
+    const cards = [...trackerBody.querySelectorAll('.exercise-card')].map((card) => ({
+      slot: parseInt(card.dataset.slot, 10),
+      vals: [...card.querySelectorAll('input[data-field]')].map((i) => i.value),
+      checks: [...card.querySelectorAll('td.done button, .cardio-done button')].map((b) => b.classList.contains('checked')),
+      note: card.querySelector('.notes-input')?.value ?? null,
+    }));
+    return {
+      v: 2,
+      exercises: session.exercises,
+      workoutStart, pausedMs, pausedAt,
+      panel: deckIndex(),
+      restEnd: restInterval ? restEnd : null,
+      cards,
+    };
   }
   let draftTimer = null;
   function scheduleDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 400); }
+  // Latido: aunque no se toque nada, el crono queda al día cada pocos segundos
+  let draftBeat = null;
+  function startDraftBeat() { clearInterval(draftBeat); draftBeat = setInterval(saveDraft, 10000); }
+
+  // ---------- Retomar el entreno a medias ----------
+  const RESUME_MAX_MS = 12 * 3600 * 1000;   // pasado esto ya no se ofrece seguir
+  // Si la app estuvo muerta más de esto, ese hueco no cuenta como entreno: el
+  // crono sigue donde se quedó. Por debajo (bloquear el móvil en un descanso)
+  // el tiempo fuera sí es entreno.
+  const RESUME_GAP_MS = 30 * 60 * 1000;
+  const draftResumable = (d) => !!(d && d.live && d.live.v === 2 && Array.isArray(d.live.exercises)
+    && d.live.exercises.length && (Date.now() - Date.parse(d.savedAt)) < RESUME_MAX_MS);
+
+  function resumeDraft(d) {
+    d = d || loadDraft();
+    if (!draftResumable(d)) return false;
+    const L = d.live;
+    closeResumeModal();
+    session = {
+      routineId: d.routineId,
+      routineName: d.routineName,
+      exercises: L.exercises,
+      workoutId: d.workoutId,
+      startedIso: d.dateIso,
+    };
+    renderTracker();
+    (L.cards || []).forEach((c) => {
+      const card = trackerBody.querySelector(`.exercise-card[data-slot="${c.slot}"]`);
+      if (!card) return;
+      card.querySelectorAll('input[data-field]').forEach((inp, i) => {
+        const v = c.vals?.[i];
+        if (v != null && v !== '') { inp.value = v; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+      });
+      card.querySelectorAll('td.done button, .cardio-done button').forEach((b, i) => {
+        if (!c.checks?.[i]) return;
+        b.classList.add('checked');
+        b.closest('tr')?.classList.add('completed');
+      });
+      const ta = card.querySelector('.notes-input');
+      if (ta && typeof c.note === 'string') {
+        ta.value = c.note;
+        ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+      }
+    });
+    cancelarCuentaAtras();
+    document.getElementById('tracker').classList.add('open');
+    window.coachChatHold?.(true);
+    document.getElementById('tkCoachDot').hidden = !window.coachChatTieneHilo?.();
+    // Crono
+    const fuera = Date.now() - Date.parse(d.savedAt);
+    workoutStart = L.workoutStart || Date.now();
+    pausedMs = L.pausedMs || 0;
+    pausedAt = L.pausedAt || null;
+    if (!pausedAt && fuera > RESUME_GAP_MS) pausedMs += fuera;
+    setPaused(!!pausedAt);
+    clearInterval(workoutTimer);
+    workoutTimer = setInterval(updateWorkoutTime, 1000);
+    updateWorkoutTime();
+    startDraftBeat();
+    // Ejercicio en pantalla (tras pintar: la baraja necesita su ancho)
+    const panel = Math.max(0, Math.min((session.panels || []).length - 1, L.panel || 0));
+    requestAnimationFrame(() => {
+      deckGoTo(panel, false);
+      updateTrackerPos(session.panels[panel]?.slots[0] ?? 0);
+    });
+    // Descanso que seguía corriendo
+    if (L.restEnd && L.restEnd > Date.now() + 1000) startRest(0, L.restEnd);
+    renderSyncBar();
+    saveDraft();
+    return true;
+  }
+  window.appResumeDraft = resumeDraft;
+  window.appDraftResumable = draftResumable;
+
+  const resumeModal = document.getElementById('resumeModal');
+  function closeResumeModal() {
+    resumeModal.classList.remove('on', 'open');
+    resumeModal.setAttribute('aria-hidden', 'true');
+  }
+  // Al abrir la app: si hay un entreno a medias de menos de 12 h, lo primero
+  // que se ofrece es seguir. Con la pantalla de acceso delante se espera.
+  function ofrecerRetomar() {
+    const d = loadDraft();
+    if (!draftResumable(d)) return;
+    if (document.getElementById('tracker').classList.contains('open')) return;
+    if (document.getElementById('loginOverlay')?.classList.contains('open')) {
+      setTimeout(ofrecerRetomar, 1000);
+      return;
+    }
+    const L = d.live;
+    const total = L.exercises.length;
+    const panel = (() => {   // mismo agrupado que buildPanels, sin tocar la sesión
+      let n = -1, prev = null, slot = 0;
+      L.exercises.forEach((e, i) => {
+        const k = supersetKey(e);
+        if (!(k && prev === k)) { n++; if (n === (L.panel || 0)) slot = i; }
+        prev = k;
+      });
+      return slot;
+    })();
+    const hechas = (L.cards || []).reduce((a, c) => a + (c.checks || []).filter(Boolean).length, 0);
+    const seg = d.durationSec || 0;
+    const reloj = `${String(Math.floor(seg / 60)).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`;
+    const hace = Math.max(1, Math.round((Date.now() - Date.parse(d.savedAt)) / 60000));
+    document.getElementById('resumeTitle').textContent = `¿Seguimos con ${d.routineName || 'el entreno'}?`;
+    document.getElementById('resumeSub').textContent =
+      `Ejercicio ${panel + 1} de ${total} · ${hechas} serie${hechas === 1 ? '' : 's'} hecha${hechas === 1 ? '' : 's'} · ${reloj}. `
+      + `Lo dejaste hace ${hace < 60 ? hace + ' min' : Math.round(hace / 60) + ' h'}.`;
+    resumeModal.classList.add('open');
+    resumeModal.setAttribute('aria-hidden', 'false');
+    void resumeModal.offsetWidth;
+    resumeModal.classList.add('on');
+  }
+  document.getElementById('resumeGo').addEventListener('click', () => resumeDraft());
+  document.getElementById('resumeSave').addEventListener('click', () => { closeResumeModal(); recoverDraft(); });
+  document.getElementById('resumeDrop').addEventListener('click', () => {
+    if (!confirm('¿Descartar el entreno a medias? No se puede deshacer.')) return;
+    closeResumeModal(); clearDraft();
+  });
+  window.appOfferResume = ofrecerRetomar;
+
   window.appLoadDraft = loadDraft;
   window.appClearDraft = clearDraft;
   window.appOutboxCount = () => loadOutbox().filter(i => i.type === 'workout').length;
@@ -5154,6 +5351,15 @@
   });
   window.addEventListener('pagehide', () => {
     if (session && document.getElementById('tracker').classList.contains('open')) { clearTimeout(draftTimer); saveDraft(); }
+  });
+  document.addEventListener('freeze', () => { clearTimeout(draftTimer); saveDraft(); });
+  // Al volver: los relojes se ponen al día al instante (en segundo plano los
+  // temporizadores se congelan) y, si la app se recargó, se ofrece seguir.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    if (restInterval) tickRest();
+    if (workoutTimer && workoutStart) updateWorkoutTime();
+    ofrecerRetomar();
   });
 
   // ---------- Lectura del tracker ----------
@@ -5211,7 +5417,7 @@
         sets, notes, swapped: !!slot.swapped,
       });
     });
-    return { dateIso: new Date().toISOString(), durationSec, exercises };
+    return { dateIso: session.startedIso || new Date().toISOString(), workoutId: session.workoutId, durationSec, exercises };
   }
 
   // ---------- De la foto del entreno a las filas de la nube ----------
@@ -5333,7 +5539,11 @@
     const abierto = document.getElementById('tracker').classList.contains('open');
     const pend = loadOutbox().filter(i => i.type === 'workout');
     // El borrador del entreno que está abierto ahora mismo no es un aviso.
-    if (draft && !abierto) {
+    if (draft && !abierto && draftResumable(draft)) {
+      syncTxt.textContent = `Entreno a medias · ${draft.routineName || ''}`.trim();
+      syncBtn.textContent = 'CONTINUAR';
+      syncAccion = () => { resumeDraft(); };
+    } else if (draft && !abierto) {
       syncTxt.textContent = `Entreno sin guardar · ${draft.routineName || ''} ${fechaCorta(draft.dateIso)}`.trim();
       syncBtn.textContent = 'GUARDAR';
       syncAccion = () => { recoverDraft(); };
@@ -5359,7 +5569,7 @@
   function recoverDraft(d) {
     const draft = d || loadDraft();
     if (!draft) return null;
-    const payload = buildWorkoutPayload(draft, draft.routineId);
+    const payload = buildWorkoutPayload(draft, draft.routineId);   // lleva draft.workoutId
     const hist = loadHistory();
     (draft.exercises || []).forEach(ex => {
       const yaEsta = (hist[ex.exerciseId] || []).some(r =>
@@ -5400,6 +5610,8 @@
     document.getElementById('tracker').classList.remove('open');
     renderSyncBar();
     clearInterval(workoutTimer);
+    clearInterval(draftBeat); draftBeat = null;
+    closeTkMenu();
     stopRest('cerrar');
     setPaused(false);
     cancelarCuentaAtras();   // por si se sale con la cuenta atrás en marcha
@@ -5414,7 +5626,7 @@
   }
 
   // ============ Set tick + rest timer ============
-  let restInterval = null, restRemaining = 0;
+  let restInterval = null, restRemaining = 0, restEnd = 0;
   // Marcar una serie guarda EXACTAMENTE lo escrito. Nada de autorrelleno:
   // heredar el valor anterior obligaba a corregir casilla por casilla.
   // Si te equivocas, desmarcas, corriges y vuelves a marcar.
@@ -5523,32 +5735,41 @@
     }, 1250);
   }
 
-  function startRest(sec) {
-    restRemaining = sec;
+  // El descanso se lleva por su HORA DE FIN, no restando segundos: con el
+  // móvil bloqueado los temporizadores se paran y al volver el crono mentía.
+  // `hasta` (opcional) es para retomar un descanso que seguía corriendo.
+  function startRest(sec, hasta) {
+    restEnd = hasta || (Date.now() + sec * 1000);
+    restRemaining = Math.max(0, Math.ceil((restEnd - Date.now()) / 1000));
     updateRestUI();
     pintarSiguienteEnDescanso();
     document.getElementById('restTimer').classList.add('show');
     clearInterval(restInterval);
-    restInterval = setInterval(() => {
-      restRemaining--;
-      updateRestUI();
-      if (restRemaining <= 0) {
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        stopRest('fin');
-      }
-    }, 1000);
+    restInterval = setInterval(tickRest, 250);
+    scheduleDraft();
+  }
+  function tickRest() {
+    restRemaining = Math.max(0, Math.ceil((restEnd - Date.now()) / 1000));
+    updateRestUI();
+    if (restRemaining <= 0) {
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      stopRest('fin');
+    }
   }
   // `motivo`: 'fin' (se acabó el descanso) y 'saltar' (el botón) encadenan el
   // siguiente ejercicio. 'cerrar' es salir del entreno: ahí no se salta nada.
   window.stopRest = function(motivo) {
     clearInterval(restInterval);
+    restInterval = null;
     document.getElementById('restTimer').classList.remove('show');
     if (motivo === 'fin' || motivo === 'saltar') dispararAutoAvance();
     else cancelarAutoAvance();
+    if (motivo !== 'cerrar') scheduleDraft();
   };
   window.adjustRest = function(delta) {
-    restRemaining = Math.max(5, restRemaining + delta);
-    updateRestUI();
+    restEnd = Math.max(Date.now() + 5000, restEnd + delta * 1000);
+    tickRest();
+    scheduleDraft();
   };
   function updateRestUI() {
     const m = String(Math.floor(restRemaining / 60)).padStart(2, '0');
@@ -5648,6 +5869,7 @@
     swapBackdrop.classList.add('open');
   };
   swapBackdrop.addEventListener('click', () => {
+    closeTkMenu();
     closeSwap();
     closeEditDay();
     closeImport();
@@ -5707,6 +5929,7 @@
         slot.swapped = (newId !== slot.originalId);
         const cards = trackerBody.querySelectorAll('.exercise-card');
         cards[swapSlotIdx].outerHTML = renderCard(swapSlotIdx);
+        scheduleDraft();
       }
       closeSwap();
     };
@@ -5767,6 +5990,77 @@
     if (navigator.vibrate) navigator.vibrate(20);
     return id;
   }
+
+  // ============ Menú ⋯ del ejercicio en pantalla ============
+  const tkMenuSheet = document.getElementById('tkMenuSheet');
+  const ICO = {
+    swap: '<path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/>',
+    video: '<path d="M8 5.5v13l11-6.5z"/>',
+    note: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    next: '<path d="M5 12h13"/><path d="M12 5l7 7-7 7"/>',
+  };
+  const opcion = (accion, ico, titulo, detalle, extra = '') => `
+    <button type="button" class="sheet-option" data-acc="${accion}" ${extra}>
+      <span class="opt-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICO[ico]}</svg></span>
+      <span class="opt-info"><b>${titulo}</b><span>${detalle}</span></span>
+    </button>`;
+  function openTkMenu() {
+    if (!session?.panels?.length) return;
+    const idx = deckIndex();
+    const panel = session.panels[idx];
+    if (!panel) return;
+    const varios = panel.slots.length > 1;
+    const nombres = panel.slots.map((i) => getExercise(session.exercises[i].exerciseId).name);
+    document.getElementById('tkMenuTitle').textContent = varios ? nombres.join(' + ') : nombres[0];
+    document.getElementById('tkMenuSub').textContent = `EJ ${panel.slots[0] + 1} DE ${session.exercises.length}`;
+    let html = '';
+    panel.slots.forEach((i, k) => {
+      const ex = getExercise(session.exercises[i].exerciseId);
+      const de = varios ? ` · ${nombres[k]}` : '';
+      html += opcion('swap', 'swap', `Cambiar ejercicio${varios ? de : ''}`, 'Por otro de tu catálogo', `data-slot="${i}"`);
+      if (ex.videoUrl) html += opcion('video', 'video', `Ver vídeo${varios ? de : ''}`, 'Cómo se hace', `data-slot="${i}"`);
+    });
+    html += opcion('notes', 'note', 'Notas', 'Escribir las tuyas o leer las del coach', `data-slot="${panel.slots[0]}"`);
+    const sig = session.panels[idx + 1];
+    if (sig) {
+      html += opcion('next', 'next', 'Saltar ejercicio',
+        `Pasar a ${esc(getExercise(session.exercises[sig.slots[0]].exerciseId).name)}`);
+    }
+    document.getElementById('tkMenuList').innerHTML = html;
+    tkMenuSheet.classList.add('open');
+    tkMenuSheet.setAttribute('aria-hidden', 'false');
+    swapBackdrop.classList.add('open');
+  }
+  function closeTkMenu() {
+    if (!tkMenuSheet.classList.contains('open')) return;
+    tkMenuSheet.classList.remove('open');
+    tkMenuSheet.setAttribute('aria-hidden', 'true');
+    swapBackdrop.classList.remove('open');
+  }
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  document.getElementById('tkMenu').addEventListener('click', openTkMenu);
+  document.getElementById('tkMenuList').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-acc]');
+    if (!b) return;
+    const slot = parseInt(b.dataset.slot, 10);
+    closeTkMenu();
+    switch (b.dataset.acc) {
+      case 'swap': openSwap(slot); break;
+      case 'video': openVideo(session.exercises[slot].exerciseId); break;
+      case 'next': cancelarAutoAvance(); deckGoTo(deckIndex() + 1); break;
+      case 'notes': {
+        const card = trackerBody.querySelector(`.exercise-card[data-slot="${slot}"]`);
+        const tab = card?.querySelector('[data-nota="mias"]');
+        if (!card || !tab) break;
+        card.querySelectorAll('[data-nota]').forEach((x) => x.classList.toggle('on', x === tab));
+        card.querySelectorAll('[data-pane]').forEach((x) => { x.style.display = x.dataset.pane === 'mias' ? '' : 'none'; });
+        const ta = card.querySelector('.notes-input');
+        ta?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        ta?.focus({ preventScroll: true });
+        break;
+      }
+    }
+  });
 
   // ============ Export / Import ============
   function buildExportPayload() {
@@ -5870,6 +6164,7 @@
 
   // Al arrancar: si quedó un entreno a medias o algo sin subir, se ve enseguida.
   renderSyncBar();
+  setTimeout(ofrecerRetomar, 300);
 
   // ¿Ese día cuenta como día de entreno? Lo usa Nutrición para elegir entre
   // los macros de entreno y los de descanso. Regla acordada con Adrián:
@@ -7452,7 +7747,8 @@ function pintarSync() {
           <b>${esc(draft.routineName || 'Entreno')} · ${esc((draft.dateIso || '').slice(0, 10))}</b>
           <p>${series} serie${series === 1 ? '' : 's'} · ${conNotas} nota${conNotas === 1 ? '' : 's'}${draft.durationSec ? ` · ${Math.round(draft.durationSec / 60)} min` : ''}</p>
           <div class="rec-actions">
-            <button type="button" class="go" id="recDraftSave">GUARDARLO</button>
+            ${window.appDraftResumable?.(draft) ? '<button type="button" class="go" id="recDraftGo">CONTINUAR</button>' : ''}
+            <button type="button" class="${window.appDraftResumable?.(draft) ? '' : 'go'}" id="recDraftSave">GUARDARLO</button>
             <button type="button" id="recDraftDrop">DESCARTAR</button>
           </div>
         </div>
@@ -7495,6 +7791,7 @@ function pintarSync() {
 
   body.innerHTML = html;
 
+  $('recDraftGo')?.addEventListener('click', () => { cerrarCajones(); window.appResumeDraft?.(); });
   $('recDraftSave')?.addEventListener('click', () => { window.appRecoverDraft?.(); pintarSync(); });
   $('recDraftDrop')?.addEventListener('click', () => {
     if (confirm('¿Descartar el entreno a medias? No se puede deshacer.')) { window.appClearDraft?.(); pintarSync(); }
