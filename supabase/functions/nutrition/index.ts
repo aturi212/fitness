@@ -13,7 +13,8 @@
 // el JWT del usuario con getUser (401 si no hay sesión).
 // El perfil del usuario se lee de `profiles`: NADA escrito a fuego.
 // Topes y registro de uso: ../_shared/ai_usage.ts. Al llegar al tope responde
-// 200 con { error, limit:true }: la app enseña el mensaje tal cual.
+// 200 con { error, limit:{ reason, feature } }: la app saca su ventana de tope
+// (las versiones viejas enseñan `error` tal cual).
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { checkLimits, logUsage, type Kind } from '../_shared/ai_usage.ts';
@@ -94,7 +95,7 @@ Deno.serve(async (req) => {
       : body.mode === 'chat' ? 'nutritionist' : null;
     if (kind) {
       const tope = await checkLimits(user.id, kind);
-      if (tope) return json({ error: tope, limit: true });
+      if (tope) return json({ error: tope.msg, limit: { reason: tope.reason, feature: tope.feature } });
     }
 
     // Ficha del usuario: el prompt no lleva datos de nadie escritos a fuego

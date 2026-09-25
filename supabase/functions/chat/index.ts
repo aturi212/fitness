@@ -16,8 +16,9 @@
 //   propio punto de caché. En un bucle agéntico de varias rondas se reenvían
 //   herramientas + prompt en cada vuelta: cacheados, esas rondas cuestan ~10%.
 // - TOPES DE USO (../_shared/ai_usage.ts): se miran ANTES de la primera
-//   llamada; al llegar al tope se responde con un evento de error amable y no
-//   se llama a la API. Una respuesta ya empezada nunca se corta por los topes.
+//   llamada; al llegar al tope se responde con un evento `limit` (la app saca
+//   su ventana de tope) y no se llama a la API. Una respuesta ya empezada
+//   nunca se corta por los topes.
 //   Cada ronda deja su usage (tokens y caché) en ai_usage.
 // Deploy: MCP de Supabase o `supabase functions deploy chat`.
 // ============================================================
@@ -1018,11 +1019,14 @@ Deno.serve(async (req) => {
       return json({ error: 'messages vacío' }, 400);
     }
 
-    // Topes ANTES de llamar a la API. Va como evento NDJSON normal para que la
-    // app lo pinte como una burbuja más, sin romper nada.
+    // Topes ANTES de llamar a la API. Van como eventos NDJSON: `limit` para la
+    // app (saca la ventana del tope) y detrás un `error` con el texto, que es
+    // lo único que entienden las versiones viejas; las nuevas lo ignoran.
     const tope = await checkLimits(user.id, 'coach');
     if (tope) {
-      return new Response(JSON.stringify({ t: 'error', v: tope }) + '\n', {
+      const lineas = JSON.stringify({ t: 'limit', reason: tope.reason, feature: tope.feature }) + '\n'
+        + JSON.stringify({ t: 'error', v: tope.msg }) + '\n';
+      return new Response(lineas, {
         headers: { ...CORS, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache' },
       });
     }

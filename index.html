@@ -874,6 +874,27 @@
   .vid-aviso:not([hidden]) + .vid-out { background: var(--white); color: var(--white-ink); border-color: transparent; }
   @media (prefers-reduced-motion: reduce) { .vid-back, .vid-box { transition: none; } }
 
+  /* Tope de uso de la IA: ventana emergente (mismo patrón que la del vídeo) */
+  .lim-modal { position: fixed; inset: 0; z-index: 210; display: none; }
+  .lim-modal.open { display: block; }
+  .lim-back { position: absolute; inset: 0; background: rgba(0,0,0,.78);
+              opacity: 0; transition: opacity var(--t-base) var(--ease); }
+  .lim-modal.on .lim-back { opacity: 1; }
+  .lim-box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -48%) scale(.97);
+             width: min(380px, calc(100vw - 32px));
+             background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-8);
+             padding: 22px 18px 18px; box-shadow: var(--sh-float); text-align: center;
+             opacity: 0; transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease); }
+  .lim-modal.on .lim-box { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .lim-dot { width: 44px; height: 44px; margin: 0 auto 14px; border-radius: 50%;
+             display: grid; place-items: center; background: var(--hot-soft);
+             border: 1px solid var(--hot-line); color: var(--hot-text); font-size: 20px; }
+  .lim-title { font: 700 22px/1.05 var(--f-display); letter-spacing: -.03em; margin: 8px 0 8px; color: var(--text); }
+  .lim-sub { font-size: 13.5px; line-height: 1.45; color: var(--muted); margin: 0 0 18px; }
+  .lim-box .btn-primary { margin-top: 0; }
+  .lim-box .btn-ghost { margin-top: 10px; }
+  @media (prefers-reduced-motion: reduce) { .lim-back, .lim-box { transition: none; } }
+
   /* Coach durante el entreno: botón en la cabecera y panel emergente */
   .tk-coach-btn { position: relative; }
   .tk-coach-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%;
@@ -2832,6 +2853,21 @@
     <p class="coach-hi muted-hi">Si prefieres cotillear la app primero, adelante. Te espero en el chat.</p>
     <button type="button" class="btn-primary" id="coachGo">CREAR MI PLAN</button>
     <button type="button" class="btn-ghost" id="coachLater" style="margin-top:10px">Ahora no, quiero mirar</button>
+  </div>
+</div>
+
+<!-- ============ TOPE DE USO DE LA IA ============
+     Sale cuando el Coach o el análisis de comida devuelven que se ha llegado
+     al tope. «Quiero más» solo apunta el interés (ai_upgrade_interest). -->
+<div class="lim-modal" id="limModal" aria-hidden="true">
+  <div class="lim-back" id="limBack"></div>
+  <div class="lim-box" role="dialog" aria-modal="true" aria-labelledby="limTitle">
+    <div class="lim-dot" aria-hidden="true">💪</div>
+    <span class="label-sm" id="limEyebrow">LÍMITE DIARIO</span>
+    <h2 class="lim-title" id="limTitle">Has llegado al límite de hoy</h2>
+    <p class="lim-sub" id="limSub">Se renueva mañana a las 00:00</p>
+    <button type="button" class="btn-primary" id="limOk">ENTENDIDO</button>
+    <button type="button" class="btn-ghost" id="limMore">Quiero más</button>
   </div>
 </div>
 
@@ -6604,6 +6640,52 @@ function fileToBase64Jpeg(file, maxSide = 1100) {
   });
 }
 
+// ---------- Tope de uso de la IA ----------
+// Las funciones avisan con { reason: 'day' | 'minute', feature }. El día se
+// cuenta en hora de Madrid, así que se renueva a las 00:00.
+let limFeature = null;
+function showAiLimit(tope) {
+  const m = $('limModal');
+  limFeature = tope?.feature || null;
+  const porMinuto = tope?.reason === 'minute';
+  $('limEyebrow').textContent = porMinuto ? 'UN MOMENTO' : 'LÍMITE DIARIO';
+  $('limTitle').textContent = porMinuto ? 'Vas muy rápido' : 'Has llegado al límite de hoy';
+  $('limSub').textContent = porMinuto ? 'Espera un minuto y seguimos' : 'Se renueva mañana a las 00:00';
+  $('limMore').hidden = porMinuto;
+  $('limMore').disabled = false;
+  $('limMore').textContent = 'Quiero más';
+  m.classList.add('open');
+  m.setAttribute('aria-hidden', 'false');
+  void m.offsetWidth;
+  m.classList.add('on');
+  $('limOk').focus();
+}
+function closeAiLimit() {
+  const m = $('limModal');
+  if (!m.classList.contains('open')) return;
+  m.classList.remove('on');
+  m.setAttribute('aria-hidden', 'true');
+  setTimeout(() => m.classList.remove('open'), 240);
+}
+window.showAiLimit = showAiLimit;
+$('limOk').addEventListener('click', closeAiLimit);
+$('limBack').addEventListener('click', closeAiLimit);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAiLimit(); });
+$('limMore').addEventListener('click', async () => {
+  const btn = $('limMore');
+  btn.disabled = true;
+  const { error } = await sb.from('ai_upgrade_interest').insert({ feature: limFeature || 'coach' });
+  if (error) {
+    btn.disabled = false;
+    $('limSub').textContent = 'No he podido apuntarlo. Prueba otra vez.';
+    return;
+  }
+  btn.hidden = true;
+  $('limEyebrow').textContent = 'APUNTADO';
+  $('limTitle').textContent = '¡Anotado!';
+  $('limSub').textContent = 'Muy pronto podrás conseguir más créditos';
+});
+
 async function analyzeAndAdd({ text, imageB64 }) {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { closeNutriSheet(); showLogin(); throw new Error('Necesitas iniciar sesión'); }
@@ -6611,6 +6693,7 @@ async function analyzeAndAdd({ text, imageB64 }) {
   if (imageB64) { body.image = { data: imageB64, media_type: 'image/jpeg' }; if (text) body.text = text; }
   else body.text = text;
   const { data, error } = await sb.functions.invoke('nutrition', { body });
+  if (data?.limit) { const e = new Error(''); e.limit = data.limit; throw e; }
   if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
   const items = data?.items || [];
   if (!items.length) throw new Error('No he reconocido comida ahí. Prueba a describirlo de otra forma.');
@@ -6641,6 +6724,7 @@ async function nsSubmit(imageB64) {
     renderNutrition();
     void n;
   } catch (err) {
+    if (err?.limit) { nsStatus(''); showAiLimit(err.limit); return; }
     nsStatus(String(err?.message || err), true);
   } finally { nsBusy(false); }
 }
@@ -7825,6 +7909,7 @@ async function sendChat(text, opciones = {}) {
   chatSend.disabled = true;
   const acciones = [];
   let respuesta = '';
+  let tope = null;   // si el Coach contesta que se ha llegado al tope
   try {
     const { data: { session: s2 } } = await sb.auth.getSession();
     const resp = await fetch(`${SB_URL}/functions/v1/chat`, {
@@ -7860,7 +7945,10 @@ async function sendChat(text, opciones = {}) {
         if (ev.v) { estado.style.display = ''; estado.textContent = ev.v; }
       } else if (ev.t === 'action') {
         acciones.push(ev.v);
+      } else if (ev.t === 'limit') {
+        tope = ev;
       } else if (ev.t === 'error') {
+        if (tope) return;   // el texto del tope es para versiones viejas
         throw new Error(ev.v);
       }
     };
@@ -7876,6 +7964,15 @@ async function sendChat(text, opciones = {}) {
 
     estado.remove();
     burbuja.remove();
+    if (tope) {
+      // El mensaje no ha llegado al Coach: fuera del historial y, si era suyo,
+      // de vuelta a la caja de texto para que no lo pierda.
+      chatHistory.pop();
+      if (!opciones.oculto && !chatText.value) chatText.value = text;
+      renderChat();
+      showAiLimit(tope);
+      return;
+    }
     chatHistory.push({ role: 'assistant', content: respuesta || '(sin respuesta)', actions: acciones });
     renderChat();
     // Si el entrenador tocó la BD, refresca al momento lo que se ve
@@ -8016,6 +8113,10 @@ window.cloudCreateRoutine = async (text) => {
       content: `Créame un entrenamiento NUEVO a partir de esto que quiero hacer: "${text}". Crea la rutina con upsert_routine (id kebab-case nuevo que no pise los existentes, tag corto de máximo 5 caracteres, notes técnicas breves por ejercicio). Comprueba el catálogo con list_exercises y usa add_exercise solo si falta algo. NO toques el calendario semanal. Termina respondiendo en 2-3 líneas con el resumen del entreno creado.`,
     }] },
   });
+  const linea = typeof data === 'string'
+    ? data.split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).find((ev) => ev?.t === 'limit')
+    : null;
+  if (linea) { showAiLimit(linea); throw new Error('Has llegado al límite de hoy'); }
   if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
   if (await pullProgram()) window.appRerender?.();
   return data;

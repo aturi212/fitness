@@ -16,11 +16,15 @@ export const LIMITS = {
 // Sin topes (Adrián). Sus llamadas se registran y cuentan en el global igual.
 export const EXEMPT_USERS = new Set(['a032afc2-2aea-45ce-af23-1318af374ebd']);
 
+// El texto solo lo ven las versiones viejas de la app (sin la ventana del
+// tope): las nuevas pintan su modal a partir de `reason` y `feature`.
 export const LIMIT_MSG = 'Has llegado al límite de hoy, mañana seguimos 💪';
 export const RATE_MSG = 'Vas muy rápido: espera un minuto y seguimos 💪';
 
 export type Fn = 'chat' | 'nutrition';
 export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist';
+// day = tope del día (del usuario o el global); minute = demasiadas seguidas
+export type Tope = { reason: 'day' | 'minute'; feature: Kind; msg: string };
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -28,9 +32,9 @@ const admin = createClient(
   { auth: { persistSession: false } },
 );
 
-// null = puede seguir; string = mensaje amable para el usuario.
+// null = puede seguir; si no, el tope que ha saltado.
 // Si falla el conteo no se bloquea a nadie: mejor gastar de más que romper la app.
-export async function checkLimits(userId: string, kind: Kind): Promise<string | null> {
+export async function checkLimits(userId: string, kind: Kind): Promise<Tope | null> {
   if (EXEMPT_USERS.has(userId)) return null;
   const { data, error } = await admin.rpc('ai_usage_counts', { p_user: userId });
   if (error || !data) {
@@ -38,11 +42,12 @@ export async function checkLimits(userId: string, kind: Kind): Promise<string | 
     return null;
   }
   const c = data as Record<string, number>;
-  if (c.global >= LIMITS.globalPerDay) return LIMIT_MSG;
-  if (c.minute >= LIMITS.perMinute) return RATE_MSG;
-  if (kind === 'coach' && c.coach >= LIMITS.coachPerDay) return LIMIT_MSG;
-  if (kind === 'photo' && c.photo >= LIMITS.photoPerDay) return LIMIT_MSG;
-  if (kind === 'nutritionist' && c.nutritionist >= LIMITS.nutritionistPerDay) return LIMIT_MSG;
+  const dia: Tope = { reason: 'day', feature: kind, msg: LIMIT_MSG };
+  if (c.global >= LIMITS.globalPerDay) return dia;
+  if (c.minute >= LIMITS.perMinute) return { reason: 'minute', feature: kind, msg: RATE_MSG };
+  if (kind === 'coach' && c.coach >= LIMITS.coachPerDay) return dia;
+  if (kind === 'photo' && c.photo >= LIMITS.photoPerDay) return dia;
+  if (kind === 'nutritionist' && c.nutritionist >= LIMITS.nutritionistPerDay) return dia;
   return null;
 }
 
