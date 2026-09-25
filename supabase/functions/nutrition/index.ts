@@ -12,8 +12,11 @@
 // Auth: igual que "chat" — verify JWT desactivado, la función valida
 // el JWT del usuario con getUser (401 si no hay sesión).
 // El perfil del usuario se lee de `profiles`: NADA escrito a fuego.
+// Topes y registro de uso: ../_shared/ai_usage.ts. Al llegar al tope responde
+// 200 con { error, limit:true }: la app enseña el mensaje tal cual.
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { checkLimits, logUsage, type Kind } from '../_shared/ai_usage.ts';
 
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // MODELO PROPIO, separado del Coach (que usa CHAT_MODEL). Contar macros de un
@@ -86,6 +89,14 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
 
+    // Topes ANTES de llamar a la API
+    const kind: Kind | null = body.mode === 'analyze' ? (body.image?.data ? 'photo' : 'text')
+      : body.mode === 'chat' ? 'nutritionist' : null;
+    if (kind) {
+      const tope = await checkLimits(user.id, kind);
+      if (tope) return json({ error: tope, limit: true });
+    }
+
     // Ficha del usuario: el prompt no lleva datos de nadie escritos a fuego
     const { data: perfil } = await sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
     const OBJETIVOS: Record<string, string> = {
@@ -130,6 +141,7 @@ Deno.serve(async (req) => {
     })();
 
     const callAnthropic = async (payload: Record<string, unknown>) => {
+      if (!kind) throw new Error('mode inválido');
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -143,7 +155,9 @@ Deno.serve(async (req) => {
         const errTxt = await resp.text();
         throw new Error(`Anthropic ${resp.status}: ${errTxt.slice(0, 300)}`);
       }
-      return resp.json();
+      const data = await resp.json();
+      await logUsage(user.id, 'nutrition', kind, data.usage);
+      return data;
     };
 
     if (body.mode === 'analyze') {

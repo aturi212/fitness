@@ -15,9 +15,14 @@
 //   mundo y otro con el contexto del usuario) y las herramientas llevan su
 //   propio punto de caché. En un bucle agéntico de varias rondas se reenvían
 //   herramientas + prompt en cada vuelta: cacheados, esas rondas cuestan ~10%.
+// - TOPES DE USO (../_shared/ai_usage.ts): se miran ANTES de la primera
+//   llamada; al llegar al tope se responde con un evento de error amable y no
+//   se llama a la API. Una respuesta ya empezada nunca se corta por los topes.
+//   Cada ronda deja su usage (tokens y caché) en ai_usage.
 // Deploy: MCP de Supabase o `supabase functions deploy chat`.
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { checkLimits, logUsage } from '../_shared/ai_usage.ts';
 
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // El Coach razona y escribe el plan entero: aquí mandan las neuronas. Se
@@ -1013,6 +1018,15 @@ Deno.serve(async (req) => {
       return json({ error: 'messages vacío' }, 400);
     }
 
+    // Topes ANTES de llamar a la API. Va como evento NDJSON normal para que la
+    // app lo pinte como una burbuja más, sin romper nada.
+    const tope = await checkLimits(user.id, 'coach');
+    if (tope) {
+      return new Response(JSON.stringify({ t: 'error', v: tope }) + '\n', {
+        headers: { ...CORS, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache' },
+      });
+    }
+
     const [{ data: plan }, { data: perfil }, { data: rutinas }] = await Promise.all([
       sb.from('plan')
         .select('name, notes, goals, current_block, weekly_schedule, start_date, end_date')
@@ -1085,6 +1099,9 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
             // devolvérselos al modelo sin tocar en la siguiente ronda.
             const bloques: any[] = [];
             let stopReason = '';
+            // Usage de la ronda: message_start trae la entrada (y la caché) y
+            // message_delta el total de salida.
+            let usage: any = {};
             let buf = '';
             const reader = resp.body.getReader();
             const dec = new TextDecoder();
@@ -1102,7 +1119,9 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
                 let ev: any;
                 try { ev = JSON.parse(carga); } catch { continue; }
 
-                if (ev.type === 'content_block_start') {
+                if (ev.type === 'message_start') {
+                  usage = { ...(ev.message?.usage ?? {}) };
+                } else if (ev.type === 'content_block_start') {
                   const cb = ev.content_block ?? {};
                   if (cb.type === 'tool_use') bloques[ev.index] = { ...cb, _json: '' };
                   else if (cb.type === 'thinking') {
@@ -1131,11 +1150,14 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
                   }
                 } else if (ev.type === 'message_delta') {
                   stopReason = ev.delta?.stop_reason ?? stopReason;
+                  for (const [k, v] of Object.entries(ev.usage ?? {})) if (v != null) usage[k] = v;
                 } else if (ev.type === 'message_stop') {
                   fin = true;
                 }
               }
             }
+
+            await logUsage(user.id, 'chat', round === 0 ? 'coach' : 'coach_round', usage);
 
             // Un bloque de texto vacío hace que la API rechace el mensaje al
             // reenviarlo. Y un bloque de razonamiento sin firma tampoco vale.
