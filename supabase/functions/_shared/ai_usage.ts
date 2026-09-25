@@ -7,10 +7,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // ---------- Topes (cámbialos aquí) ----------
 export const LIMITS = {
-  perMinute: 10,       // peticiones de IA por usuario y minuto
-  coachPerDay: 20,     // mensajes al Coach por usuario y día
-  photoPerDay: 15,     // fotos de comida por usuario y día
-  nutritionistPerDay: 10, // mensajes al nutricionista por usuario y día
+  perMinute: 15,       // peticiones de IA por usuario y minuto
+  coachPerDay: 40,     // mensajes al Coach por usuario y día
+  photoPerDay: 30,     // fotos de comida por usuario y día
+  nutritionistPerDay: 20, // mensajes al nutricionista por usuario y día
   globalPerDay: 500,   // llamadas a la API por día entre TODOS (cortafuegos)
 };
 // Sin topes (Adrián). Sus llamadas se registran y cuentan en el global igual.
