@@ -51,13 +51,14 @@ export async function checkLimits(userId: string, kind: Kind): Promise<Tope | nu
   return null;
 }
 
-// Guarda el usage que devuelve Anthropic. Nunca lanza: registrar no puede
-// romper una respuesta.
-export async function logUsage(userId: string, fn: Fn, kind: Kind, usage: any) {
+// Guarda el usage que devuelve Anthropic, con el modelo que lo gastó (para
+// comparar costes por modelo). Nunca lanza: registrar no puede romper una
+// respuesta.
+export async function logUsage(userId: string, fn: Fn, kind: Kind, usage: any, model: string) {
   try {
     const n = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
     const { error } = await admin.from('ai_usage').insert({
-      user_id: userId, fn, kind,
+      user_id: userId, fn, kind, model,
       input_tokens: n(usage?.input_tokens),
       output_tokens: n(usage?.output_tokens),
       cache_read_tokens: n(usage?.cache_read_input_tokens),
@@ -72,10 +73,10 @@ export async function logUsage(userId: string, fn: Fn, kind: Kind, usage: any) {
 // Búsquedas web del Coach (server tool web_search). Se cobran aparte de los
 // tokens (10 $ por 1.000 búsquedas): una fila 'coach_search' por ronda con el
 // número de búsquedas en web_searches. No cuenta para los topes.
-export async function logSearches(userId: string, n: number) {
+export async function logSearches(userId: string, n: number, model: string) {
   try {
     const { error } = await admin.from('ai_usage').insert({
-      user_id: userId, fn: 'chat', kind: 'coach_search', web_searches: Math.max(0, Math.round(n)),
+      user_id: userId, fn: 'chat', kind: 'coach_search', model, web_searches: Math.max(0, Math.round(n)),
     });
     if (error) console.error('ai_usage search insert', error.message);
   } catch (e) {

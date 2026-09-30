@@ -17,7 +17,9 @@ por GitHub Pages en https://aturi212.github.io/fitness/, con Supabase detrás
 
 **Las edge functions se despliegan SIEMPRE desde el repo, nunca a mano.**
 
-El código vivo de `chat` y `nutrition` está en `supabase/functions/<nombre>/index.ts`.
+El código vivo de `chat` y `nutrition` está en `supabase/functions/<nombre>/index.ts`
+(`chat` además importa `chat/coach.ts`: herramientas, prompt fijo y lectura del
+stream; y las dos, `_shared/ai_usage.ts`).
 Nada de editar la función en el panel de Supabase ni de desplegar un fichero
 suelto: se cambia aquí, se commitea, y se despliega desde esta copia. Si alguien
 toca la función por el panel, el repo deja de ser la verdad y el siguiente
@@ -44,15 +46,22 @@ público, así que esto no es una preferencia de estilo.
 | Secret | Para qué | Valor esperado |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | las dos funciones | la clave de la cuenta |
-| `CHAT_MODEL` | modelo del Coach (`chat`) | `claude-sonnet-4-6` |
+| `CHAT_MODEL` | modelo del Coach (`chat`) | `claude-sonnet-5-5` |
+| `CHAT_EFFORT` | esfuerzo del Coach (opcional) | sin poner: `medium` en Sonnet 5.x |
 | `NUTRITION_MODEL` | modelo de análisis de comida (`nutrition`) | `claude-haiku-4-5` |
 
 Ojo con los *defaults* del código: si `CHAT_MODEL` no existe, `chat` cae en
-`claude-opus-5`, que es carísimo para el uso que tiene. El secret tiene que
-estar puesto de verdad, no darse por hecho.
+`claude-sonnet-5-5`. El secret tiene que estar puesto de verdad, no darse por
+hecho: `ai_usage.model` dice con qué modelo se ha hecho cada llamada.
+
+Sonnet 5.5 piensa siempre (no se puede apagar con `disabled`) y devuelve los
+bloques de razonamiento vacíos pero firmados: se reenvían tal cual dentro del
+bucle de herramientas. No editar mensajes ya enviados en ese bucle (invalida
+caché y razonamiento): el punto de caché de la conversación es el automático
+(`cache_control` en la raíz de la petición, ver `coach.ts`).
 
 ```
-supabase secrets set CHAT_MODEL=claude-sonnet-4-6 --project-ref rffzgrpoffosqfkqutqq
+supabase secrets set CHAT_MODEL=claude-sonnet-5-5 --project-ref rffzgrpoffosqfkqutqq
 supabase secrets list --project-ref rffzgrpoffosqfkqutqq
 ```
 
@@ -63,5 +72,9 @@ supabase secrets list --project-ref rffzgrpoffosqfkqutqq
   sustituirlo por un insert directo: se perdían entrenos sin red.
 - **Macros dobles**: `goals.nutrition` puede venir como `{ training, rest }` o
   plano (formato antiguo). El formato plano tiene que seguir funcionando.
+- **Fichas técnicas**: tabla `exercise_guides` (una por ejercicio, `guide`
+  jsonb). La app las baja con el programa y las cachea aparte
+  (`fitness_exercise_guides_v1`); el Coach las lee con `get_exercise_guide`.
+  Sin ficha, la app no pinta nada.
 - **Invitaciones**: el código se consume al **confirmar el correo**, no al
   crear la cuenta. Un alta que no llega a confirmarse no gasta el código.

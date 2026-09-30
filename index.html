@@ -527,6 +527,34 @@
   .notes-input { width: 100%; margin-top: 10px; padding: 10px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; font-size: 13px; resize: none; }
   .notes-input:focus { outline: none; border-color: var(--accent); }
 
+  /* Ficha técnica del ejercicio (tabla exercise_guides): plegada por defecto */
+  .ex-guia { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--r-4); background: var(--bg-elev-2); }
+  .ex-guia > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+                       padding: 11px 13px; font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em;
+                       text-transform: uppercase; color: var(--muted); }
+  .ex-guia > summary::-webkit-details-marker { display: none; }
+  .ex-guia > summary .rule { flex: 1; height: 1px; background: var(--line); }
+  .ex-guia > summary::after { content: '+'; font: 500 14px/1 var(--f-mono); color: var(--faint); }
+  .ex-guia[open] > summary::after { content: '−'; }
+  .guia { padding: 0 13px 13px; font-size: 13px; line-height: 1.5; color: var(--text); }
+  .guia-musc { margin: 0 0 10px; color: var(--muted); }
+  .guia-musc b { color: var(--text); font-weight: 600; }
+  .guia h4 { margin: 12px 0 5px; font: 600 9px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; color: var(--faint); }
+  .guia p { margin: 0; }
+  .guia ul { margin: 0; padding-left: 16px; }
+  .guia li { margin: 2px 0; }
+  .guia-fase { margin: 2px 0; }
+  .guia-fase b { font-weight: 600; }
+  .guia-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .guia-link { padding: 7px 10px; border-radius: var(--r-3); background: var(--s3); border: 1px solid var(--line-2);
+               color: var(--text); font: 500 11.5px/1.2 var(--f-ui); text-align: left; }
+  .guia-link span { display: block; font: 600 8.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase;
+                    color: var(--faint); margin-bottom: 4px; }
+  .guia-aviso { margin-top: 12px; padding: 9px 11px; border-radius: var(--r-3); background: var(--hot-soft);
+                border: 1px solid var(--hot-line); color: var(--text); font-size: 12.5px; }
+  .guia-modal-body { overflow-y: auto; margin: 0 -2px; }
+  .guia-modal-body .guia { padding: 0 2px 4px; }
+
   .rest-timer {
     position: fixed; left: 18px; right: 18px; bottom: 24px;
     color: var(--text); border-radius: var(--r-7); padding: 14px 18px;
@@ -2607,6 +2635,22 @@
     </div>
   </div>
 
+  <!-- Ficha técnica de otro ejercicio (los enlaces «Más fácil», «Más difícil», «Sin material») -->
+  <div class="vid-modal" id="guideModal" aria-hidden="true">
+    <div class="vid-back" id="guideBack"></div>
+    <div class="vid-box" role="dialog" aria-modal="true" aria-labelledby="guideName">
+      <div class="vid-head">
+        <span class="label-sm">Técnica</span>
+        <span class="vid-name" id="guideName">—</span>
+        <button type="button" class="btn-icon" id="guideClose" aria-label="Cerrar la ficha">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="guia-modal-body" id="guideBody"></div>
+      <button type="button" class="vid-out" id="guideVideo" hidden>▶ Ver vídeo</button>
+    </div>
+  </div>
+
   <!-- =========== SWAP BOTTOM SHEET =========== -->
   <div class="sheet-backdrop" id="sheetBackdrop"></div>
   <div class="sheet" id="swapSheet">
@@ -3072,6 +3116,9 @@
     goals: {}, plan: { name: '', blocks: [] }, currentPlan: null,
     weeklySchedule: {}, routines: {},
   });
+  // Fichas técnicas (exercise_guides): comunes a todos, caché aparte
+  try { window.EXERCISE_GUIDES = JSON.parse(localStorage.getItem('fitness_exercise_guides_v1') || '{}') || {}; }
+  catch { window.EXERCISE_GUIDES = {}; }
   try {
     const pc = JSON.parse(localStorage.getItem('fitness_program_cache_v1') || 'null');
     if (pc && pc.exercises && pc.routines) {
@@ -4961,6 +5008,7 @@
           </button>
         </div>
         ${tabla}
+        ${guiaPlegable(item.exerciseId)}
         <div class="ex-notes">
           <div class="ex-notes-tabs">
             <button type="button" class="on" data-nota="mias">Mis notas</button>
@@ -6019,6 +6067,63 @@
     videoModal.classList.add('on');
   };
 
+  // ============ Ficha técnica (exercise_guides) ============
+  // Viene de la nube con el programa (window.EXERCISE_GUIDES). Sin ficha, nada.
+  const escG = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const guiaDe = (exId) => (window.EXERCISE_GUIDES || {})[exId] || null;
+  const nombreDe = (exId) => (window.EXERCISES || []).find(e => e.id === exId)?.name || guiaDe(exId)?.nombre || exId;
+  function guiaHtml(g) {
+    const sec = (g.musculos_secundarios || []).filter(Boolean);
+    const fases = (g.fases || []).map(f => `<p class="guia-fase"><b>${escG(f.fase)}</b> · ${escG(f.cue)}</p>`).join('');
+    const errores = (g.errores || []).slice(0, 3).map(e => `<li>${escG(e)}</li>`).join('');
+    const enlaces = [['mas_facil', 'Más fácil'], ['mas_dificil', 'Más difícil'], ['sin_material', 'Sin material']]
+      .filter(([k]) => g[k])
+      .map(([k, lbl]) => `<button type="button" class="guia-link" onclick="openGuide('${escG(g[k])}')"><span>${lbl}</span>${escG(nombreDe(g[k]))}</button>`)
+      .join('');
+    return `<div class="guia">
+      <p class="guia-musc"><b>${escG(g.musculo_principal)}</b>${sec.length ? ' · ' + sec.map(escG).join(', ') : ''}</p>
+      ${g.preparacion ? `<h4>Preparación</h4><p>${escG(g.preparacion)}</p>` : ''}
+      ${fases ? `<h4>Fases</h4>${fases}` : ''}
+      ${g.respiracion ? `<h4>Respiración</h4><p>${escG(g.respiracion)}</p>` : ''}
+      ${errores ? `<h4>Errores típicos</h4><ul>${errores}</ul>` : ''}
+      ${enlaces ? `<div class="guia-links">${enlaces}</div>` : ''}
+      ${g.seguridad ? `<div class="guia-aviso">⚠ ${escG(g.seguridad)}</div>` : ''}
+    </div>`;
+  }
+  function guiaPlegable(exId) {
+    const g = guiaDe(exId);
+    if (!g) return '';
+    return `<details class="ex-guia"><summary>Técnica <span class="rule"></span></summary>${guiaHtml(g)}</details>`;
+  }
+  const guideModal = document.getElementById('guideModal');
+  window.openGuide = function(exId) {
+    const g = guiaDe(exId);
+    if (!g) return;
+    const ex = getExercise(exId);
+    document.getElementById('guideName').textContent = nombreDe(exId);
+    const body = document.getElementById('guideBody');
+    body.innerHTML = guiaHtml(g);
+    body.scrollTop = 0;
+    const vid = document.getElementById('guideVideo');
+    vid.hidden = !ex.videoUrl;
+    vid.onclick = () => { closeGuide(); openVideo(exId); };
+    guideModal.classList.add('open');
+    guideModal.setAttribute('aria-hidden', 'false');
+    void guideModal.offsetWidth;
+    guideModal.classList.add('on');
+  };
+  function closeGuide() {
+    if (!guideModal.classList.contains('open')) return;
+    guideModal.classList.remove('on');
+    setTimeout(() => {
+      guideModal.classList.remove('open');
+      guideModal.setAttribute('aria-hidden', 'true');
+    }, 200);
+  }
+  document.getElementById('guideClose').addEventListener('click', closeGuide);
+  document.getElementById('guideBack').addEventListener('click', closeGuide);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGuide(); });
+
   window.addEventListener('message', (e) => {
     if (!/^https:\/\/(www\.)?youtube(-nocookie)?\.com$/.test(e.origin)) return;
     videoResponde = true;
@@ -6535,13 +6640,20 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) flus
 
 // ---------- Bajada: programa (catálogo + rutinas + plan + overrides) ----------
 async function pullProgram() {
-  const [ex, ro, rex, plan, ovr] = await Promise.all([
+  const [ex, ro, rex, plan, ovr, gu] = await Promise.all([
     sb.from('exercises').select('*').order('id'),
     sb.from('routines').select('*').eq('archived', false),
     sb.from('routine_exercises').select('*').order('position'),
     sb.from('plan').select('*').eq('status', 'active').limit(1).maybeSingle(),
     sb.from('week_overrides').select('*'),
+    sb.from('exercise_guides').select('exercise_id, guide'),
   ]);
+  // Fichas técnicas: si fallan, se queda la caché y el resto sigue igual
+  if (!gu.error && gu.data?.length) {
+    const guias = Object.fromEntries(gu.data.map(g => [g.exercise_id, g.guide]));
+    window.EXERCISE_GUIDES = guias;
+    try { localStorage.setItem('fitness_exercise_guides_v1', JSON.stringify(guias)); } catch {}
+  }
   if (ex.error || ro.error || rex.error || plan.error || ovr.error) return false;
   if (!ex.data?.length || !ro.data?.length) return false; // nunca pisar con vacío
 

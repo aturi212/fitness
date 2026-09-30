@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
         throw new Error(`Anthropic ${resp.status}: ${errTxt.slice(0, 300)}`);
       }
       const data = await resp.json();
-      await logUsage(user.id, 'nutrition', kind, data.usage);
+      await logUsage(user.id, 'nutrition', kind, data.usage, MODEL);
       return data;
     };
 
