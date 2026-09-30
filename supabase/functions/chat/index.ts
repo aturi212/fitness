@@ -1436,6 +1436,8 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
             const content = bloques.filter((b: any) => b
               && (b.type !== 'text' || (b.text ?? '').trim())
               && (b.type !== 'thinking' || b.signature));
+            // Texto con citas de la búsqueda: se reenvían; un `citations` vacío, fuera.
+            content.forEach((b: any) => { if (b.type === 'text' && !b.citations?.length) delete b.citations; });
 
             if (stopReason === 'refusal') {
               send({ t: 'error', v: 'Esa petición no la puedo atender. Prueba a planteármela de otra forma.' });
