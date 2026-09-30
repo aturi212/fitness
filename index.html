@@ -1276,6 +1276,7 @@
       </div>
 
       <div class="tab-panel active" data-panel="entrenos">
+        <div class="plan-headline" id="planHeadline" hidden></div>
         <div id="routineList"></div>
       </div>
 
@@ -1505,6 +1506,15 @@
         <div class="sub" id="progSub"></div>
       </div>
 
+      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
+      <div class="card chart-card" data-sec="carrera" data-sec-name="Carrera">
+        <div class="prog-head">
+          <span class="label">Carrera</span>
+          <span class="pr-pill" id="runPill" style="display:none"></span>
+        </div>
+        <div id="runBody"></div>
+      </div>
+
       <!-- Progresión física: peso, IMC y grasa -->
       <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
         <div class="prog-head">
@@ -1542,6 +1552,23 @@
         .yg-title { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted); text-align: center; margin: 14px 0 14px; }
         #calMonthView .cal-head { margin-top: 12px; }
         #calYearView { padding-bottom: 6px; }
+
+        #edRecalc[hidden] { display: none; }
+
+        /* Cabecera del plan en Entreno */
+        .plan-headline { font-size: 13px; line-height: 1.45; color: var(--muted); background: var(--s1, var(--bg-elev-2)); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; }
+        .plan-headline b { color: var(--text); font-weight: 600; }
+        .plan-headline.caducado { border-color: var(--accent); }
+
+        /* Carrera */
+        .run-cap { font: 600 9px/1 var(--f-mono, monospace); letter-spacing: .18em; color: var(--muted); text-transform: uppercase; margin: 14px 0 6px; display: flex; justify-content: space-between; }
+        .run-bars { color: var(--accent); width: 100%; height: 90px; display: block; }
+        .run-bars text { fill: var(--muted); font-size: 9px; }
+        .run-list { margin-top: 8px; }
+        .run-row { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.1fr .8fr; gap: 6px; font-size: 12.5px; padding: 8px 0; border-top: 1px solid var(--line); }
+        .run-row span { text-align: right; font-variant-numeric: tabular-nums; }
+        .run-row span:first-child { text-align: left; color: var(--muted); }
+        .run-row.head span { font: 600 9px/1 var(--f-mono, monospace); letter-spacing: .14em; color: var(--muted); border: 0; }
 
         /* Progresión por ejercicio: slider + lectura central */
         .prog-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1722,6 +1749,7 @@
           <label>Fibra<input type="number" inputmode="decimal" step="0.1" id="edFi"></label>
           <label>Kcal<input type="number" inputmode="numeric" id="edK"></label>
         </div>
+        <button type="button" class="btn btn--sec" id="edRecalc" style="width:100%;margin-bottom:8px" hidden>Recalcular macros</button>
         <button type="button" class="ns-send" id="edSave" style="width:100%">Guardar</button>
         <div class="ns-status" id="edStatus"></div>
       </div>
@@ -3808,11 +3836,64 @@
     list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home)
       || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de arriba o pídeselos al Coach en el Chat.</div>`;
 
+    renderPlanHeadline();
     // Plan macro (bloques) — vive en Chat › Programa
     renderProgramTab();
     const chip = document.getElementById('trainerChip');
     const chatChip = document.getElementById('chatStatus');
     if (chip) chip.textContent = chatChip?.dataset.week || 'PLAN';
+  }
+
+  // ===== Dónde estás en el plan: por FECHA, nunca por plan.current_block =====
+  // (current_block se quedaba congelado en el bloque con el que se creó el plan)
+  // Misma cuenta que el Coach (supabase/functions/chat): semana X de N desde el
+  // inicio del plan, bloque que contiene hoy y días hasta la meta de corto plazo.
+  function planStatus(todayIso = localIso()) {
+    const macro = window.ROUTINES.plan || {};
+    const blocks = (macro.blocks || []).filter((b) => b.startDate && b.endDate);
+    if (!blocks.length) return null;
+    const ini = macro.startDate || blocks[0].startDate;
+    const fin = blocks[blocks.length - 1].endDate;
+    const dias = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000);
+    const st = (window.ROUTINES.goals || {}).shortTerm || {};
+    const res = {
+      ini, fin,
+      semana: Math.floor(dias(ini, todayIso) / 7) + 1,
+      semanas: Math.ceil((dias(ini, fin) + 1) / 7),
+      bloque: blocks.find((b) => todayIso >= b.startDate && todayIso <= b.endDate) || null,
+      caducado: todayIso > fin,
+      antes: todayIso < ini,
+      faltan: st.deadline && st.deadline >= todayIso ? dias(todayIso, st.deadline) : null,
+      evento: eventoDe(st),
+    };
+    return res;
+  }
+  // A qué se le cuentan los días: el evento si lo hay (una carrera), si no «tu objetivo».
+  function eventoDe(st) {
+    if (st.event) return st.event;
+    const t = (st.targets || []).find((x) => /\b\d+([.,]\d+)?\s*km\b|carrera|marat[oó]n|trail|triatl|prueba/i.test(`${x.metric} ${x.target}`));
+    return t ? t.metric : 'tu objetivo';
+  }
+  const nombreFase = (n) => String(n || '').replace(/^Bloque\s*\d+\s*—\s*/i, '').replace(/^Semana\s*\d+\s*·\s*/i, '').trim();
+  function renderPlanHeadline() {
+    const el = document.getElementById('planHeadline');
+    if (!el) return;
+    const ps = planStatus();
+    el.classList.remove('caducado');
+    if (!ps) { el.hidden = true; return; }
+    if (ps.caducado) {
+      el.innerHTML = `<b>Tu plan terminó el ${fmtD(ps.fin)}</b> · Habla con el coach para el siguiente`;
+      el.classList.add('caducado');
+    } else if (ps.antes) {
+      el.innerHTML = `Tu plan empieza el <b>${fmtD(ps.ini)}</b>`;
+    } else {
+      el.innerHTML = [
+        `<b>Semana ${ps.semana} de ${ps.semanas}</b>`,
+        ps.bloque ? nombreFase(ps.bloque.name) : null,
+        ps.faltan != null ? `faltan ${ps.faltan} ${ps.faltan === 1 ? 'día' : 'días'} para ${ps.evento}` : null,
+      ].filter(Boolean).join(' · ');
+    }
+    el.hidden = false;
   }
 
   // ===== §8.8 · Chat › Programa: el plan macro como línea de tiempo =====
@@ -4115,7 +4196,85 @@
     renderYearGrid();
     renderCalendar();
     renderProgression();
+    renderCarrera();
     renderBody();
+  }
+
+  // ===== Carrera: running-outdoor y cardio-steady con distancia =====
+  // Una salida = un registro del historial con km. Últimas 8 semanas.
+  const RUN_EX = ['running-outdoor', 'cardio-steady'];
+  const fmtRitmo = (secKm) => {
+    if (!secKm || !isFinite(secKm)) return '—';
+    const m = Math.floor(secKm / 60), sg = Math.round(secKm % 60);
+    return sg === 60 ? `${m + 1}:00` : `${m}:${String(sg).padStart(2, '0')}`;
+  };
+  const fmtKm = (km) => (Math.round(km * 10) / 10).toString().replace('.', ',');
+  function runSessions() {
+    const hist = loadHistory();
+    const vistas = new Set();
+    const out = [];
+    RUN_EX.forEach((exId) => (hist[exId] || []).forEach((r) => {
+      const date = (r.date || '').slice(0, 10);
+      const sets = (r.sets || []).filter((s) => (s.distance_m || 0) > 0);
+      if (!date || !sets.length) return;
+      const m = sets.reduce((a, s) => a + Number(s.distance_m), 0);
+      const sec = sets.reduce((a, s) => a + (Number(s.seconds) || 0), 0);
+      const hrs = sets.map((s) => s.hr).filter((v) => v);
+      const key = `${date}|${exId}|${m}|${sec}`;
+      if (vistas.has(key)) return;   // la misma salida en local y bajada de la nube
+      vistas.add(key);
+      out.push({ date, km: m / 1000, sec, hr: hrs.length ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : null });
+    }));
+    return out.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  function renderCarrera() {
+    const body = document.getElementById('runBody');
+    const pill = document.getElementById('runPill');
+    if (!body) return;
+    const lunes = wsMondayOf(localIso());
+    const desde = wsAddDays(lunes, -7 * 7);
+    const todas = runSessions();
+    const ult = todas.filter((r) => r.date >= desde);
+    if (!ult.length) {
+      pill.style.display = 'none';
+      body.innerHTML = '<div class="sub">Aquí saldrán tus salidas a correr cuando apuntes los km.</div>';
+      return;
+    }
+    const semanas = Array.from({ length: 8 }, (_, i) => {
+      const ini = wsAddDays(desde, i * 7), fin = wsAddDays(ini, 6);
+      return { ini, km: ult.filter((r) => r.date >= ini && r.date <= fin).reduce((a, r) => a + r.km, 0) };
+    });
+    const max = Math.max(...semanas.map((w) => w.km), 1);
+    const W = 300, H = 90, B = 14, bw = W / 8;
+    const barras = semanas.map((w, i) => {
+      const h = (w.km / max) * (H - B - 12);
+      const x = i * bw + bw * 0.18;
+      return `<rect x="${x.toFixed(1)}" y="${(H - B - h).toFixed(1)}" width="${(bw * 0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="currentColor" opacity="${i === 7 ? 1 : .55}"/>`
+        + (w.km ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${(H - B - h - 3).toFixed(1)}" text-anchor="middle">${fmtKm(w.km)}</text>` : '')
+        + `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 2}" text-anchor="middle">${fmtD(w.ini).split(' ')[0]}</text>`;
+    }).join('');
+    const conRitmo = ult.filter((r) => r.sec > 0);
+    const kmSemana = semanas[7].km;
+    pill.textContent = `${fmtKm(kmSemana)} km esta semana`;
+    pill.style.display = '';
+    const filas = todas.slice(-5).reverse().map((r) => `
+      <div class="run-row"><span>${fmtD(r.date)}</span><span>${fmtKm(r.km)} km</span>
+      <span>${r.sec ? Math.round(r.sec / 60) + ' min' : '—'}</span><span>${r.sec ? fmtRitmo(r.sec / r.km) : '—'}</span>
+      <span>${r.hr ?? '—'}</span></div>`).join('');
+    body.innerHTML = `
+      <div class="run-cap"><span>Km por semana</span><span>8 sem</span></div>
+      <svg class="run-bars" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${barras}</svg>
+      ${conRitmo.length >= 2 ? `
+      <div class="run-cap"><span>Ritmo medio por salida</span><span>min/km</span></div>
+      <svg class="line-chart" id="runPace" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+      <div class="sub" style="text-align:center">Más arriba = más rápido · de ${fmtRitmo(conRitmo[0].sec / conRitmo[0].km)} a ${fmtRitmo(conRitmo[conRitmo.length - 1].sec / conRitmo[conRitmo.length - 1].km)} min/km</div>` : ''}
+      <div class="run-cap"><span>Últimas salidas</span></div>
+      <div class="run-list">
+        <div class="run-row head"><span>FECHA</span><span>KM</span><span>TIEMPO</span><span>RITMO</span><span>PPM</span></div>
+        ${filas}
+      </div>`;
+    // El ritmo se pinta invertido: menos min/km (más rápido) sale más arriba.
+    if (conRitmo.length >= 2) drawLine(document.getElementById('runPace'), conRitmo.map((r) => -(r.sec / r.km)), 'gRun');
   }
 
   // ============ Stats v2: progresión, calendario, peso, PRs ============
@@ -5124,7 +5283,8 @@
     }
     const enPausa = pausedAt ? (Date.now() - pausedAt) : 0;
     const segs = Math.max(0, Math.floor((Date.now() - workoutStart - pausedMs - enPausa) / 1000));
-    const series = trackerBody.querySelectorAll('td.done button.checked').length;
+    // Series que cuentan (marcadas o escritas enteras), no solo las del ✓
+    const series = guardado ? guardado.sets.length : 0;
     const min = Math.round(segs / 60);
     document.getElementById('doneStats').innerHTML = `
       <div class="done-stat"><b>${min}</b><span>${min === 1 ? 'Minuto' : 'Minutos'}</span></div>
@@ -5414,6 +5574,7 @@
       exercises.push({
         exerciseId: slot.exerciseId,
         name: getExercise(slot.exerciseId).name,
+        log: tipo,
         sets, notes, swapped: !!slot.swapped,
       });
     });
@@ -5438,6 +5599,21 @@
     return trozos.join(' · ');
   }
 
+  // ¿La serie cuenta como hecha? La casilla ✓ ya no es obligatoria: los
+  // inputs llevan placeholder, así que lo que haya escrito es del usuario.
+  //  · cardio: con km o minutos escritos.
+  //  · fuerza: kg y reps (o segundos). Reps sin kg solo en peso corporal.
+  // Lo que quede a medias (kg sin reps…) sigue yendo a la nota «sin marcar».
+  function serieCuenta(st, ex) {
+    if (st.done) return true;
+    if (st.distance_m != null || st.seconds != null) return true;
+    if (st.kg != null && st.reps != null) return true;
+    if (st.reps != null && st.kg == null) {
+      return getExercise(ex?.exerciseId).equipment === 'bodyweight';
+    }
+    return false;
+  }
+
   function buildWorkoutPayload(snap, routineId) {
     const exercises = snap.exercises || [];
     const haySeries = exercises.some(e => (e.sets || []).length);
@@ -5459,7 +5635,7 @@
       let setIdx = 0;
       const sinMarcar = [];
       (ex.sets || []).forEach(st => {
-        if (st.done) {
+        if (serieCuenta(st, ex)) {
           // workout_sets solo guarda series HECHAS: no hay columna para
           // distinguirlas y las estadísticas cuentan filas.
           setIdx++;
@@ -5491,6 +5667,14 @@
       if (sinMarcar.length) lineas.push(`${ex.name} · sin marcar: ${sinMarcar.join(', ')}`);
     });
     workout.notes = lineas.length ? lineas.join('\n') : null;
+    // Crono olvidado (o sesión apuntada después): si marca menos de un minuto
+    // y hay cardio con minutos, la duración es la suma de esos minutos.
+    if ((workout.duration_sec || 0) < MIN_DURACION_SOLA) {
+      const cardio = new Set(exercises.filter(e => (e.log || getExercise(e.exerciseId)?.logType) === 'cardio').map(e => e.exerciseId));
+      const segCardio = rows.filter(r => cardio.has(r.exercise_id) || r.distance_m != null)
+        .reduce((a, r) => a + (r.seconds || 0), 0);
+      if (segCardio > 0) workout.duration_sec = segCardio;
+    }
     return { workout, sets: rows };
   }
 
@@ -7260,13 +7444,75 @@ $('maEdit').addEventListener('click', () => {
   $('edFi').value = meal.fiber_g ?? 0;
   $('edK').value = meal.kcal ?? 0;
   $('edStatus').textContent = '';
+  edNumsTouched = false;
+  edRecalcDesc = meal.description;
+  $('edRecalc').hidden = true;
   openSheet('editSheet');
 });
+
+// Corregir la descripción recalcula los macros. Sin esto, añadir «tomate» que
+// la foto no vio guardaba los números viejos. Reglas:
+//  · botón «Recalcular» en cuanto la descripción cambia;
+//  · al guardar, si la descripción cambió y los números no se tocaron a mano,
+//    se recalcula solo y se ENSEÑA antes de guardar (segundo toque guarda);
+//  · si el usuario escribió los números, mandan los suyos.
+let edNumsTouched = false;
+let edRecalcDesc = '';   // descripción a la que corresponden los números de la hoja
+const ED_NUMS = ['edP', 'edC', 'edF', 'edFi', 'edK'];
+ED_NUMS.forEach((id) => $(id).addEventListener('input', () => { edNumsTouched = true; }));
+$('edDesc').addEventListener('input', () => {
+  $('edRecalc').hidden = $('edDesc').value.trim() === edRecalcDesc;
+});
+async function edRecalcular() {
+  const meal = loadMeals().find((m) => m.id === maMealId);
+  const desc = $('edDesc').value.trim();
+  if (!meal || !desc) return false;
+  const btn = $('edRecalc');
+  btn.disabled = true; $('edSave').disabled = true;
+  $('edStatus').textContent = 'Recalculando…';
+  try {
+    const { data, error } = await sb.functions.invoke('nutrition', { body: {
+      mode: 'recalc', text: desc,
+      previous: {
+        description: meal.description,
+        protein_g: meal.protein_g, carbs_g: meal.carbs_g, fat_g: meal.fat_g, fiber_g: meal.fiber_g, kcal: meal.kcal,
+      },
+    } });
+    if (data?.limit) { $('edStatus').textContent = data.error || 'Has llegado al límite de hoy.'; return false; }
+    if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
+    const it = data?.item;
+    if (!it) throw new Error('No he podido recalcularlo.');
+    const r1 = (v) => Math.round((Number(v) || 0) * 10) / 10;
+    $('edP').value = r1(it.protein_g); $('edC').value = r1(it.carbs_g);
+    $('edF').value = r1(it.fat_g); $('edFi').value = r1(it.fiber_g); $('edK').value = Math.round(it.kcal || 0);
+    edNumsTouched = false;
+    edRecalcDesc = desc;
+    btn.hidden = true;
+    $('edStatus').textContent = `Recalculado: ${Math.round(it.kcal || 0)} kcal (antes ${Math.round(meal.kcal || 0)}). Revisa y pulsa Guardar.`;
+    return true;
+  } catch (err) {
+    $('edStatus').textContent = 'No se pudo recalcular: ' + (err?.message || err);
+    return false;
+  } finally {
+    btn.disabled = false; $('edSave').disabled = false;
+  }
+}
+$('edRecalc').addEventListener('click', edRecalcular);
 
 $('edSave').addEventListener('click', async () => {
   const meal = loadMeals().find((m) => m.id === maMealId);
   if (!meal) return;
   const num = (id) => Math.max(0, parseFloat(String($(id).value).replace(',', '.')) || 0);
+  const descNueva = $('edDesc').value.trim();
+  if (descNueva && descNueva !== edRecalcDesc && !edNumsTouched) {
+    // Descripción cambiada y números sin tocar: primero se recalcula y se enseña
+    // Si falla, el siguiente toque guarda con lo que haya en la hoja
+    if (!(await edRecalcular())) {
+      edNumsTouched = true;
+      $('edStatus').textContent += ' Pulsa Guardar para guardar con estos números.';
+    }
+    return;
+  }
   const patch = {
     description: $('edDesc').value.trim() || meal.description,
     meal_type: edType,
@@ -7867,7 +8113,7 @@ $('pdOrderBack').addEventListener('click', panelAjustes);
 // Se guarda en profiles.stats_order para que siga al usuario entre
 // dispositivos. Lo desconocido se ignora y lo que falte se añade al final:
 // así, si algún día se añade una tarjeta nueva, no desaparece.
-const SEC_DEFECTO = ['check', 'calendario', 'progresion', 'fisica'];
+const SEC_DEFECTO = ['check', 'calendario', 'progresion', 'carrera', 'fisica'];
 function ordenActual() {
   const guardado = Array.isArray(window.__profile?.stats_order) ? window.__profile.stats_order : [];
   const validos = guardado.filter((k) => SEC_DEFECTO.includes(k));

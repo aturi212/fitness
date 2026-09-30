@@ -5,6 +5,9 @@
 //  - { mode:'analyze', text }                        → analiza una descripción de comida
 //  - { mode:'analyze', image:{ data, media_type } }  → analiza una FOTO de comida (visión)
 //      ↳ devuelve { items:[{ description, protein_g, carbs_g, fat_g, fiber_g, kcal }] }
+//  - { mode:'recalc', text, previous:{ description, protein_g, … } }
+//      ↳ la descripción de una comida YA apuntada se ha corregido (p. ej. se
+//        añade «tomate» que la foto no vio): devuelve { item } con el total nuevo
 //  - { mode:'chat', messages, context }              → chat de nutrición (con contexto del día/semana)
 //      ↳ devuelve { reply }
 // La función NO escribe en la BD: analiza y devuelve; la app inserta
@@ -92,6 +95,7 @@ Deno.serve(async (req) => {
 
     // Topes ANTES de llamar a la API
     const kind: Kind | null = body.mode === 'analyze' ? (body.image?.data ? 'photo' : 'text')
+      : body.mode === 'recalc' ? 'text'
       : body.mode === 'chat' ? 'nutritionist' : null;
     if (kind) {
       const tope = await checkLimits(user.id, kind);
@@ -194,6 +198,36 @@ Deno.serve(async (req) => {
           kcal: Math.max(0, Number(it.kcal) || 0),
         }));
       return json({ items });
+    }
+
+    if (body.mode === 'recalc') {
+      const text = String(body.text ?? '').trim();
+      if (!text) return json({ error: 'Falta text' }, 400);
+      const prev = body.previous ?? {};
+      const n = (v: unknown) => Math.max(0, Number(v) || 0);
+      const referencia = prev.description
+        ? `\n\nANTES estaba apuntada como «${String(prev.description).slice(0, 200)}» con ${n(prev.protein_g)} g proteína, ${n(prev.carbs_g)} g hidratos, ${n(prev.fat_g)} g grasa, ${n(prev.fiber_g)} g fibra y ${n(prev.kcal)} kcal. Usa esos valores como referencia para las raciones de lo que no ha cambiado y ajusta solo lo que la descripción nueva añade, quita o corrige.`
+        : '';
+      const data = await callAnthropic({
+        max_tokens: 800,
+        system: analyzeSystem(perfil?.weight_kg ?? null)
+          + `\n- MODO CORRECCIÓN: es UNA comida ya apuntada cuya descripción se ha corregido. Devuelve UN SOLO item con el total del plato corregido y la descripción tal como la ha escrito el usuario.`,
+        tools: [REGISTER_TOOL],
+        tool_choice: { type: 'tool', name: 'register_meals' },
+        messages: [{ role: 'user', content: `Descripción corregida: ${text}${referencia}` }],
+      });
+      const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
+      const items = (toolUse?.input?.items ?? []).filter((it: any) => it);
+      if (!items.length) return json({ error: 'No he reconocido comida en esa descripción.' });
+      // Si aun así parte el plato, se suman: en la BD es una sola fila.
+      const suma = (k: string) => Math.round(items.reduce((a: number, it: any) => a + n(it[k]), 0) * 10) / 10;
+      return json({
+        item: {
+          description: text.slice(0, 120),
+          protein_g: suma('protein_g'), carbs_g: suma('carbs_g'), fat_g: suma('fat_g'),
+          fiber_g: suma('fiber_g'), kcal: Math.round(suma('kcal')),
+        },
+      });
     }
 
     if (body.mode === 'chat') {

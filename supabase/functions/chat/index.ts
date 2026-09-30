@@ -20,10 +20,16 @@
 //   su ventana de tope) y no se llama a la API. Una respuesta ya empezada
 //   nunca se corta por los topes.
 //   Cada ronda deja su usage (tokens y caché) en ai_usage.
+// - DÓNDE ESTÁ EN SU PLAN: el bloque actual se calcula SIEMPRE por fecha a
+//   partir de plan.blocks (startDate/endDate); plan.current_block es solo una
+//   copia que se re-guarda si ha cambiado. Antes se fijaba al crear el plan y
+//   se quedaba congelado.
+// - BÚSQUEDA WEB (server tool, max 2 por mensaje): solo para confirmar datos de
+//   eventos reales. Cada búsqueda deja una fila 'coach_search' en ai_usage.
 // Deploy: MCP de Supabase o `supabase functions deploy chat`.
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { checkLimits, logUsage } from '../_shared/ai_usage.ts';
+import { checkLimits, logUsage, logSearches } from '../_shared/ai_usage.ts';
 
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // El Coach razona y escribe el plan entero: aquí mandan las neuronas. Se
@@ -47,13 +53,59 @@ const masDias = (iso: string, n: number) =>
   new Date(new Date(iso + 'T00:00:00Z').getTime() + n * 86400_000).toISOString().slice(0, 10);
 const lunesDe = (iso: string) => masDias(iso, diaSemana(iso) === 0 ? -6 : 1 - diaSemana(iso));
 const esFecha = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const diasEntre = (a: string, b: string) =>
+  Math.round((new Date(b + 'T00:00:00Z').getTime() - new Date(a + 'T00:00:00Z').getTime()) / 86400_000);
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const fechaCorta = (iso: string) => `${Number(iso.slice(8, 10))} ${MESES[Number(iso.slice(5, 7)) - 1]}`;
+const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+// ---------- Dónde está en su plan (misma cuenta que la app: planStatus) ----------
+// Bloques en camelCase (startDate/endDate), tal como los guarda set_plan.
+function estadoPlan(plan: any, hoy: string) {
+  const blocks = (Array.isArray(plan?.blocks) ? plan.blocks : [])
+    .filter((b: any) => esFecha(b?.startDate) && esFecha(b?.endDate));
+  if (!blocks.length) return null;
+  const ini = esFecha(plan.start_date) ? plan.start_date : blocks[0].startDate;
+  const fin = blocks[blocks.length - 1].endDate;
+  const idx = blocks.findIndex((b: any) => hoy >= b.startDate && hoy <= b.endDate);
+  const deadline = plan?.goals?.shortTerm?.deadline;
+  return {
+    blocks, ini, fin, idx,
+    bloque: idx >= 0 ? blocks[idx] : null,
+    semana: Math.floor(diasEntre(ini, hoy) / 7) + 1,
+    semanas: Math.ceil((diasEntre(ini, fin) + 1) / 7),
+    caducado: hoy > fin,
+    antes: hoy < ini,
+    deadline: esFecha(deadline) ? deadline : null,
+    faltan: esFecha(deadline) && deadline >= hoy ? diasEntre(hoy, deadline) : null,
+  };
+}
+const nombreBloque = (cb: any) => (typeof cb === 'string' ? cb : cb?.name ?? null);
+
+// Re-guarda plan.current_block si el que toca por fecha es otro. Con el plan
+// caducado (hoy fuera de todos los bloques) no se toca: eso lo dice el Coach y
+// lo marca diagnostico_datos().
+async function sincronizaBloque(sb: any, planId: number, currentBlock: any, est: any) {
+  if (!est?.bloque) return;
+  if (nombreBloque(currentBlock) === est.bloque.name) return;
+  const { error } = await sb.from('plan').update({ current_block: est.bloque.name }).eq('id', planId);
+  if (error) console.error('current_block', error.message);
+}
+
+// ¿Rutina de cardio? Por etiqueta o nombre, o porque todos sus ejercicios lo son.
+const RE_CARDIO = /carrera|correr|running|rodaje|bici|cardio|tirada|trote|nadar|nataci/i;
 
 const BLOQUES: Record<string, string> = {
   breakfast: 'desayuno', lunch: 'comida', dinner: 'cena', other: 'otros',
 };
 
 // ---------- Herramientas expuestas a Claude ----------
+// Búsqueda web: herramienta de SERVIDOR (la ejecuta Anthropic, no runTool).
+// Variante básica: la de filtrado dinámico mete bloques de ejecución de código
+// en el stream y aquí no hacen falta.
+const WEB_SEARCH = { type: 'web_search_20250305', name: 'web_search', max_uses: 2 };
 const TOOLS = [
+  WEB_SEARCH,
   {
     name: 'get_week',
     description:
@@ -113,7 +165,7 @@ const TOOLS = [
   {
     name: 'upsert_routine',
     description:
-      'Crea o actualiza un entreno completo (reemplaza su lista de ejercicios). Los exercise_id deben existir en el catálogo — usar list_exercises para comprobar y add_exercise si falta alguno. La app del usuario se actualiza en tiempo real al guardar.',
+      'Crea o actualiza un entreno completo (reemplaza su lista de ejercicios). Los exercise_id deben existir en el catálogo — usar list_exercises para comprobar y add_exercise si falta alguno. Un entreno de cardio (carrera, bici, tirada…) no lleva ejercicios de fuerza, y un ejercicio no se repite salvo que su nota explique por qué (p. ej. "segunda vuelta del circuito"). Si algo no cuadra, la herramienta devuelve un error: corrígelo y vuelve a llamarla. Las notas explican CÓMO hacer el ejercicio, no una progresión por semanas (eso va en los bloques del plan). La app del usuario se actualiza en tiempo real al guardar.',
     input_schema: {
       type: 'object',
       properties: {
@@ -224,7 +276,7 @@ const TOOLS = [
   {
     name: 'set_plan',
     description:
-      'Escribe el plan de entrenamiento por fases (mesociclos), que es lo que pinta la pestaña Programa de la app. Da el nombre del plan, sus fechas y los bloques en orden.',
+      'Escribe el plan de entrenamiento por fases (mesociclos), que es lo que pinta la pestaña Programa de la app. Da el nombre del plan, sus fechas y los bloques en orden. Es la ÚNICA fuente de verdad de la progresión semana a semana. Reglas que comprueba la herramienta: bloques contiguos y sin solapes (cada uno empieza el día siguiente al fin del anterior), el último llega hasta la fecha límite de los objetivos de corto plazo, y cada día del calendario semanal apunta a un entreno que existe. Si falla, devuelve un error: corrígelo y vuelve a llamarla.',
     input_schema: {
       type: 'object',
       properties: {
@@ -378,8 +430,80 @@ const TOOLS_CACHEADAS = TOOLS.map((t, i) =>
 // ---------- Ejecución de herramientas (con el client RLS del usuario) ----------
 async function planActivo(sb: any) {
   const { data } = await sb.from('plan')
-    .select('id, goals, weekly_schedule').eq('status', 'active').limit(1).maybeSingle();
+    .select('id, goals, weekly_schedule, start_date, end_date').eq('status', 'active').limit(1).maybeSingle();
   return data;
+}
+
+// ---------- Validaciones: si fallan, el modelo recibe el error y corrige ----------
+async function validaRutina(sb: any, input: any): Promise<string[]> {
+  const fallos: string[] = [];
+  const exs: any[] = Array.isArray(input.exercises) ? input.exercises : [];
+  if (!exs.length) return ['el entreno no tiene ejercicios'];
+  const ids = [...new Set(exs.map((e) => String(e.exercise_id ?? '')))];
+  const { data: cat, error } = await sb.from('exercises').select('id, name, log_type').in('id', ids);
+  if (error) throw error;
+  const porId: Record<string, any> = {};
+  (cat ?? []).forEach((e: any) => { porId[e.id] = e; });
+  const faltan = ids.filter((id) => !porId[id]);
+  if (faltan.length) {
+    fallos.push(`no existen en el catálogo: ${faltan.join(', ')} (búscalos con list_exercises o créalos con add_exercise)`);
+  }
+  const conocidos = exs.filter((e) => porId[e.exercise_id]);
+  const todoCardio = conocidos.length > 0 && conocidos.every((e) => porId[e.exercise_id].log_type === 'cardio');
+  const esCardio = RE_CARDIO.test(`${input.tag ?? ''} ${input.name ?? ''} ${input.id ?? ''}`) || todoCardio;
+  if (esCardio) {
+    const fuerza = conocidos.filter((e) => porId[e.exercise_id].log_type === 'fuerza');
+    if (fuerza.length) {
+      fallos.push(`es un entreno de cardio y lleva ejercicios de fuerza: ${fuerza.map((e) => `${e.exercise_id} (${porId[e.exercise_id].name})`).join(', ')}. Para la sesión de cardio usa ejercicios de cardio (p. ej. running-outdoor o cardio-steady)`);
+    }
+  }
+  // Repetidos: solo si la nota de la repetición lo justifica
+  const vistos = new Set<string>();
+  const JUSTIFICA = /repet|otra vez|segunda|tercera|de nuevo|vuelta|ronda|circuito|finisher|bis\b|calent|calma|enfri|serie|interval|fartlek|progresiv/i;
+  const repes: string[] = [];
+  exs.forEach((e) => {
+    const id = String(e.exercise_id ?? '');
+    if (vistos.has(id) && !JUSTIFICA.test(String(e.notes ?? ''))) repes.push(id);
+    vistos.add(id);
+  });
+  if (repes.length) {
+    fallos.push(`ejercicios repetidos sin explicación: ${[...new Set(repes)].join(', ')}. Quita la repetición o explica en notes por qué va dos veces (p. ej. "segunda vuelta del circuito", o en carrera "calentamiento" / "series" / "vuelta a la calma"). Si son sesiones de días distintos, haz un entreno por día`);
+  }
+  return fallos;
+}
+
+async function validaPlan(sb: any, blocks: any[], p: any): Promise<string[]> {
+  const fallos: string[] = [];
+  if (!blocks.length) return ['el plan no tiene bloques'];
+  blocks.forEach((b, i) => {
+    if (!esFecha(b.startDate) || !esFecha(b.endDate)) fallos.push(`el bloque ${i + 1} ("${b.name}") necesita start_date y end_date en YYYY-MM-DD`);
+    else if (b.endDate < b.startDate) fallos.push(`el bloque ${i + 1} ("${b.name}") acaba antes de empezar`);
+  });
+  if (fallos.length) return fallos;
+  for (let i = 1; i < blocks.length; i++) {
+    const esperado = masDias(blocks[i - 1].endDate, 1);
+    if (blocks[i].startDate < esperado) {
+      fallos.push(`"${blocks[i].name}" (empieza ${blocks[i].startDate}) se solapa con "${blocks[i - 1].name}" (acaba ${blocks[i - 1].endDate})`);
+    } else if (blocks[i].startDate > esperado) {
+      fallos.push(`hay un hueco entre "${blocks[i - 1].name}" (acaba ${blocks[i - 1].endDate}) y "${blocks[i].name}" (empieza ${blocks[i].startDate}); debería empezar el ${esperado}`);
+    }
+  }
+  const deadline = p?.goals?.shortTerm?.deadline;
+  const ultimo = blocks[blocks.length - 1];
+  if (esFecha(deadline) && ultimo.endDate < deadline) {
+    fallos.push(`el último bloque acaba el ${ultimo.endDate} y la fecha límite de los objetivos de corto plazo es el ${deadline}: alarga el plan hasta ahí (o cambia la fecha con set_goals si la meta ha cambiado)`);
+  }
+  const sched: Record<string, string> = p?.weekly_schedule ?? {};
+  const usados = [...new Set(Object.values(sched).filter((v) => v && v !== 'rest'))];
+  if (usados.length) {
+    const { data: rs } = await sb.from('routines').select('id').eq('archived', false).in('id', usados);
+    const hay = new Set((rs ?? []).map((r: any) => r.id));
+    const malos = Object.entries(sched).filter(([, v]) => v && v !== 'rest' && !hay.has(v));
+    if (malos.length) {
+      fallos.push(`el calendario semanal apunta a entrenos que no existen o están archivados: ${malos.map(([d, v]) => `${DIAS[Number(d)] ?? d} → ${v}`).join(', ')}. Créalos con upsert_routine o cambia el calendario con set_weekly_schedule`);
+    }
+  }
+  return fallos;
 }
 function limpiaObjetivos(bloque: any) {
   return {
@@ -540,6 +664,10 @@ async function runTool(sb: any, name: string, input: any, userId: string, hoyIso
         return JSON.stringify((rs ?? []).map((r: any) => ({ ...r, ejercicios: cuenta[r.id] ?? 0 })));
       }
       case 'upsert_routine': {
+        const fallos = await validaRutina(sb, input);
+        if (fallos.length) {
+          return JSON.stringify({ error: 'El entreno no se ha guardado. Corrige esto y vuelve a llamar a upsert_routine: ' + fallos.join(' | ') });
+        }
         const { error: e1 } = await sb.from('routines').upsert({
           id: input.id,
           name: input.name,
@@ -605,14 +733,25 @@ async function runTool(sb: any, name: string, input: any, userId: string, hoyIso
           scheme: b.scheme ?? '',
           focus: b.focus ?? '',
         }));
+        const fallos = await validaPlan(sb, blocks, p);
+        if (fallos.length) {
+          return JSON.stringify({ error: 'El plan no se ha guardado. Corrige esto y vuelve a llamar a set_plan: ' + fallos.join(' | ') });
+        }
         const parche: any = { name: input.name, blocks };
         if (input.start_date) parche.start_date = input.start_date;
-        if (input.end_date) parche.end_date = input.end_date;
+        // El plan acaba donde acaba su último bloque: una sola fecha, no dos.
+        parche.end_date = blocks[blocks.length - 1].endDate;
         if (input.notes) parche.notes = input.notes;
-        if (blocks.length) parche.current_block = blocks[0].name;
+        // Bloque actual POR FECHA (antes: siempre el primero, y ahí se quedaba)
+        const est = estadoPlan({ ...p, ...parche }, hoyIso);
+        parche.current_block = est?.bloque?.name ?? (est?.antes ? blocks[0].name : null);
         const { error } = await sb.from('plan').update(parche).eq('id', p.id);
         if (error) throw error;
-        return JSON.stringify({ ok: true, bloques: blocks.length });
+        return JSON.stringify({
+          ok: true, bloques: blocks.length,
+          bloque_actual: parche.current_block,
+          semana: est ? `${est.semana} de ${est.semanas}` : null,
+        });
       }
       case 'get_history': {
         const days = input.days ?? 30;
@@ -925,6 +1064,107 @@ const ACTION_LABELS: Record<string, (i: any) => string> = {
   finish_first_session: () => `✅ Tu plan está listo`,
 };
 
+// ---------- Dónde está: bloque, sesión de hoy y últimos 14 días ----------
+// Texto compacto para el bloque VARIABLE del prompt (objetivo < 1.500 tokens):
+// notas y esquemas recortados, como mucho 12 ejercicios y 14 entrenos.
+const corta = (t: any, n: number) => {
+  const x = String(t ?? '').replace(/\s+/g, ' ').trim();
+  return x.length > n ? x.slice(0, n - 1) + '…' : x;
+};
+const ritmo = (seg: number, m: number) => {
+  if (!seg || !m) return null;
+  const sk = seg / (m / 1000);
+  const mm = Math.floor(sk / 60), ss = Math.round(sk % 60);
+  return ss === 60 ? `${mm + 1}:00/km` : `${mm}:${String(ss).padStart(2, '0')}/km`;
+};
+
+async function textoSituacion(sb: any, plan: any, est: any, hoy: string): Promise<string> {
+  const lineas: string[] = [];
+  lineas.push('DÓNDE ESTÁ EN SU PLAN (calculado por la fecha de hoy; manda sobre cualquier otro dato):');
+  if (!est) {
+    lineas.push('- No tiene plan por bloques todavía.');
+  } else if (est.caducado) {
+    lineas.push(`- SU PLAN TERMINÓ EL ${fechaCorta(est.fin)} (${est.fin}). Hoy no cae en ningún bloque. Díselo con naturalidad al principio y proponle montar el siguiente (set_goals + set_plan, y los entrenos que hagan falta). No hables como si siguiera en un bloque.`);
+  } else if (est.antes) {
+    lineas.push(`- El plan empieza el ${fechaCorta(est.ini)}; aún no ha arrancado.`);
+  } else {
+    const b = est.bloque;
+    lineas.push(`- Semana ${est.semana} de ${est.semanas} del plan (${fechaCorta(est.ini)} → ${fechaCorta(est.fin)}).${b ? ` Bloque actual: "${b.name}" (${fechaCorta(b.startDate)} → ${fechaCorta(b.endDate)}, bloque ${est.idx + 1} de ${est.blocks.length}).` : ''}`);
+  }
+  if (est) {
+    lineas.push('- Bloques: ' + est.blocks.map((b: any, i: number) =>
+      `${i + 1}) ${corta(b.name, 40)} ${b.startDate}→${b.endDate}${b.scheme ? `: ${corta(b.scheme, 90)}` : ''}`).join(' | '));
+  }
+  if (est?.deadline) {
+    lineas.push(est.faltan != null
+      ? `- Faltan ${est.faltan} días hasta la fecha límite de corto plazo (${est.deadline}).`
+      : `- La fecha límite de corto plazo (${est.deadline}) ya pasó.`);
+  }
+
+  // Sesión de HOY: apaño de la semana o calendario base
+  const dow = diaSemana(hoy);
+  const [{ data: ovr }, { data: ws }] = await Promise.all([
+    sb.from('week_overrides').select('routine_id').eq('week_start', lunesDe(hoy)).eq('day_of_week', dow).maybeSingle(),
+    sb.from('workouts').select('id, date, routine_id, duration_sec').gte('date', masDias(hoy, -14)).lte('date', hoy).order('date'),
+  ]);
+  const ridHoy = ovr ? (ovr.routine_id ?? 'rest') : (plan?.weekly_schedule?.[String(dow)] ?? 'rest');
+  const ids = (ws ?? []).map((w: any) => w.id);
+  const [{ data: rex }, { data: sets }] = await Promise.all([
+    ridHoy && ridHoy !== 'rest'
+      ? sb.from('routine_exercises').select('exercise_id, sets, reps_target, notes').eq('routine_id', ridHoy).order('position')
+      : Promise.resolve({ data: [] }),
+    ids.length
+      ? sb.from('workout_sets').select('workout_id, exercise_id, weight_kg, reps, seconds, distance_m, avg_hr').in('workout_id', ids)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const exIds = [...new Set([...(rex ?? []), ...(sets ?? [])].map((x: any) => x.exercise_id).filter(Boolean))];
+  const { data: cat } = exIds.length
+    ? await sb.from('exercises').select('id, name, log_type').in('id', exIds)
+    : { data: [] };
+  const ex: Record<string, any> = {};
+  (cat ?? []).forEach((e: any) => { ex[e.id] = e; });
+
+  if (!ridHoy || ridHoy === 'rest') {
+    lineas.push(`SESIÓN DE HOY (${DIAS[dow]}): descanso.`);
+  } else {
+    const lista = (rex ?? []).slice(0, 12).map((r: any) =>
+      `${ex[r.exercise_id]?.name ?? r.exercise_id} ${r.sets ?? '?'}×${r.reps_target ?? '?'}${r.notes ? ` (${corta(r.notes, 100)})` : ''}`);
+    const mas = (rex ?? []).length > 12 ? ` …y ${(rex ?? []).length - 12} más` : '';
+    lineas.push(`SESIÓN DE HOY (${DIAS[dow]}): ${ridHoy}${lista.length ? ' — ' + lista.join('; ') + mas : ' (sin ejercicios)'}.`);
+  }
+
+  // Últimos 14 días: cardio con km, min y ritmo; fuerza con la mejor serie
+  if (!(ws ?? []).length) {
+    lineas.push('ÚLTIMOS 14 DÍAS: ningún entreno registrado.');
+  } else {
+    const porW: Record<string, any[]> = {};
+    (sets ?? []).forEach((st: any) => { (porW[st.workout_id] ||= []).push(st); });
+    const filas = (ws ?? []).slice(-14).map((w: any) => {
+      const porEx: Record<string, any[]> = {};
+      (porW[w.id] ?? []).forEach((st: any) => { (porEx[st.exercise_id] ||= []).push(st); });
+      const trozos = Object.entries(porEx).map(([id, ss]) => {
+        const nombre = ex[id]?.name ?? id;
+        if (ex[id]?.log_type === 'cardio' || ss.some((x) => x.distance_m)) {
+          const m = ss.reduce((a, x) => a + (Number(x.distance_m) || 0), 0);
+          const seg = ss.reduce((a, x) => a + (Number(x.seconds) || 0), 0);
+          return [nombre, m ? `${(m / 1000).toFixed(1)} km` : null, seg ? `${Math.round(seg / 60)} min` : null, ritmo(seg, m)]
+            .filter(Boolean).join(' ');
+        }
+        if (ss.every((x) => x.weight_kg == null && x.reps == null)) {
+          const seg = Math.max(...ss.map((x) => Number(x.seconds) || 0));
+          return seg ? `${nombre} ${seg}s` : nombre;
+        }
+        const mejor = ss.reduce((a, b) => ((Number(b.weight_kg) || 0) > (Number(a.weight_kg) || 0)
+          || ((Number(b.weight_kg) || 0) === (Number(a.weight_kg) || 0) && (b.reps || 0) > (a.reps || 0)) ? b : a));
+        return `${nombre} ${mejor.weight_kg ?? '—'}×${mejor.reps ?? '—'}`;
+      });
+      return `${w.date} ${w.routine_id ?? 'libre'}${trozos.length ? ': ' + trozos.join(', ') : ''}`;
+    });
+    lineas.push('ÚLTIMOS 14 DÍAS: ' + filas.map((f) => corta(f, 220)).join(' | '));
+  }
+  return lineas.join('\n');
+}
+
 // ---------- Prompt del sistema ----------
 // Va PARTIDO EN DOS para que el caché funcione: este primer bloque es idéntico
 // para todos los usuarios y todas las peticiones, así que se cachea una vez y
@@ -952,6 +1192,12 @@ REGLAS:
 - LO PEDIDO SE APLICA, LO NO PEDIDO SE PROPONE. Si te lo pide, hazlo y avisa de lo que has tocado. Si es idea tuya, propónlo, explica el porqué y ESPERA su confirmación antes de escribir nada.
 - Si averiguas datos suyos conversando (peso, nivel, días, material), guárdalos con set_profile.
 - Nada de tablas ni markdown: la app las pinta en crudo y se ven mal. Texto plano y listas cortas con guiones.
+- DÓNDE ESTÁ: el contexto te dice en qué semana y bloque está HOY, calculado por fecha. Fíate de eso y no de lo que diga una conversación anterior. Si su plan ha terminado, díselo y propón el siguiente.
+
+NO TE INVENTES NI TE CONTRADIGAS:
+- Eventos reales (carreras, pruebas, marchas): antes de guardar en el plan o en los objetivos su distancia, desnivel, fecha u hora, confírmalos con web_search (como mucho dos búsquedas) en una fuente fiable, a ser posible la web oficial. Úsala SOLO para eso. Si no lo puedes confirmar, pregúntaselo a él y no pongas cifras: una cifra inventada acaba en su plan como si fuera verdad.
+- Una sola fuente de verdad: la progresión semana a semana (km, cargas, series por semana) vive en los bloques del plan (set_plan). Las notas de un entreno describen CÓMO hacer la sesión (técnica, ritmo, sensaciones), nunca otra progresión por semanas con otras cifras. Si cambias la progresión, cámbiala en set_plan.
+- Si una herramienta te devuelve un error de validación, corrige lo que dice y vuelve a llamarla; no le cuentes el cambio como hecho hasta que salga bien.
 
 NUTRICIÓN — OBJETIVOS DE MACROS:
 - Puede haber DOS juegos, uno para días de entreno y otro para días de descanso, y la app enseña el que toca según si ese día hay entrenamiento. Antes de tocarlos usa get_macros; para cambiarlos, set_macros (puedes enviar solo uno de los dos). Si te da unos números sin decir para qué días son, pregúntale si van para los dos juegos o solo para uno: no lo supongas.
@@ -1033,7 +1279,7 @@ Deno.serve(async (req) => {
 
     const [{ data: plan }, { data: perfil }, { data: rutinas }] = await Promise.all([
       sb.from('plan')
-        .select('name, notes, goals, current_block, weekly_schedule, start_date, end_date')
+        .select('id, name, notes, goals, current_block, weekly_schedule, start_date, end_date, blocks')
         .eq('status', 'active').limit(1).maybeSingle(),
       sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
       sb.from('routines').select('id, name, tag').eq('archived', false),
@@ -1045,6 +1291,16 @@ Deno.serve(async (req) => {
     const hoyIso = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(now);
     const primeraSesion = !perfil?.first_session_done;
 
+    // Bloque actual por fecha (y se re-guarda si current_block se quedó atrás)
+    const est = plan ? estadoPlan(plan, hoyIso) : null;
+    if (plan && est) await sincronizaBloque(sb, plan.id, plan.current_block, est);
+    const situacion = await textoSituacion(sb, plan, est, hoyIso);
+    // Lo que va en PLAN VIGENTE: sin bloques ni current_block (van arriba, ya
+    // resueltos por fecha: dos versiones del mismo dato solo confunden).
+    const planCorto = plan
+      ? { name: plan.name, notes: plan.notes, start_date: plan.start_date, end_date: plan.end_date, goals: plan.goals, weekly_schedule: plan.weekly_schedule }
+      : {};
+
     // Bloque VARIABLE del prompt: todo lo que cambia de un usuario a otro y de
     // un día a otro. Va detrás del bloque fijo para no invalidar su caché.
     const contexto = `Hoy es ${madrid} (${hoyIso}).
@@ -1054,7 +1310,9 @@ ${textoPerfil(perfil)}
 ${perfil?.experience ? (TONO_NIVEL[perfil.experience] ?? '') : 'No sabes su nivel todavía: no des por hecho que es principiante ni que es experto.'}
 Llámale por su nombre cuando encaje, sin repetirlo en cada frase. NO te inventes datos suyos que no estén aquí: si no lo sabes, pregúntalo.
 
-PLAN VIGENTE: ${JSON.stringify(plan ?? {})}
+${situacion}
+
+PLAN VIGENTE: ${JSON.stringify(planCorto)}
 SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUION_PRIMERA : ''}`;
 
     // Dos puntos de caché: el bloque fijo (compartido por todo el mundo) y el
@@ -1127,7 +1385,10 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
                   usage = { ...(ev.message?.usage ?? {}) };
                 } else if (ev.type === 'content_block_start') {
                   const cb = ev.content_block ?? {};
-                  if (cb.type === 'tool_use') bloques[ev.index] = { ...cb, _json: '' };
+                  if (cb.type === 'tool_use' || cb.type === 'server_tool_use') {
+                    bloques[ev.index] = { ...cb, _json: '' };
+                    if (cb.type === 'server_tool_use') send({ t: 'tool', v: 'Buscando en internet…' });
+                  } else if (cb.type === 'web_search_tool_result') bloques[ev.index] = { ...cb };
                   else if (cb.type === 'thinking') {
                     bloques[ev.index] = { type: 'thinking', thinking: cb.thinking ?? '', signature: cb.signature ?? '' };
                   } else if (cb.type === 'redacted_thinking') bloques[ev.index] = { ...cb };
@@ -1145,10 +1406,12 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
                     b.thinking = (b.thinking ?? '') + (d.thinking ?? '');
                   } else if (d.type === 'signature_delta') {
                     b.signature = d.signature ?? b.signature;
+                  } else if (d.type === 'citations_delta' && d.citation) {
+                    (b.citations ||= []).push(d.citation);
                   }
                 } else if (ev.type === 'content_block_stop') {
                   const b = bloques[ev.index];
-                  if (b && b.type === 'tool_use') {
+                  if (b && (b.type === 'tool_use' || b.type === 'server_tool_use')) {
                     try { b.input = b._json ? JSON.parse(b._json) : {}; } catch { b.input = {}; }
                     delete b._json;
                   }
@@ -1162,6 +1425,8 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
             }
 
             await logUsage(user.id, 'chat', round === 0 ? 'coach' : 'coach_round', usage);
+            const busquedas = Number(usage?.server_tool_use?.web_search_requests) || 0;
+            if (busquedas) await logSearches(user.id, busquedas);
 
             // Un bloque de texto vacío hace que la API rechace el mensaje al
             // reenviarlo. Y un bloque de razonamiento sin firma tampoco vale.
@@ -1172,6 +1437,12 @@ SUS ENTRENOS AHORA MISMO: ${JSON.stringify(rutinas ?? [])}${primeraSesion ? GUIO
             if (stopReason === 'refusal') {
               send({ t: 'error', v: 'Esa petición no la puedo atender. Prueba a planteármela de otra forma.' });
               return;
+            }
+            // La búsqueda web (server tool) puede pausar el turno: se reenvía tal
+            // cual y el servidor sigue donde lo dejó, sin mensaje nuevo.
+            if (stopReason === 'pause_turn') {
+              messages.push({ role: 'assistant', content });
+              continue;
             }
             if (stopReason !== 'tool_use') break;
 

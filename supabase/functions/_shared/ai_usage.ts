@@ -22,7 +22,7 @@ export const LIMIT_MSG = 'Has llegado al límite de hoy, mañana seguimos 💪';
 export const RATE_MSG = 'Vas muy rápido: espera un minuto y seguimos 💪';
 
 export type Fn = 'chat' | 'nutrition';
-export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist';
+export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist' | 'coach_search';
 // day = tope del día (del usuario o el global); minute = demasiadas seguidas
 export type Tope = { reason: 'day' | 'minute'; feature: Kind; msg: string };
 
@@ -66,5 +66,19 @@ export async function logUsage(userId: string, fn: Fn, kind: Kind, usage: any) {
     if (error) console.error('ai_usage insert', error.message);
   } catch (e) {
     console.error('ai_usage insert', (e as Error).message);
+  }
+}
+
+// Búsquedas web del Coach (server tool web_search). Se cobran aparte de los
+// tokens (10 $ por 1.000 búsquedas): una fila 'coach_search' por ronda con el
+// número de búsquedas en web_searches. No cuenta para los topes.
+export async function logSearches(userId: string, n: number) {
+  try {
+    const { error } = await admin.from('ai_usage').insert({
+      user_id: userId, fn: 'chat', kind: 'coach_search', web_searches: Math.max(0, Math.round(n)),
+    });
+    if (error) console.error('ai_usage search insert', error.message);
+  } catch (e) {
+    console.error('ai_usage search insert', (e as Error).message);
   }
 }
