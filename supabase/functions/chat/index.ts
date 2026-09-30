@@ -92,7 +92,8 @@ async function sincronizaBloque(sb: any, planId: number, currentBlock: any, est:
   if (error) console.error('current_block', error.message);
 }
 
-// ¿Rutina de cardio? Por etiqueta o nombre, o porque todos sus ejercicios lo son.
+// ¿Rutina de cardio? Por etiqueta, nombre o id (una con todos sus ejercicios de
+// cardio no puede llevar fuerza por definición: no hace falta mirarlo).
 const RE_CARDIO = /carrera|correr|running|rodaje|bici|cardio|tirada|trote|nadar|nataci/i;
 
 const BLOQUES: Record<string, string> = {
@@ -449,9 +450,7 @@ async function validaRutina(sb: any, input: any): Promise<string[]> {
     fallos.push(`no existen en el catálogo: ${faltan.join(', ')} (búscalos con list_exercises o créalos con add_exercise)`);
   }
   const conocidos = exs.filter((e) => porId[e.exercise_id]);
-  const todoCardio = conocidos.length > 0 && conocidos.every((e) => porId[e.exercise_id].log_type === 'cardio');
-  const esCardio = RE_CARDIO.test(`${input.tag ?? ''} ${input.name ?? ''} ${input.id ?? ''}`) || todoCardio;
-  if (esCardio) {
+  if (RE_CARDIO.test(`${input.tag ?? ''} ${input.name ?? ''} ${input.id ?? ''}`)) {
     const fuerza = conocidos.filter((e) => porId[e.exercise_id].log_type === 'fuerza');
     if (fuerza.length) {
       fallos.push(`es un entreno de cardio y lleva ejercicios de fuerza: ${fuerza.map((e) => `${e.exercise_id} (${porId[e.exercise_id].name})`).join(', ')}. Para la sesión de cardio usa ejercicios de cardio (p. ej. running-outdoor o cardio-steady)`);
@@ -772,8 +771,12 @@ async function runTool(sb: any, name: string, input: any, userId: string, hoyIso
             date: w.date,
             routine_id: w.routine_id,
             duration_min: w.duration_sec ? Math.round(w.duration_sec / 60) : null,
+            // Cardio también: sin distancia ni tiempo, una carrera no se veía
             sets: sets.filter((s) => s.workout_id === w.id).map((s) => ({
               exercise_id: s.exercise_id, set: s.set_index, kg: s.weight_kg, reps: s.reps,
+              ...(s.seconds != null ? { seconds: s.seconds } : {}),
+              ...(s.distance_m != null ? { km: Math.round(Number(s.distance_m) / 10) / 100 } : {}),
+              ...(s.avg_hr != null ? { ppm: s.avg_hr } : {}),
             })),
           })),
         });
