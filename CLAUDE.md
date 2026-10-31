@@ -46,13 +46,22 @@ público, así que esto no es una preferencia de estilo.
 | Secret | Para qué | Valor esperado |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | las dos funciones | la clave de la cuenta |
-| `CHAT_MODEL` | modelo del Coach (`chat`) | `claude-sonnet-5-5` |
+| `CHAT_MODEL` | modelo del Coach (`chat`) | `claude-sonnet-4-6` (ver abajo) |
 | `CHAT_EFFORT` | esfuerzo del Coach (opcional) | sin poner: `medium` en Sonnet 5.x |
 | `NUTRITION_MODEL` | modelo de análisis de comida (`nutrition`) | `claude-haiku-4-5` |
 
 Ojo con los *defaults* del código: si `CHAT_MODEL` no existe, `chat` cae en
 `claude-sonnet-5-5`. El secret tiene que estar puesto de verdad, no darse por
 hecho: `ai_usage.model` dice con qué modelo se ha hecho cada llamada.
+
+**Por qué sigue en 4.6 (31-oct-2026).** A/B con el código de `chat` tal cual
+(3 conversaciones, 5 mensajes, todas con herramientas, caché caliente):
+4.6 = 0,0137 $/mensaje; 5.5 `medium` = 0,0171 $ (+24 %); 5.5 `low` = 0,0154 $.
+El ahorro venía de la caché de la conversación, que ya está activa en 4.6
+(octubre real: 0,0287 $/mensaje con un 81 % de entrada desde caché). 5.5 cobra
+menos por token, pero su tokenizador cuenta ~30 % más y escribe más largo, así
+que no abarata. Es más rápido (~40 %) y más minucioso con los datos. Volver a
+probar si cambian los precios o si hace falta su calidad.
 
 Sonnet 5.5 piensa siempre (no se puede apagar con `disabled`) y devuelve los
 bloques de razonamiento vacíos pero firmados: se reenvían tal cual dentro del
