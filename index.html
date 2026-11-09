@@ -1345,7 +1345,7 @@
         <!-- El ejercicio que se ve; el botón de al lado abre la lista para cambiarlo -->
         <div class="px-row" id="pxRow">
           <span class="px-name" id="pxName"></span>
-          <button type="button" class="ib" id="pxSwap" aria-label="Cambiar de ejercicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M17.5 2.5v4h-4"/><path d="M6.5 21.5v-4h4"/></svg></button>
+          <button type="button" class="px-drop" id="pxSwap" aria-label="Cambiar de ejercicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
           <div class="px-menu" id="pxMenu" hidden></div>
         </div>
@@ -1353,6 +1353,7 @@
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readrow"><div class="prog-readout" id="progReadout"></div>
         </div>
+        <div class="px-dots" id="pxDots" aria-hidden="true"></div>
         <div class="prog-info" id="progInfo" hidden></div>
         <div class="sub" id="progSub"></div>
       </div>
@@ -3150,7 +3151,7 @@
 
 </aside>
 
-<aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
+<aside class="drawer drawer--left" id="profDrawer" aria-hidden="true">
   <div id="pdMain">
     <!-- Tú: foto (toca para cambiarla), nombre y peso -->
     <div class="prof-head pd-who" id="profHead">
@@ -4551,7 +4552,7 @@
       ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="#C8231E"/>`).join('')}`;
   }
 
-  let progExId = null, progIdsKey = '', progSeries = [];
+  let progExId = null, progIdsKey = '', progSeries = [], progIds = [];
   const fmtKg = (n) => String(n).replace('.', ',');
   function renderProgression() {
     const slider = document.getElementById('exSlider');
@@ -4586,6 +4587,9 @@
     document.getElementById('pxRow').hidden = false;
     document.getElementById('pxName').textContent = getExercise(progExId).name;
     document.getElementById('pxSwap').hidden = ids.length < 2;
+    progIds = ids;
+    document.getElementById('pxDots').innerHTML = ids.length > 1
+      ? ids.map((id) => `<i class="${id === progExId ? 'on' : ''}"></i>`).join('') : '';
     document.getElementById('pxMenu').innerHTML = ids.map((id) =>
       `<button type="button" class="px-opt${id === progExId ? ' on' : ''}" data-px="${id}">${getExercise(id).name}</button>`).join('');
     centerActiveChip();
@@ -4634,6 +4638,7 @@
   }
 
   // Lista de ejercicios (botón de cambiar): elegir uno la cierra
+  document.getElementById('pxName').addEventListener('click', () => document.getElementById('pxSwap').click());
   document.getElementById('pxSwap').addEventListener('click', (e) => {
     e.stopPropagation();
     const m = document.getElementById('pxMenu');
@@ -4646,7 +4651,7 @@
     if (opt.dataset.px !== progExId) { progExId = opt.dataset.px; renderProgression(); }
   });
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#pxMenu') && !e.target.closest('#pxSwap')) document.getElementById('pxMenu').hidden = true;
+    if (!e.target.closest('#pxMenu') && !e.target.closest('#pxSwap') && !e.target.closest('#pxName')) document.getElementById('pxMenu').hidden = true;
   });
 
   // Deslizador lateral de ejercicios
@@ -4704,7 +4709,32 @@
     setProgPoint(Math.round(((e.clientX - r.left) / r.width) * (progSeries.length - 1)));
   }
   progChartEl.addEventListener('pointerdown', progScrub);
-  progChartEl.addEventListener('pointermove', progScrub);
+  // Con el dedo, arrastrar en horizontal cambia de ejercicio (abajo); el punto
+  // se elige tocándolo. Con el ratón se sigue arrastrando sobre la gráfica.
+  progChartEl.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') progScrub(e); });
+
+  // Deslizar a izquierda/derecha sobre la tarjeta: ejercicio siguiente/anterior
+  const progCardEl = document.querySelector('[data-sec="progresion"]');
+  let swX = null, swY = 0;
+  progCardEl.addEventListener('touchstart', (e) => {
+    if (e.target.closest('#pxMenu') || e.touches.length > 1) { swX = null; return; }
+    swX = e.touches[0].clientX; swY = e.touches[0].clientY;
+  }, { passive: true });
+  progCardEl.addEventListener('touchend', (e) => {
+    if (swX == null || progIds.length < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swX, dy = t.clientY - swY;
+    swX = null;
+    if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const i = progIds.indexOf(progExId);
+    const j = (i + (dx < 0 ? 1 : -1) + progIds.length) % progIds.length;
+    progExId = progIds[j];
+    document.getElementById('pxMenu').hidden = true;
+    renderProgression();
+    progCardEl.classList.remove('px-in-l', 'px-in-r');
+    void progCardEl.offsetWidth;
+    progCardEl.classList.add(dx < 0 ? 'px-in-r' : 'px-in-l');
+  }, { passive: true });
 
   const calMonth = new Date(); calMonth.setDate(1);
   function renderCalendar() {
@@ -5219,31 +5249,22 @@
     const tabla = tablaDeSeries(item, tipo);
     return `
       <div class="exercise-card ${item.swapped ? 'swapped' : ''}" data-slot="${slotIdx}" data-log="${tipo}">
-        <div class="tk-kicker">
-          <span class="label-sm">Ejercicio ${String(slotIdx + 1).padStart(2, '0')}</span>
-          <span class="rule"></span>
-          <span class="label-sm">${groupLabel(ex.group)}</span>
-        </div>
-        <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
-        <div class="tk-chips">
-          <div class="tk-chips-scroll">
-            ${ex.videoUrl ? `<button type="button" class="tk-chip tk-chip--video" onclick="openVideo('${item.exerciseId}')">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>VÍDEO
-            </button>` : ''}
-            <span class="tk-chip">${tipo === 'cardio' ? repsCorto(item.repsTarget).toUpperCase() : `${item.sets} SERIES · ${repsCorto(item.repsTarget)}`}</span>
-            ${(item.restSec && tipo !== 'cardio') ? `<span class="tk-chip">DESC ${item.restSec}&Prime;</span>` : ''}
-          </div>
-          <button type="button" class="tk-chip tk-chip--swap" onclick="openSwap(${slotIdx})">
+        <!-- Nombre y, al lado, cambiar de ejercicio (solo el icono) -->
+        <div class="tk-namerow">
+          <h2 class="tk-exname ${ex.name.length > 20 ? 'len-l' : (ex.name.length > 13 ? 'len-m' : '')}">${nombre}</h2>
+          <button type="button" class="tk-swap" onclick="openSwap(${slotIdx})" aria-label="Cambiar de ejercicio">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
-            CAMBIAR
           </button>
         </div>
+        ${tipo === 'cardio' && item.repsTarget ? `<div class="tk-target">${repsCorto(item.repsTarget)}</div>` : ''}
         ${tabla}
-        ${guiaPlegable(item.exerciseId)}
         <div class="ex-notes">
-          <div class="ex-notes-tabs">
-            <button type="button" class="on" data-nota="mias">Mis notas</button>
-            <button type="button" data-nota="coach">Del coach</button>
+          <div class="ex-notes-head">
+            <span class="label-sm">Notas</span>
+            <div class="ex-notes-tabs">
+              <button type="button" class="on" data-nota="mias">Mías</button>
+              <button type="button" data-nota="coach">Coach</button>
+            </div>
           </div>
           <div data-pane="mias">
             <textarea class="notes-input" rows="1" data-ex="${item.exerciseId}"
@@ -5253,6 +5274,7 @@
             <p class="coach-note ${notaBase ? '' : 'vacia'}">${notaBase || 'Tu coach no ha dejado ninguna nota en este ejercicio.'}</p>
           </div>
         </div>
+        ${guiaPlegable(item.exerciseId)}
       </div>`;
   }
 
@@ -6288,10 +6310,14 @@
       ${g.seguridad ? `<div class="guia-aviso">⚠ ${escG(g.seguridad)}</div>` : ''}
     </div>`;
   }
+  // Técnica, al final de la tarjeta: el vídeo (si hay) y la ficha, plegados
   function guiaPlegable(exId) {
     const g = guiaDe(exId);
-    if (!g) return '';
-    return `<details class="ex-guia"><summary>Técnica <span class="rule"></span></summary>${guiaHtml(g)}</details>`;
+    const video = getExercise(exId).videoUrl;
+    if (!g && !video) return '';
+    const btn = video ? `<button type="button" class="tk-chip tk-chip--video guia-video" onclick="openVideo('${exId}')">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>VER VÍDEO</button>` : '';
+    return `<details class="ex-guia"><summary>Técnica <span class="rule"></span></summary>${btn}${g ? guiaHtml(g) : ''}</details>`;
   }
   const guideModal = document.getElementById('guideModal');
   window.openGuide = function(exId) {
@@ -9707,6 +9733,52 @@ boot(false);
   [data-sec="fisica"] > .prog-head { align-items: center; }
   [data-sec="fisica"] > .prog-head .metric-tabs { margin: 0; justify-content: flex-start; flex: 1; min-width: 0; }
   [data-sec="fisica"] > .prog-head #bodyAddBtn { margin-left: auto; }
+
+  /* ═══ Ronda 8 (Adrián, 9-nov): Entreno y tracker ═══ */
+  /* La app no se desliza de lado: nada se sale por la derecha */
+  html, body { overflow-x: clip; }
+  .drawer:not(.open) { visibility: hidden; transition: transform var(--t-slow) var(--ease), visibility 0s linear var(--t-slow); }
+  .drawer.open { visibility: visible; transition: transform var(--t-slow) var(--ease); }
+  /* Menos aire al final de cada pantalla (era para el botón flotante, que ya no está) */
+  #app { padding-bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 28px); }
+  /* El resplandor rojo de arriba, más presente y más ancho */
+  .glow { height: 380px; top: calc(-1 * env(safe-area-inset-top));
+          background:
+            radial-gradient(120% 75% at 85% 0%, rgba(200,35,30,.34), rgba(165,28,24,.12) 42%, transparent 72%),
+            radial-gradient(90% 45% at 10% 0%, rgba(165,28,24,.14), transparent 70%); }
+  /* Progresión: flecha hacia abajo al lado del nombre; deslizar cambia de ejercicio */
+  .px-name { cursor: pointer; }
+  .px-drop { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); margin-left: -4px; }
+  .px-drop svg { width: 18px; height: 18px; transition: transform .2s ease; }
+  .px-drop[hidden] { display: none; }
+  .px-row:has(.px-menu:not([hidden])) .px-drop svg { transform: rotate(180deg); }
+  [data-sec="progresion"] { touch-action: pan-y; }
+  .px-dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0 2px; }
+  .px-dots:empty { display: none; }
+  .px-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--line-2); transition: width .2s ease, background .2s ease; }
+  .px-dots i.on { width: 16px; border-radius: 3px; background: var(--text); }
+  @keyframes px-in-r { from { opacity: .2; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+  @keyframes px-in-l { from { opacity: .2; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+  .px-in-r > :not(.px-row) { animation: px-in-r .26s var(--ease-out, ease-out); }
+  .px-in-l > :not(.px-row) { animation: px-in-l .26s var(--ease-out, ease-out); }
+  /* Tracker: el nombre con el botón de cambiar al lado; sin chips de series/descanso */
+  .tk-namerow { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+  .tk-namerow .tk-exname { margin: 0; flex: 1; min-width: 0; }
+  .tk-swap { flex-shrink: 0; width: 38px; height: 38px; margin-top: 2px; display: grid; place-items: center; border-radius: 50%;
+             border: 1px solid var(--line-2); background: rgba(255,255,255,.04); color: var(--text); }
+  .tk-swap svg { width: 16px; height: 16px; }
+  .tk-swap:active { transform: scale(.94); }
+  .tk-target { margin: -8px 0 16px; font: 500 11px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  /* Notas: un título y, a la derecha, Mías / Coach */
+  .ex-notes { margin-top: 18px; }
+  .ex-notes-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 2px; }
+  .ex-notes-head .ex-notes-tabs { margin: 0; gap: 2px; padding: 3px; border-radius: 999px; background: var(--s2); border: 1px solid var(--line); }
+  .ex-notes-head .ex-notes-tabs button { flex: none; padding: 6px 12px; border: 0; border-radius: 999px; background: none; font-size: 9px; }
+  .ex-notes-head .ex-notes-tabs button.on { background: var(--white); color: var(--white-ink); }
+  .ex-notes [data-pane="coach"] .coach-note { margin-top: 10px; }
+  /* Técnica al final; el vídeo, dentro */
+  .ex-guia { margin-top: 18px; }
+  .ex-guia .guia-video { margin: 4px 14px 6px; }
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
