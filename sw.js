@@ -1,4 +1,4 @@
-const CACHE = 'onix-v46';
+const CACHE = 'onix-v47';
 const SHELL = [
   './',
   './index.html',
