@@ -1210,6 +1210,9 @@
           <!-- Fecha y «+» retirados (Adrián, 9-nov): para añadir, se toca el día -->
           <span class="date-pill" id="todayPill" hidden></span>
           <button type="button" id="homeAdd" hidden></button>
+          <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
         </div>
 
         <div class="home-hero">
@@ -1309,6 +1312,9 @@
         <!-- Semana del plan y «+» retirados (Adrián, 9-nov) -->
         <span class="status-chip" id="trainerChip" hidden></span>
         <button type="button" id="trainerAdd" hidden></button>
+        <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
@@ -1337,10 +1343,16 @@
           <span class="label">Progresión</span>
           <span class="pr-pill" id="progPr" style="display:none"></span>
         </div>
-        <div class="ex-slider" id="exSlider"></div>
+        <!-- El ejercicio que se ve; el botón de al lado abre la lista para cambiarlo -->
+        <div class="px-row" id="pxRow">
+          <span class="px-name" id="pxName"></span>
+          <button type="button" class="ib" id="pxSwap" aria-label="Cambiar de ejercicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M17.5 2.5v4h-4"/><path d="M6.5 21.5v-4h4"/></svg></button>
+          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+          <div class="px-menu" id="pxMenu" hidden></div>
+        </div>
+        <div class="ex-slider" id="exSlider" hidden></div>
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readrow"><div class="prog-readout" id="progReadout"></div>
-          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
         </div>
         <div class="prog-info" id="progInfo" hidden></div>
         <div class="sub" id="progSub"></div>
@@ -1352,13 +1364,12 @@
         <div class="prog-head">
           <span class="label">Progresión física</span>
           <span class="pr-pill" id="bodyDelta" style="display:none"></span>
+          <div class="metric-tabs" id="bodySlider"></div>
           <button type="button" class="ib" id="bodyAddBtn" aria-label="Añadir métricas a mano"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
         </div>
-        <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
-        <div class="metric-tabs" id="bodySlider"></div>
         <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readrow"><div class="prog-readout" id="bodyReadout"></div>
-          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
         </div>
         <div class="prog-info" id="bodyInfo" hidden></div>
         <div class="sub" id="bodySub"></div>
@@ -1606,6 +1617,9 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
       </div>
 
       <div class="n-title-row">
@@ -4550,6 +4564,7 @@
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
       slider.innerHTML = ''; chart.innerHTML = ''; chart.style.display = 'none';
+      document.getElementById('pxRow').hidden = true;
       document.getElementById('progReadout').innerHTML = '<span class="prog-empty">Aquí aparecerán los ejercicios con más de 4 sesiones registradas.</span>';
       document.getElementById('progInfo').innerHTML = ''; document.getElementById('progInfo').hidden = true;
       pr.style.display = 'none'; progIdsKey = ''; progSeries = [];
@@ -4568,6 +4583,12 @@
         `<button type="button" class="ex-chip" data-ex="${id}">${getExercise(id).name}</button>`).join('');
     }
     slider.querySelectorAll('.ex-chip').forEach((c) => c.classList.toggle('active', c.dataset.ex === progExId));
+    // Cabecera: el ejercicio que se ve y la lista para cambiarlo
+    document.getElementById('pxRow').hidden = false;
+    document.getElementById('pxName').textContent = getExercise(progExId).name;
+    document.getElementById('pxSwap').hidden = ids.length < 2;
+    document.getElementById('pxMenu').innerHTML = ids.map((id) =>
+      `<button type="button" class="px-opt${id === progExId ? ' on' : ''}" data-px="${id}">${getExercise(id).name}</button>`).join('');
     centerActiveChip();
     const s = topSetSeries(progExId);
     progSeries = s;
@@ -4612,6 +4633,22 @@
       c.setAttribute('opacity', '1');
     });
   }
+
+  // Lista de ejercicios (botón de cambiar): elegir uno la cierra
+  document.getElementById('pxSwap').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const m = document.getElementById('pxMenu');
+    m.hidden = !m.hidden;
+  });
+  document.getElementById('pxMenu').addEventListener('click', (e) => {
+    const opt = e.target.closest('[data-px]');
+    if (!opt) return;
+    document.getElementById('pxMenu').hidden = true;
+    if (opt.dataset.px !== progExId) { progExId = opt.dataset.px; renderProgression(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#pxMenu') && !e.target.closest('#pxSwap')) document.getElementById('pxMenu').hidden = true;
+  });
 
   // Deslizador lateral de ejercicios
   const exSliderEl = document.getElementById('exSlider');
@@ -9212,6 +9249,8 @@ async function abrirCoach() {
 }
 window.appOpenCoach = abrirCoach;
 $('coachFab').addEventListener('click', abrirCoach);
+// El Coach se abre desde el icono de arriba a la derecha de cada pantalla
+document.querySelectorAll('[data-coach]').forEach((b) => b.addEventListener('click', abrirCoach));
 $('coachSheetClose').addEventListener('click', () => cerrarHoja(coachSheet));
 $('coachSheetBack').addEventListener('click', () => cerrarHoja(coachSheet));
 
@@ -9582,7 +9621,7 @@ boot(false);
 
   /* ═══ Ronda 5 (Adrián, 9-nov) ═══ */
   /* Logo arriba a la derecha en todas las pantallas; abre los ajustes */
-  .home-head .logo, .scr-head .logo { order: 9; margin-left: auto; cursor: pointer; }
+  .home-head .logo, .scr-head .logo { cursor: pointer; }
   /* Home: el bloque de hoy sin aire de sobra arriba; Entrenar y Registrar comida bajo la racha */
   .home-heat { height: auto; min-height: 0; }
   .home-hero { margin-top: 56px; padding-bottom: 20px; }
@@ -9636,6 +9675,33 @@ boot(false);
   .mp-tabs { margin-bottom: 16px !important; }
   .mp-tabs .seg-btn { font-size: 13px; }
   #mpPlan[hidden], #mpObj[hidden] { display: none; }
+
+  /* ═══ Ronda 7 (Adrián, 9-nov) ═══ */
+  /* El chat arriba a la derecha de cada pantalla; fuera el botón flotante */
+  .coach-fab { display: none !important; }
+  .home-head .hdr-chat, .scr-head .hdr-chat { margin-left: auto; }
+  .home-head .hdr-chat { background: rgba(11,11,10,.35); border-color: rgba(236,232,225,.25); color: var(--text); }
+  .home-head #todayPill[hidden] + #homeAdd[hidden] + .hdr-chat { margin-left: auto; }
+  [data-screen="nutrition"] .scr-head .hdr-chat { margin-left: auto; }
+  /* Progresión: título algo más grande y aire entre el selector y la tarjeta */
+  .prog-switch-head { margin-top: 18px; margin-bottom: 16px; }
+  .prog-switch-head .label { font-size: 26px; }
+  /* Entreno: ejercicio a la izquierda, cambiar al lado y la (i) al otro lado */
+  .px-row { position: relative; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .px-row[hidden] { display: none; }
+  .px-name { font: 600 16px/1.2 var(--f-ui); color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .px-row #progInfoBtn { margin-left: auto; }
+  .px-menu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 20; width: min(280px, 100%); max-height: 260px; overflow-y: auto;
+    padding: 6px; border-radius: 14px; background: var(--s3); border: 1px solid var(--line-2); box-shadow: var(--sh-float); }
+  .px-menu[hidden] { display: none; }
+  .px-opt { display: block; width: 100%; padding: 11px 12px; border-radius: 10px; text-align: left; font: 500 14.5px/1.2 var(--f-ui); color: var(--text); }
+  .px-opt.on { background: var(--s4); }
+  .px-opt:active { background: var(--s4); }
+  [data-sec="progresion"] > .prog-head { display: none; }
+  /* Físico: Peso / IMC / Grasa a la izquierda; + y (i) a la derecha, en la misma línea */
+  [data-sec="fisica"] > .prog-head { align-items: center; }
+  [data-sec="fisica"] > .prog-head .metric-tabs { margin: 0; justify-content: flex-start; flex: 1; min-width: 0; }
+  [data-sec="fisica"] > .prog-head #bodyAddBtn { margin-left: auto; }
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
