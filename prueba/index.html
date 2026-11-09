@@ -1197,72 +1197,32 @@
 
     <!-- =========== HOME · DESIGN.md §8.1 =========== -->
     <section class="screen active" data-screen="home">
-      <div class="glow" aria-hidden="true"></div>
 
-      <!-- Arriba: fecha y semana del plan; a la derecha, añadir y tu perfil -->
-      <div class="h-top">
-        <span class="label" id="todayPill"></span>
-        <button type="button" class="btn-icon" id="homeAdd" aria-label="Añadir entrenamiento a hoy">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
-        <button type="button" class="prof-ava h-ava" id="profAva" aria-label="Tu perfil y ajustes">
-          <span class="ini" id="profIni">·</span>
-        </button>
-      </div>
+      <!-- §1.7B · Bloque de calor (520px) -->
+      <div class="home-heat" id="homeHeat">
+        <div class="heat"></div>
+        <div class="heat-wash"></div>
+        <div class="heat-grain"></div>
+        <div class="heat-fade"></div>
 
-      <!-- Lo de hoy: la voz, la sesión y las dos acciones -->
-      <div class="home-hero">
-        <h1 class="title home-title" id="homeTitle"></h1>
-        <div class="home-stats" id="homeStats"></div>
-          <!-- Las dos cosas que se hacen desde Home: entrenar lo de hoy y apuntar comida -->
-          <div class="home-actions">
-            <button type="button" class="btn btn--primary home-cta" id="homeCta">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-              <span id="homeCtaText">Empezar sesión</span>
-            </button>
-            <button type="button" class="btn btn--sec home-meal" id="homeMealBtn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              <span>Registrar comida</span>
-            </button>
-          </div>
-      </div>
-
-      <!-- Comida de hoy: kcal frente al objetivo y los tres macros; lleva a Nutri -->
-      <button type="button" class="home-food" id="homeFood" aria-label="Ver la comida de hoy en Nutri">
-        <span class="hf-val"><b class="metric" id="homeFoodKcal">0</b><small id="homeFoodGoal"></small></span>
-        <span class="hf-macros" id="homeFoodMacros"></span>
-      </button>
-
-      <!-- Racha grande y, a la derecha, cómo va la semana -->
-      <div class="h-streak">
-        <div>
-          <span class="label">Racha</span>
-          <div class="h-big"><span class="metric-xl" id="statRacha">0</span><span class="h-of" id="statRachaU">DÍAS</span></div>
+        <div class="home-head">
+          <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+          <span class="date-pill" id="todayPill"></span>
+          <button type="button" class="btn-icon btn-icon--onheat" id="homeAdd" aria-label="Añadir entrenamiento a hoy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
         </div>
-        <div class="h-chk">
-          <span class="label">Esta semana</span>
-          <span class="h-chk-v" id="homeChkSes"></span>
-          <span class="h-chk-v" id="homeChkFood"></span>
+
+        <div class="home-hero">
+          <h1 class="title home-title" id="homeTitle"></h1>
+          <div class="home-stats" id="homeStats"></div>
+          <button type="button" class="btn btn--primary home-cta" id="homeCta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span id="homeCtaText">EMPEZAR SESIÓN</span>
+          </button>
         </div>
       </div>
 
-      <!-- La semana: flechas, días (toca uno para cambiar su entreno) y calendario -->
-      <div class="h-week" id="wstripCard">
-        <button type="button" class="ws-nav" id="wsPrev" aria-label="Semana anterior">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div class="wstrip" id="weekStrip"></div>
-        <button type="button" class="ws-nav" id="wsNext" aria-label="Semana siguiente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-        <button type="button" class="h-cal" id="homeCalBtn" aria-label="Ver calendario">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14" rx="1.5"/><path d="M4 10h16M9 3.5v4M15 3.5v4"/></svg>
-        </button>
-      </div>
-      <span class="h-wlabel label" id="wsLabel">Esta semana</span>
-
-      <!-- Piezas de la Home anterior que el código sigue rellenando: fuera de la vista -->
-      <div hidden>
       <!-- §8.1 · Cabecera colapsada al hacer scroll -->
       <div class="home-mini" id="homeMini">
         <span class="logo" aria-hidden="true"><i></i><i></i></span>
@@ -1272,13 +1232,67 @@
           EMPEZAR
         </button>
       </div>
+
       <!-- §5.4 · Cinta de datos -->
       <div class="ticker home-ticker" style="display:none">
         <span class="tag" id="tickerTag">HOY</span>
         <span class="vals" id="tickerVals"></span>
       </div>
-        <span id="statWeek"></span>
-        <svg viewBox="0 0 64 64"><circle id="weekRing" cx="32" cy="32" r="27"/></svg>
+
+      <!-- Quién eres: foto (toca para cambiarla), nombre y peso. Ajustes en el engranaje. -->
+      <div class="prof-head" id="profHead">
+        <button type="button" class="prof-ava" id="profAva" aria-label="Foto de perfil">
+          <span class="ini" id="profIni">·</span>
+        </button>
+        <div class="prof-id">
+          <div class="prof-name" id="profName">—</div>
+          <div class="prof-stats">
+            <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
+          </div>
+        </div>
+        <button type="button" class="btn-icon" id="profAcct" aria-label="Ajustes del perfil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
+        </button>
+      </div>
+
+      <!-- Tiles: racha + sesiones de la semana -->
+      <div class="home-tiles">
+        <div class="tile" id="tileStreak">
+          <span class="label-sm">Racha</span>
+          <div class="tile-val"><span class="metric-xl num-hot" id="statRacha">0</span><span class="data" id="statRachaU">DÍAS</span></div>
+        </div>
+        <div class="tile" id="tileWeek">
+          <span class="label-sm">Esta semana</span>
+          <div class="tile-ring">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="32" r="27" fill="none" stroke="#1E1F21" stroke-width="6.5"/>
+              <circle cx="32" cy="32" r="27" fill="none" stroke="url(#ringHot)" stroke-width="6.5"
+                      stroke-linecap="round" transform="rotate(-90 32 32)" id="weekRing"/>
+              <defs><linearGradient id="ringHot" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#C8231E"/><stop offset="1" stop-color="#A51C18"/>
+              </linearGradient></defs>
+            </svg>
+            <span class="metric" id="statWeek">0/3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tira de días (7 celdas) -->
+      <div class="wstrip-card" id="wstripCard">
+        <div class="sec-head wstrip-head">
+          <span class="label" id="wsLabel">Esta semana</span>
+          <span class="rule"></span>
+          <button type="button" class="ws-nav" id="wsPrev" aria-label="Semana anterior">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="ws-nav" id="wsNext" aria-label="Semana siguiente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="wstrip" id="weekStrip"></div>
+      </div>
+
+
       <div class="card check-card home-check">
         <div class="nk-head">
           <span class="label">Check semanal</span>
@@ -1286,38 +1300,36 @@
         </div>
         <div class="check-grid" id="weeklyCheck"></div>
       </div>
-      </div>
+
+      <!-- El calendario vive en Entreno; aquí se abre en una ventana -->
+      <button type="button" class="btn btn--sec home-cal-btn" id="homeCalBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        VER CALENDARIO
+      </button>
     </section>
 
     <!-- =========== TRAINER · DESIGN.md §8.2 y §8.7 =========== -->
     <section class="screen" data-screen="trainer">
       <div class="glow" aria-hidden="true"></div>
 
-      <!-- Arriba: dónde estás en el plan (semana, bloque, días que faltan) y «+» -->
-      <div class="h-top e-top">
-        <div class="plan-headline" id="planHeadline" hidden></div>
-        <span class="status-chip" id="trainerChip" hidden></span>
-        <button type="button" class="btn-icon" id="trainerAdd" aria-label="Crear entreno">
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <span class="status-chip" id="trainerChip"></span>
+        <button type="button" class="btn-icon" id="trainerAdd" aria-label="Añadir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         </button>
       </div>
 
-      <h1 class="title scr-title" id="trainerTitle" hidden></h1>
+      <h1 class="title scr-title" id="trainerTitle"></h1>
+
+      <div class="plan-headline" id="planHeadline" hidden></div>
 
       <!-- Los entrenos que has creado, en una ventana: aquí solo el botón -->
       <button type="button" class="btn btn--sec tr-routines-btn" id="routinesBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
-        <span>Mis entrenamientos</span>
+        <span>MIS ENTRENAMIENTOS</span>
         <span class="data-sm" id="routinesCount"></span>
       </button>
-
-      <!-- Últimos entrenamientos -->
-      <div class="sec-head">
-        <span class="label">Últimos</span>
-        <span class="rule"></span>
-        <span class="data-sm" id="recentCount"></span>
-      </div>
-      <div id="recentList"></div>
 
       <div class="sec-head">
         <span class="label">Objetivos</span>
@@ -1329,14 +1341,18 @@
       </div>
       <div id="goalsPanel"></div>
 
-      <details class="e-fold" id="progPane">
-        <summary class="e-row"><span>Plan por bloques</span><span class="data-sm" id="planCount"></span></summary>
+      <div id="progPane">
         <div class="ticker prog-ticker">
           <span class="tag">AHORA</span>
           <span class="vals" id="progTicker"></span>
         </div>
+        <div class="sec-head">
+          <span class="label">Plan macro</span>
+          <span class="rule"></span>
+          <span class="data-sm" id="planCount"></span>
+        </div>
         <div id="planBlocks"></div>
-      </details>
+      </div>
 
       <!-- Progreso: calendario, por ejercicio, carrera y físico -->
       <div class="sec-head">
@@ -1402,7 +1418,7 @@
         <div class="sub" id="bodySub"></div>
         <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Añadir métricas
+          AÑADIR MÉTRICAS
         </button>
         <form class="weight-form" id="weightForm" style="display:none">
           <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
@@ -1414,6 +1430,13 @@
 
       </div><!-- /#statsCards -->
 
+      <!-- Últimos entrenamientos -->
+      <div class="sec-head">
+        <span class="label">Últimos</span>
+        <span class="rule"></span>
+        <span class="data-sm" id="recentCount"></span>
+      </div>
+      <div id="recentList"></div>
     </section>
 
 
@@ -1599,7 +1622,11 @@
     <section class="screen" data-screen="nutrition">
       <div class="glow" aria-hidden="true"></div>
 
-      <div class="n-top"></div>
+      <div class="scr-head">
+        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+      </div>
+
+      <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
 
       <div class="seg" id="nutriTabs">
         <button type="button" class="seg-btn active" data-ntab="daily">DIARIO</button>
@@ -1618,34 +1645,26 @@
           </button>
         </div>
 
-        <!-- El día de un vistazo: kcal frente al objetivo, una línea de rumbo y los macros -->
-        <div class="n-sum">
-          <div class="hf-val"><b class="metric" id="nSumKcal">0</b><small id="nSumGoal"></small><span class="daytype" id="nutriDayType"></span></div>
-          <p class="n-hint" id="nSumHint"></p>
-          <div class="hf-macros" id="nSumMacros"></div>
+        <div class="card">
+          <div class="nk-head nk-head--day">
+            <span class="daytype" id="nutriDayType"></span>
+            <span class="nk-kcal"><small>KCAL</small><b id="nutriKcal">0</b><i id="nutriKcalGoal"></i></span>
+          </div>
+          <div class="nutri-rings-wrap">
+            <svg id="nutriRings" viewBox="0 0 160 160"></svg>
+            <div class="nutri-legend" id="nutriLegend"></div>
+          </div>
         </div>
 
-        <!-- Las comidas del día, desplegadas -->
+        <button type="button" class="btn btn--primary" id="mealAddBtn" style="margin-top:18px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          REGISTRAR COMIDA
+        </button>
+
         <div id="mealList"></div>
-
-        <div class="n-bottom">
-          <button type="button" class="btn btn--primary" id="mealAddBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Registrar comida
-          </button>
-          <button type="button" class="n-link" id="nWeekBtn">Semana</button>
-        </div>
-
-        <!-- Piezas de la vista anterior que el código sigue rellenando -->
-        <div hidden>
-          <b id="nutriKcal">0</b><i id="nutriKcalGoal"></i>
-          <svg id="nutriRings" viewBox="0 0 160 160"></svg>
-          <div id="nutriLegend"></div>
-        </div>
       </div>
 
       <div id="nutriWeekly" style="display:none">
-        <button type="button" class="n-link n-back" id="nDayBtn">‹ Volver al día</button>
         <div class="card">
           <div class="cal-head" style="margin-top:0">
             <button type="button" class="cal-btn" id="nwPrev" aria-label="Semana anterior">
@@ -1786,7 +1805,7 @@
         .ma-btns { display: flex; flex-direction: column; gap: 8px; }
         .ma-btns button { padding: 13px; border-radius: 12px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); font-size: 14px; text-align: left; }
         .ma-btns button:active { border-color: var(--accent); }
-        .ma-btns .ma-danger { color: #E5574F; }
+        .ma-btns .ma-danger { color: #ff7a8a; }
 
         /* Editor de alimento */
         .ed-desc { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font-size: 15px; margin-bottom: 10px; }
@@ -1818,7 +1837,7 @@
         .ns-send { flex: 1; padding: 12px; border-radius: 12px; background: var(--accent); color: var(--white-ink); border: none; font-weight: 700; font-size: 14px; }
         .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
         .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
-        .ns-status.err { color: #E5574F; }
+        .ns-status.err { color: #ff7a8a; }
       </style>
     </section>
 
@@ -1829,8 +1848,7 @@
   <!-- Ya no es una pestaña: botón en la esquina y ventana emergente. El
        tracker toma prestadas estas mismas piezas durante el entreno. -->
   <button type="button" class="coach-fab" id="coachFab" aria-label="Abrir el Coach">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span>Coach</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </button>
   <div class="coach-sheet" id="coachSheet" aria-hidden="true">
     <div class="dock-back" id="coachSheetBack"></div>
@@ -1852,10 +1870,10 @@
       <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
            empezarla, pero el campo de escritura funciona igualmente. -->
       <div class="chat-input chat-locked" id="chatLocked" style="display:none">
-        <button type="button" id="chatStartPlan">Crear mi plan</button>
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
       </div>
       <form class="chat-input" id="chatForm">
-        <input id="chatText" type="text" placeholder="Cuéntale algo o pide un cambio" autocomplete="off" enterkeyhint="send">
+        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
         <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
       </form>
       </div>
@@ -1926,7 +1944,7 @@
     <div class="rv-foot">
       <button type="button" class="btn btn--primary" id="rvStart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-        Iniciar entrenamiento
+        INICIAR ENTRENAMIENTO
       </button>
     </div>
   </div>
@@ -2071,7 +2089,7 @@
     .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
     .ai-rt-text { width: 100%; box-sizing: border-box; resize: none; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit; margin-bottom: 10px; }
     .ai-rt-text:focus { outline: none; border-color: var(--accent); }
-    .hs-opt.danger { color: #E5574F; }
+    .hs-opt.danger { color: #ff7a7a; }
     .hs-ex { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
 
     /* ---------- Stat cards compactas (Racha / Esta semana) ---------- */
@@ -2540,7 +2558,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0">
         <button onclick="adjustRest(30)">+30&Prime;</button>
-        <button class="rt-skip" id="rtSkip" onclick="stopRest('saltar')">Saltar</button>
+        <button class="rt-skip" id="rtSkip" onclick="stopRest('saltar')">SALTAR</button>
       </div>
       <!-- Solo cuando el descanso encadena con el siguiente ejercicio -->
       <div class="rt-next"><span>Luego</span><b id="restNextName">—</b></div>
@@ -2560,10 +2578,10 @@
     </div>
 
     <div class="tk-foot">
-      <button type="button" class="btn btn--sec tk-wide" id="tkPause">Pausar entrenamiento</button>
+      <button type="button" class="btn btn--sec tk-wide" id="tkPause">PAUSAR ENTRENAMIENTO</button>
       <div class="tk-split" id="tkSplit" style="display:none">
-        <button type="button" class="btn btn--sec" id="tkResume">Reanudar</button>
-        <button type="button" class="btn btn--primary" id="finishBtn">Finalizar</button>
+        <button type="button" class="btn btn--sec" id="tkResume">REANUDAR</button>
+        <button type="button" class="btn btn--primary" id="finishBtn">FINALIZAR</button>
       </div>
     </div>
 
@@ -2617,7 +2635,7 @@
       <h2 class="done-title"><span class="title-out">ENTRENAMIENTO</span><br>COMPLETADO</h2>
       <p class="done-sub">¡Enhorabuena! Todos estos datos quedan guardados en la aplicación.</p>
       <div class="done-stats" id="doneStats"></div>
-      <button type="button" class="btn-primary" id="doneClose">Cerrar</button>
+      <button type="button" class="btn-primary" id="doneClose">CERRAR</button>
     </div>
   </div>
 
@@ -2736,11 +2754,11 @@
       <label class="auth-field">
         <span class="label">Contraseña</span>
         <span class="pass-wrap">
-          <input id="loginPass" type="password" required autocomplete="current-password" placeholder="Tu contraseña">
+          <input id="loginPass" type="password" required autocomplete="current-password" placeholder="••••••••">
           <button type="button" class="pass-eye" data-eye="loginPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
         </span>
       </label>
-      <button type="submit" class="btn-primary">Entrar</button>
+      <button type="submit" class="btn-primary">ENTRAR</button>
       <div class="auth-err" id="loginErr"></div>
       <div class="auth-alt">¿No tienes cuenta? <button type="button" id="goSignup">Crear una</button></div>
       <button type="button" class="auth-skip" id="goRecover">¿Has olvidado la contraseña?</button>
@@ -2771,7 +2789,7 @@
           <button type="button" class="pass-eye" data-eye="suPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
         </span>
       </label>
-      <button type="submit" class="btn-primary">Crear cuenta</button>
+      <button type="submit" class="btn-primary">CREAR CUENTA</button>
       <div class="auth-err" id="suErr"></div>
       <div class="auth-alt">¿Ya tienes cuenta? <button type="button" id="goLogin">Entrar</button></div>
     </form>
@@ -2783,7 +2801,7 @@
         <span class="label">Email</span>
         <input id="rcEmail" type="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
       </label>
-      <button type="submit" class="btn-primary">Enviarme el enlace</button>
+      <button type="submit" class="btn-primary">ENVIARME EL ENLACE</button>
       <div class="auth-err" id="rcErr"></div>
       <div class="auth-alt">¿Ya te acuerdas? <button type="button" id="goLoginDesdeRc">Entrar</button></div>
     </form>
@@ -2799,7 +2817,7 @@
           <button type="button" class="pass-eye" data-eye="npPass" aria-label="Ver la contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.9"/><path class="eye-off" d="M4 20 20 4"/></svg></button>
         </span>
       </label>
-      <button type="submit" class="btn-primary">Guardar y entrar</button>
+      <button type="submit" class="btn-primary">GUARDAR Y ENTRAR</button>
       <div class="auth-err" id="npErr"></div>
     </form>
   </div>
@@ -2922,7 +2940,7 @@
 
     <div class="onb-nav">
       <button type="button" class="btn-ghost" id="onbBack">Atrás</button>
-      <button type="button" class="btn-primary" id="onbNext">Siguiente</button>
+      <button type="button" class="btn-primary" id="onbNext">SIGUIENTE</button>
     </div>
     <div class="auth-err" id="onbErr"></div>
   </div>
@@ -2949,7 +2967,7 @@
     <p class="coach-hi">Hola<span id="coachHiName"></span>, soy tu coach. A partir de ahora entreno contigo: te monto el plan, te lo ajusto cuando la vida se tuerce y te digo qué toca cada día.</p>
     <p class="coach-hi">Antes de nada quiero conocerte. Dame cinco minutos de charla y salgo de ahí con tus objetivos, tus entrenos y tu semana montada.</p>
     <p class="coach-hi muted-hi">Si prefieres cotillear la app primero, adelante. Te espero en el chat.</p>
-    <button type="button" class="btn-primary" id="coachGo">Crear mi plan</button>
+    <button type="button" class="btn-primary" id="coachGo">CREAR MI PLAN</button>
     <button type="button" class="btn-ghost" id="coachLater" style="margin-top:10px">Ahora no, quiero mirar</button>
   </div>
 </div>
@@ -2964,7 +2982,7 @@
     <span class="label-sm" id="limEyebrow">LÍMITE DIARIO</span>
     <h2 class="lim-title" id="limTitle">Has llegado al límite de hoy</h2>
     <p class="lim-sub" id="limSub">Se renueva mañana a las 00:00</p>
-    <button type="button" class="btn-primary" id="limOk">Entendido</button>
+    <button type="button" class="btn-primary" id="limOk">ENTENDIDO</button>
     <button type="button" class="btn-ghost" id="limMore">Quiero más</button>
   </div>
 </div>
@@ -2978,7 +2996,7 @@
     <span class="label-sm">ENTRENO A MEDIAS</span>
     <h2 class="lim-title" id="resumeTitle">¿Seguimos?</h2>
     <p class="lim-sub" id="resumeSub"></p>
-    <button type="button" class="btn-primary" id="resumeGo">Continuar entreno</button>
+    <button type="button" class="btn-primary" id="resumeGo">CONTINUAR ENTRENO</button>
     <button type="button" class="btn-ghost" id="resumeSave">Guardar y terminar</button>
     <button type="button" class="resume-drop" id="resumeDrop">Descartar</button>
   </div>
@@ -3027,7 +3045,7 @@
 
 <aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
   <div id="pdMain">
-    <div class="drawer-head pd-who"><div class="prof-name" id="profName">—</div><span class="label"><span id="profWeight">—</span> kg</span></div>
+    <div class="drawer-head"><span class="label">Ajustes de perfil</span></div>
     <div class="drawer-list">
       <button type="button" class="drawer-item" id="pdPhoto">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="11.8" cy="12.6" r="3.2"/></svg>
@@ -3081,7 +3099,7 @@
     <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" aria-label="Acercar">
     <div class="crop-actions">
       <button type="button" class="btn-ghost" id="cropCancel">Cancelar</button>
-      <button type="button" class="btn-primary" id="cropSave">Guardar</button>
+      <button type="button" class="btn-primary" id="cropSave">GUARDAR</button>
     </div>
   </div>
 </div>
@@ -3355,15 +3373,9 @@
     const disponible = el.clientWidth || el.parentElement?.clientWidth || 340;
     const familia = getComputedStyle(el).fontFamily;
     // Se mide una vez a 100px y se escala: el ancho es proporcional al tamaño
-    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `900 100px ${familia}`) / 100));
+    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `700 100px ${familia}`) / 100));
     if (!porPixel) return;
     el.style.fontSize = Math.max(26, Math.min(maxPx, Math.floor(disponible * 0.98 / porPixel))) + 'px';
-  }
-
-  function nombreEnFrase(name) {
-    const n = String(name || '').trim();
-    // «Pierna y glúteo» → «pierna y glúteo»; un código como «GYM-A» se deja tal cual
-    return /[a-záéíóúñ]/.test(n) ? n.charAt(0).toLocaleLowerCase('es') + n.slice(1) : n;
   }
 
   function homeTitleHtml(name) {
@@ -3383,13 +3395,8 @@
     // Píldora de fecha: MIÉ 05 AGO
     const dNow = new Date();
     const DOW3 = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-    // Fecha y, si hay plan en curso, la semana: «LUN 09 NOV · SEMANA 7»
-    // (con la fecha explícita: el primer pintado llega antes de que exista localIso)
-    let psHome = null;
-    try { psHome = planStatus(wsIso(dNow)); } catch { psHome = null; }
     document.getElementById('todayPill').textContent =
-      `${DOW3[dNow.getDay()]} ${String(dNow.getDate()).padStart(2,'0')} ${months[dNow.getMonth()].toUpperCase()}` +
-      (psHome && !psHome.caducado && !psHome.antes ? ` · SEMANA ${psHome.semana}` : '');
+      `${DOW3[dNow.getDay()]} ${String(dNow.getDate()).padStart(2,'0')} ${months[dNow.getMonth()].toUpperCase()}`;
 
     // ── Sesión de hoy. Si hoy no toca nada, Home dice DESCANSO: no se adelanta
     //    el entreno de otro día, que confundía sobre lo que toca de verdad. ──
@@ -3398,64 +3405,37 @@
     const doneToday = getAllWorkouts().some(w => w.date === todayIso);
     const heroId = (schedToday && schedToday !== 'rest') ? schedToday : null;
     const r = heroId ? window.ROUTINES.routines[heroId] : null;
-    // Sin plan o con el plan terminado, Home no dice «Descanso»: dice qué hacer
-    const sinPlan = !Object.keys(window.ROUTINES.routines || {}).some((k) => k !== 'rest');
-    const planAcabado = !!psHome?.caducado;
 
     const titleEl = document.getElementById('homeTitle');
     const statsEl = document.getElementById('homeStats');
     const ctaEl = document.getElementById('homeCta');
     const ctaTxt = document.getElementById('homeCtaText');
 
-    delete ctaEl.dataset.act;
-    if (sinPlan || planAcabado) {
-      const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-      const fin = String(psHome?.fin || '').split('-');
-      titleEl.textContent = sinPlan ? 'Aún no tienes plan.' : 'Tu plan ha terminado.';
-      statsEl.textContent = sinPlan
-        ? 'Créalo con el Coach en cinco minutos'
-        : `Terminó el ${+fin[2]} ${MES[+fin[1] - 1] || ''} · Pide el siguiente al Coach`;
-      ctaTxt.textContent = sinPlan ? 'Crear mi plan' : 'Hablar con el Coach';
-      ctaEl.className = 'btn btn--sec home-cta';
-      ctaEl.style.display = '';
-      ctaEl.dataset.act = sinPlan ? 'plan' : 'coach';
-      delete ctaEl.dataset.rid;
-      document.getElementById('homeMealBtn').className = 'btn btn--primary home-meal';
-      document.getElementById('miniTitle').textContent = '';
-      delete document.getElementById('homeMini').dataset.rid;
-    } else if (r) {
+    if (r) {
       const totalSets = r.exercises.reduce((a, e) => a + e.sets, 0);
       const estMin = Math.round(totalSets * 2.5);
       const pos = planned.findIndex(x => x.id === heroId) + 1;
-      // La voz interior (libro 02): una frase, de tú y en presente
-      titleEl.textContent = doneToday ? 'Hecho. Mañana, más.' : `Vamos, que hoy toca ${nombreEnFrase(r.name)}.`;
-      // Debajo, la sesión: «SESIÓN 2 DE 3 · 5 EJERCICIOS · 50 MIN»
-      statsEl.textContent = [
-        pos > 0 ? `Sesión ${pos} de ${planned.length}` : r.name,
-        `${r.exercises.length} ejercicios`,
-        `${estMin} min`,
-      ].join(' · ');
-      ctaTxt.textContent = doneToday ? 'Repetir sesión' : 'Empezar sesión';
-      ctaEl.className = 'btn btn--primary home-cta';
+      titleEl.innerHTML = homeTitleHtml(r.name);
+      ajustarTitular(titleEl, 92);
+      // Línea de datos: SESIÓN 02/03 ——— 88 MIN ——— 8 EJ
+      statsEl.innerHTML =
+        (pos > 0 ? `<span>SESIÓN ${String(pos).padStart(2,'0')}/${String(planned.length).padStart(2,'0')}</span><i></i>` : '') +
+        `<span>${estMin} MIN</span><i></i><span>${r.exercises.length} EJ</span>`;
+      ctaTxt.textContent = doneToday ? 'REPETIR SESIÓN' : 'EMPEZAR SESIÓN';
       ctaEl.style.display = '';
-      document.getElementById('homeMealBtn').className = 'btn btn--sec home-meal';
       ctaEl.dataset.rid = heroId;
       document.getElementById('miniTitle').innerHTML = homeTitleHtml(r.name);
       document.getElementById('homeMini').dataset.rid = heroId;
     } else {
-      titleEl.textContent = 'Hoy toca descansar.';
-      statsEl.textContent = `Hoy no hay sesión · ${week.length} de ${target} esta semana`;
-      // Sin sesión, el rojo pasa a la comida; «Entrenar» deja elegir uno para hoy
-      ctaTxt.textContent = 'Entrenar';
-      ctaEl.className = 'btn btn--sec home-cta';
-      ctaEl.style.display = '';
-      document.getElementById('homeMealBtn').className = 'btn btn--primary home-meal';
+      titleEl.innerHTML = homeTitleHtml('REST');
+      ajustarTitular(titleEl, 92);
+      const hechos = week.length;
+      statsEl.innerHTML = `<span>HOY NO TOCA</span><i></i><span>${hechos} DE ${target} ESTA SEMANA</span>`;
+      ctaEl.style.display = 'none';
       delete ctaEl.dataset.rid;
       document.getElementById('miniTitle').textContent = '';
       delete document.getElementById('homeMini').dataset.rid;
     }
-
-    window.appHomeFood?.();
 
     // ── Cinta (§5.4): información nueva, nunca la de los tiles ──
     const tag = document.getElementById('tickerTag');
@@ -3489,9 +3469,6 @@
     document.getElementById('statRacha').textContent = streak;
     document.getElementById('statRachaU').textContent = streak === 1 ? 'DÍA' : 'DÍAS';
     document.getElementById('statWeek').textContent = `${week.length}/${target}`;
-    document.getElementById('homeChkSes').innerHTML = target
-      ? `<b>${week.length}</b> de ${target} ${target === 1 ? 'sesión' : 'sesiones'}`
-      : (week.length ? `<b>${week.length}</b> ${week.length === 1 ? 'sesión' : 'sesiones'}` : 'Sin sesiones aún');
     const ring = document.getElementById('weekRing');
     const circ = 2 * Math.PI * 27;
     const pct = target > 0 ? Math.min(1, week.length / target) : 0;
@@ -3524,24 +3501,13 @@
 
   // Acción primaria de Home
   document.getElementById('homeCta').addEventListener('click', (e) => {
-    const { rid, act } = e.currentTarget.dataset;
+    const rid = e.currentTarget.dataset.rid;
     if (rid) startSession(rid);
-    else if (act === 'plan') document.getElementById('coachGo').click();
-    else if (act === 'coach') window.appOpenCoach?.();
-    else openTodayWorkoutPick();
   });
   // «+» de la cabecera: asignar entreno al día de hoy
-  function openTodayWorkoutPick() {
+  document.getElementById('homeAdd').addEventListener('click', () => {
     const todayCell = document.querySelector('#weekStrip .ws-cell.today');
     if (todayCell) todayCell.click();
-  }
-  document.getElementById('homeAdd').addEventListener('click', () => {
-    hsCtx = { rid: null };
-    openHs('Apuntar', `
-      <button type="button" class="hs-opt" id="addMeal">Registrar comida</button>
-      <button type="button" class="hs-opt" id="addWorkout">Entreno de hoy</button>`);
-    document.getElementById('addMeal').addEventListener('click', () => { closeHs(); document.getElementById('homeMealBtn').click(); });
-    document.getElementById('addWorkout').addEventListener('click', () => { closeHs(); openTodayWorkoutPick(); });
   });
 
   // §8.1 · Al hacer scroll, el bloque de calor colapsa en la cabecera de 88px
@@ -3624,7 +3590,6 @@
     const isPast = wsWeekStart < curStart;
     document.getElementById('wsLabel').textContent =
       wsWeekStart === curStart ? 'Esta semana' : `${wsFmt(wsWeekStart)} — ${wsFmt(wsAddDays(wsWeekStart, 6))}`;
-    document.getElementById('wsLabel').hidden = wsWeekStart === curStart;
     const sched = getEffectiveSchedule(wsWeekStart);
     const doneDates = new Set(getAllWorkouts().map((w) => w.date).filter(Boolean));
     const today = wsIso(new Date());
@@ -3642,7 +3607,7 @@
       if (dateIso === today) cls += ' today';         // bloque --hot
       // §8.1: hoy en bloque naranja con «HOY»; el resto, tag + tick de estado
       const isToday = dateIso === today;
-      const tag = isToday ? 'HOY' : '';
+      const tag = isToday ? 'HOY' : (r ? (r.tag || rid.slice(0, 3).toUpperCase()) : '');
       return `<div class="${cls}" data-dow="${dow}" data-rid="${planned ? rid : ''}" data-date="${dateIso}">
         <span class="ws-d">${WS_LETTERS[i]}</span><span class="ws-tag">${tag}</span><span class="tick"></span></div>`;
     }).join('');
@@ -3983,7 +3948,7 @@
     if (!el) return;
     const ps = planStatus();
     el.classList.remove('caducado');
-    if (!ps) { el.innerHTML = 'Sin plan · <b>Pídeselo al Coach</b>'; el.hidden = false; return; }
+    if (!ps) { el.hidden = true; return; }
     if (ps.caducado) {
       el.innerHTML = `<b>Tu plan terminó el ${fmtD(ps.fin)}</b> · Habla con el coach para el siguiente`;
       el.classList.add('caducado');
@@ -5796,18 +5761,18 @@
     // El borrador del entreno que está abierto ahora mismo no es un aviso.
     if (draft && !abierto && draftResumable(draft)) {
       syncTxt.textContent = `Entreno a medias · ${draft.routineName || ''}`.trim();
-      syncBtn.textContent = 'Continuar';
+      syncBtn.textContent = 'CONTINUAR';
       syncAccion = () => { resumeDraft(); };
     } else if (draft && !abierto) {
       syncTxt.textContent = `Entreno sin guardar · ${draft.routineName || ''} ${fechaCorta(draft.dateIso)}`.trim();
-      syncBtn.textContent = 'Guardar';
+      syncBtn.textContent = 'GUARDAR';
       syncAccion = () => { recoverDraft(); };
     } else if (pend.length) {
       syncTxt.textContent = pend.length === 1
         ? 'Entreno sin sincronizar: sigue solo en este móvil.'
         : `${pend.length} entrenos sin sincronizar: siguen solo en este móvil.`;
-      syncBtn.textContent = 'Reintentar';
-      syncAccion = () => { syncBtn.textContent = 'Subiendo…'; window.cloudFlushNow?.(true); };
+      syncBtn.textContent = 'REINTENTAR';
+      syncAccion = () => { syncBtn.textContent = 'SUBIENDO…'; window.cloudFlushNow?.(true); };
     } else {
       syncAccion = null;
       syncBar.hidden = true;
@@ -6232,7 +6197,7 @@
       }).join('') + `
       <button type="button" class="btn btn--sec swap-new" data-new="1" style="margin-top:16px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Crear ejercicio nuevo
+        CREAR EJERCICIO NUEVO
       </button>`;
 
     const doSwapTo = (newId) => {
@@ -6799,10 +6764,10 @@ localStorage.removeItem('fitness_nutri_advice_v1'); // resto de la versión con 
 // ponga los suyos. Unos macros inventados parecen «su plan» sin serlo.
 const NUTRI_DEFAULT_TARGETS = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 };
 const NUTRI_MACROS = [
-  { k: 'protein_g', label: 'Proteína', short: 'P', color: '#ECE8E1' },
-  { k: 'carbs_g', label: 'Hidratos', short: 'H', color: '#BDB9B2' },
-  { k: 'fat_g', label: 'Grasa', short: 'G', color: '#8F8B84' },
-  { k: 'fiber_g', label: 'Fibra', short: 'F', color: '#5F5C57' },
+  { k: 'protein_g', label: 'Proteína', short: 'P', color: '#C8231E' },
+  { k: 'carbs_g', label: 'Hidratos', short: 'H', color: '#F2B23C' },
+  { k: 'fat_g', label: 'Grasa', short: 'G', color: '#5E9BE8' },
+  { k: 'fiber_g', label: 'Fibra', short: 'F', color: '#35C2B0' },
 ];
 const RECUR_KEY = 'fitness_recurring_v1';
 const MEAL_TYPES = [
@@ -6844,36 +6809,6 @@ const nutriTargets = (iso) => {
   const t = { ...NUTRI_DEFAULT_TARGETS, ...base };
   if (!t.kcal) t.kcal = Math.round(t.protein_g * 4 + t.carbs_g * 4 + t.fat_g * 9);
   return t;
-};
-// Home enseña la comida de hoy (kcal frente al objetivo y los tres macros).
-// Se repinta cada vez que se pinta Nutri, que es cuando cambian las comidas.
-// Tres columnas (proteína, hidratos, grasa) con su barra: Home y Nutri
-function macroCols(t, g) {
-  const fmt = (n) => Math.round(n).toLocaleString('es-ES');
-  const m = (n, obj, l) => `<span class="hf-mac"><span class="label">${l}</span>` +
-    `<span class="hf-v">${fmt(n)}${obj ? `<small> / ${fmt(obj)} g</small>` : '<small> g</small>'}</span>` +
-    `<span class="hf-bar"><i style="width:${obj ? Math.min(100, (n / obj) * 100) : 0}%"></i></span></span>`;
-  return m(t.protein_g, g.protein_g, 'Proteína') + m(t.carbs_g, g.carbs_g, 'Hidratos') + m(t.fat_g, g.fat_g, 'Grasa');
-}
-window.appHomeFood = () => {
-  const hoy = nutriIso();
-  const t = nutriTotals(mealsOf(hoy));
-  const g = nutriTargets(hoy);
-  const fmt = (n) => Math.round(n).toLocaleString('es-ES');
-  if (!$('homeFoodKcal')) return;
-  $('homeFoodKcal').textContent = fmt(t.kcal);
-  $('homeFoodGoal').textContent = g.kcal ? `/ ${fmt(g.kcal)} kcal` : 'kcal';
-  $('homeFoodMacros').innerHTML = macroCols(t, g);
-  // Días de esta semana (lunes a hoy) con algo apuntado
-  const d0 = new Date(hoy + 'T12:00:00');
-  const lunes = new Date(d0); lunes.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
-  let conComida = 0;
-  for (let d = new Date(lunes); d <= d0; d.setDate(d.getDate() + 1)) {
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (mealsOf(iso).length) conComida++;
-  }
-  const chk = $('homeChkFood');
-  if (chk) chk.innerHTML = `<b>${conComida}</b> de 7 días con comida`;
 };
 const nutriTotals = (meals) => {
   const t = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0 };
@@ -6987,10 +6922,9 @@ function nutriToast(msg) {
 // Los bloques arrancan SIEMPRE plegados: al abrir la app y cada vez que se
 // cambia de día. Solo se abre el que el usuario despliega, y ese estado vive en
 // memoria (no se guarda), así que al volver está todo recogido otra vez.
-let mealOpen = new Set(MEAL_TYPES.map((t) => t.k));
+let mealOpen = new Set();
 
 function renderNutriDaily() {
-  window.appHomeFood?.();
   const meals = mealsOf(nutriDay);
   const totals = nutriTotals(meals);
   const targets = nutriTargets(nutriDay);
@@ -7000,7 +6934,7 @@ function renderNutriDaily() {
   const etq = $('nutriDayType');
   if (etq) {
     const entreno = window.appIsTrainingDay?.(nutriDay);
-    etq.textContent = entreno ? 'ENTRENO' : 'DESCANSO';
+    etq.textContent = entreno ? 'TRAIN' : 'REST';
     etq.classList.toggle('is-training', !!entreno);
   }
 
@@ -7040,22 +6974,6 @@ function renderNutriDaily() {
   }).join('');
 
   $('nutriKcal').textContent = Math.round(totals.kcal);
-  {
-    const fmt = (n) => Math.round(n).toLocaleString('es-ES');
-    $('nSumKcal').textContent = fmt(totals.kcal);
-    $('nSumGoal').textContent = targets.kcal ? `/ ${fmt(targets.kcal)} kcal` : 'kcal';
-    $('nSumMacros').innerHTML = macroCols(totals, targets);
-    // Una línea de rumbo, en la voz: lo que queda y si la proteína va justa
-    let rumbo = '';
-    if (!meals.length) rumbo = nutriDay === nutriIso() ? 'Aún no has apuntado nada hoy.' : 'Nada apuntado este día.';
-    else if (targets.kcal) {
-      const quedan = targets.kcal - totals.kcal;
-      rumbo = quedan >= 0 ? `Quedan <b>${fmt(quedan)} kcal</b>.` : `Te has pasado <b>${fmt(-quedan)} kcal</b>.`;
-      if (targets.protein_g && targets.protein_g - totals.protein_g > targets.protein_g * 0.35 && quedan < targets.kcal * 0.4)
-        rumbo += ' La proteína va justa.';
-    }
-    $('nSumHint').innerHTML = rumbo;
-  }
   $('nutriKcalGoal').textContent = targets.kcal ? `/${Math.round(targets.kcal)}` : '';
 
   // Cuatro desplegables: desayuno, comida, cena y otros
@@ -7132,7 +7050,7 @@ function cambiarDia(n) {
   const destino = nutriAddDays(nutriDay, n);
   if (destino > nutriIso()) return;      // no se apunta en el futuro
   nutriDay = destino;
-  mealOpen = new Set(MEAL_TYPES.map((t) => t.k));   // cada día se entra con todo desplegado
+  mealOpen.clear();                      // cada día se entra con todo recogido
   renderNutriDaily();
 }
 $('ndPrev').addEventListener('click', () => cambiarDia(-1));
@@ -7150,7 +7068,7 @@ async function comprobarCambioDeDia() {
   const mirabaHoy = nutriDay === diaEnPantalla;
   diaEnPantalla = hoy;
   if (mirabaHoy) nutriDay = hoy;      // si estabas en "hoy", sigues en hoy
-  mealOpen = new Set(MEAL_TYPES.map((t) => t.k));   // día nuevo, todo desplegado
+  mealOpen.clear();                   // día nuevo, bloques recogidos
   await materializeRecurring();       // las periódicas del día nuevo
   window.appRerender?.();
 }
@@ -7391,18 +7309,6 @@ async function nsSubmit(imageB64) {
 }
 
 $('mealAddBtn').addEventListener('click', openNutriSheet);
-$('nWeekBtn').addEventListener('click', () => document.querySelector('#nutriTabs [data-ntab="weekly"]')?.click());
-$('nDayBtn').addEventListener('click', () => document.querySelector('#nutriTabs [data-ntab="daily"]')?.click());
-// Las hojas de comida viven en el HTML de Nutri, pero se abren también desde
-// Home: se sacan al nivel de la página para que se vean desde cualquier pestaña.
-['nsBackdrop', 'nutriSheet', 'maSheet', 'editSheet'].forEach((id) => { const el = $(id); if (el) document.body.appendChild(el); });
-// Desde Home se apunta SIEMPRE en hoy, aunque Nutri se quedara en otro día
-$('homeMealBtn').addEventListener('click', () => {
-  nutriDay = nutriIso();
-  renderNutriDaily();
-  openNutriSheet();
-});
-$('homeFood').addEventListener('click', () => document.querySelector('[data-go="nutrition"]')?.click());
 $('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
 $('nsPhoto').addEventListener('click', () => $('nsFile').click());
@@ -7781,11 +7687,11 @@ $('recoverForm').addEventListener('submit', async (e) => {
   const err = $('rcErr');
   err.textContent = ''; err.style.color = '';
   const btn = $('recoverForm').querySelector('.btn-primary');
-  btn.disabled = true; btn.textContent = 'Enviando…';
+  btn.disabled = true; btn.textContent = 'ENVIANDO…';
   const { error } = await sb.auth.resetPasswordForEmail($('rcEmail').value.trim(), {
     redirectTo: location.origin + location.pathname,
   });
-  btn.disabled = false; btn.textContent = 'Enviarme el enlace';
+  btn.disabled = false; btn.textContent = 'ENVIARME EL ENLACE';
   err.style.color = 'var(--muted)';
   err.textContent = error
     ? 'No se ha podido enviar: ' + error.message
@@ -7800,9 +7706,9 @@ $('newPassForm').addEventListener('submit', async (e) => {
   const pass = $('npPass').value;
   if (pass.length < 6) { err.textContent = 'Mínimo 6 caracteres.'; return; }
   const btn = $('newPassForm').querySelector('.btn-primary');
-  btn.disabled = true; btn.textContent = 'Guardando…';
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
   const { error } = await sb.auth.updateUser({ password: pass });
-  btn.disabled = false; btn.textContent = 'Guardar y entrar';
+  btn.disabled = false; btn.textContent = 'GUARDAR Y ENTRAR';
   if (error) {
     err.textContent = /expired|invalid/i.test(error.message)
       ? 'Ese enlace ya ha caducado. Pide otro desde «¿Has olvidado la contraseña?».'
@@ -7908,7 +7814,7 @@ $('signupForm').addEventListener('submit', async (e) => {
   const email = $('suEmail').value.trim();
   const pass = $('suPass').value;
   const btn = $('signupForm').querySelector('.btn-primary');
-  btn.disabled = true; btn.textContent = 'Creando…';
+  btn.disabled = true; btn.textContent = 'CREANDO…';
   try {
     // Aviso claro antes de intentar el alta. La comprobación de verdad la hace
     // el servidor durante el registro (y deshace el alta si el código no vale).
@@ -7940,7 +7846,7 @@ $('signupForm').addEventListener('submit', async (e) => {
     await pullProfile();
     startOnboarding(name);
   } finally {
-    btn.disabled = false; btn.textContent = 'Crear cuenta';
+    btn.disabled = false; btn.textContent = 'CREAR CUENTA';
   }
 });
 
@@ -8006,7 +7912,7 @@ function onbPaint() {
   });
   document.querySelectorAll('#onbBar i').forEach((b, i) => b.classList.toggle('on', i < onb.step));
   $('onbBack').style.visibility = onb.step === 1 ? 'hidden' : '';
-  $('onbNext').textContent = onb.step === ONB_PASOS ? 'Empezar' : 'Siguiente';
+  $('onbNext').textContent = onb.step === ONB_PASOS ? 'EMPEZAR' : 'SIGUIENTE';
   $('onbErr').textContent = '';
 }
 function pickWire(id, onPick) {
@@ -8051,7 +7957,7 @@ $('onbNext').addEventListener('click', async () => {
   if (onb.step === 5) {
     if (!onb.equip.size) return fail('Marca al menos un sitio donde entrenas.');
     const btn = $('onbNext');
-    btn.disabled = true; btn.textContent = 'Guardando…';
+    btn.disabled = true; btn.textContent = 'GUARDANDO…';
     const fecha = onbFecha();
     const saved = await saveProfile({
       display_name: $('onbName').value.trim(),
@@ -8068,7 +7974,7 @@ $('onbNext').addEventListener('click', async () => {
       training_days: onb.days,
       onboarding_done: true,
     });
-    btn.disabled = false; btn.textContent = 'Empezar';
+    btn.disabled = false; btn.textContent = 'EMPEZAR';
     if (!saved) return fail('No se ha podido guardar. Revisa la conexión e inténtalo otra vez.');
     // El peso de bienvenida cuenta como primera métrica: así la gráfica de
     // progresión física y la cabecera de perfil arrancan con un punto real.
@@ -8237,7 +8143,7 @@ function pintarSync() {
     if (confirm('¿Descartar el entreno a medias? No se puede deshacer.')) { window.appClearDraft?.(); pintarSync(); }
   });
   $('recFlush')?.addEventListener('click', async (e) => {
-    e.currentTarget.textContent = 'Subiendo…';
+    e.currentTarget.textContent = 'SUBIENDO…';
     await window.cloudFlushNow?.(true);
     pintarSync();
   });
@@ -8408,8 +8314,7 @@ const abrirHojaFoto = () => {
 const cerrarHojaFoto = () => { hsBack.classList.remove('open'); photoSheet.classList.remove('open'); };
 hsBack.addEventListener('click', cerrarHojaFoto);
 
-// El avatar de Home abre tu perfil (nombre, peso, foto y ajustes)
-$('profAva')?.addEventListener('click', () => { panelAjustes(); abrirCajon(profDrawer); });
+$('profAva')?.addEventListener('click', abrirHojaFoto);
 $('phNew').addEventListener('click', () => { cerrarHojaFoto(); avatarInput.click(); });
 $('phEdit').addEventListener('click', () => {
   cerrarHojaFoto();
@@ -8504,7 +8409,7 @@ cropZoom.addEventListener('input', () => {
 $('cropSave').addEventListener('click', async () => {
   if (!crop) return;
   const btn = $('cropSave');
-  btn.disabled = true; btn.textContent = 'Guardando…';
+  btn.disabled = true; btn.textContent = 'GUARDANDO…';
   const ava = $('profAva');
   ava?.classList.add('busy');
   try {
@@ -8531,7 +8436,7 @@ $('cropSave').addEventListener('click', async () => {
   } catch (e) {
     alert('No se ha podido guardar la foto: ' + (e?.message || e));
   } finally {
-    btn.disabled = false; btn.textContent = 'Guardar';
+    btn.disabled = false; btn.textContent = 'GUARDAR';
     ava?.classList.remove('busy');
   }
 });
@@ -8609,25 +8514,8 @@ function renderChat() {
   if (!chatHistory.length) {
     const d = document.createElement('div');
     d.className = 'chat-empty';
-    d.textContent = 'Cuéntame qué has hecho o pídeme un cambio.';
+    d.innerHTML = 'Pregúntame o pídeme cambios de tu semana, tus entrenos o tu programa.';
     chatLog.appendChild(d);
-    const pantalla = document.querySelector('.screen.active')?.dataset.screen;
-    const SUGERENCIAS = {
-      home: ['Hoy no puedo entrenar', '¿Qué ceno hoy?', 'He corrido 6 km en 32 min'],
-      trainer: ['Organízame la semana', 'Cambia un ejercicio de hoy', '¿Cómo voy con mi objetivo?'],
-      nutrition: ['¿Cómo llego a la proteína?', '¿Qué ceno hoy?', 'Ajusta mis macros'],
-    };
-    const chips = document.createElement('div');
-    chips.className = 'chat-sugs';
-    (SUGERENCIAS[pantalla] || SUGERENCIAS.home).forEach((t) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chat-sug';
-      b.textContent = t;
-      b.addEventListener('click', () => sendChat(t));
-      chips.appendChild(b);
-    });
-    chatLog.appendChild(chips);
     return;
   }
   chatHistory.forEach((m) => {
@@ -8826,7 +8714,6 @@ function cerrarHoja(hoja, alCerrar) {
 const coachSheet = $('coachSheet');
 async function abrirCoach() {
   abrirHoja(coachSheet);
-  if (!chatHistory.length) renderChat();
   if (!chatEnEspera && chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
     await archiveThread('coach', chatHistory, chatLastTs);
     saveLive('coach', [], 0);
@@ -9025,7 +8912,7 @@ boot(false);
   .coach-sheet .dock-sheet { max-width: var(--maxw); margin: 0 auto; }
   .coach-sheet .dock-head .btn-icon + .btn-icon { margin-left: 0; }
   .coach-sheet .dock-head .btn-icon:first-of-type { margin-left: auto; }
-  #coachSheetSlot .chat-box { height: auto; flex: 1; min-height: 0; background: none; border: 0; padding: 6px 0; box-shadow: none; }
+  #coachSheetSlot .chat-box { height: auto; flex: 1; min-height: 0; }
   #coachSheetSlot .chat-input { position: static; left: auto; right: auto; bottom: auto;
     max-width: none; margin: 0; flex-shrink: 0; }
   #coachSheetSlot .chat-input::before { display: none; }
@@ -9038,377 +8925,27 @@ boot(false);
 </style>
 
 <style>
-  /* ════════ PIEL DE MARCA (libro de diseño 08 · App, 9-nov-2026) ════════
-     Rojo sangre, negro y hueso; Archivo en tres anchuras. Los tokens de :root
-     ya llevan los valores nuevos; aquí va lo que no se arregla con un token.
-     Las tres anchuras salen del mismo archivo variable: cada familia fija su
-     anchura (el navegador ajusta el eje wdth al rango declarado). */
+  /* ════════ LETRA Y COLOR DE MARCA (libro 03 y 04) sobre la estructura de mediodía ════════
+     Solo cambia la letra; las medidas y la distribución son las de antes. Los
+     colores ya van en los tokens de :root. Las tres anchuras de Archivo salen
+     del mismo archivo variable: cada familia fija la suya. */
   @font-face { font-family: 'Archivo Voz'; font-style: normal; font-weight: 300 900; font-stretch: 62%; font-display: swap;
-    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
   @font-face { font-family: 'Archivo Voz'; font-style: normal; font-weight: 300 900; font-stretch: 62%; font-display: swap;
-    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2');
-    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
   @font-face { font-family: 'Archivo Dato'; font-style: normal; font-weight: 300 900; font-stretch: 125%; font-display: swap;
-    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
   @font-face { font-family: 'Archivo Dato'; font-style: normal; font-weight: 300 900; font-stretch: 125%; font-display: swap;
-    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2');
-    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-
-  /* Barra pegada abajo, con línea de 1 px: icono y texto en las tres */
-  :root { --nav-h: 60px; --nav-gap: 0px; --nav-side: 16px; }
-  nav.bottom { left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-    padding: 6px 10px env(safe-area-inset-bottom); max-width: none; margin: 0;
-    border: 0; border-top: 1px solid var(--line); border-radius: 0;
-    background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
-  nav.bottom button { flex-direction: column; gap: 6px; height: 48px; color: var(--dim); background: none; }
-  nav.bottom button.active { background: none; color: var(--text); }
-  nav.bottom button svg, nav.bottom button.active svg,
-  nav.bottom button[data-go="nutrition"] svg, nav.bottom button[data-go="nutrition"].active svg { width: 20px; height: 20px; stroke-width: 1.6; }
-  nav.bottom button span { display: inline; position: relative; font: 700 9.5px/1 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; }
-  nav.bottom button.active span::after { content: ''; position: absolute; left: 50%; bottom: -7px; width: 4px; height: 4px;
-    margin-left: -2px; border-radius: 50%; background: var(--hot-solid); }
-
-  /* Grano al 6 % y la luz roja desde arriba (sin degradados de color) */
-  .grain { opacity: .06; }
-  .heat { opacity: 1; }
-  .heat-wash, .heat-grain { display: none; }
-  .glow { background: radial-gradient(70% 60% at 50% -10%, rgba(200,35,30,.32) 0%, rgba(165,28,24,.12) 40%, transparent 75%); }
-
-  /* Tipografía: voz (condensada 900), dato (expandida 800), etiqueta (expandida 700) */
-  .title, .scr-title, .home-title { font-family: var(--f-display); font-weight: 900; text-transform: uppercase;
-    letter-spacing: 0; line-height: .88; transform: none; }
-  .scr-title { font-size: 44px; }
-  .home-title .out, .home-mini .hm-title .out, .tk-exname .out, .rv-title .out, .scr-title .out {
-    color: var(--dim); -webkit-text-stroke: 0; }
-  .label, .label-sm, .data, .data-sm, .eti { font-family: var(--f-mono); font-weight: 700; font-size: 10.5px;
-    letter-spacing: .07em; text-transform: uppercase; color: var(--dim); }
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  /* Titulares: Archivo condensada 900 (la voz) */
+  .title, .scr-title, .home-title, .tk-exname, .rv-title { font-family: var(--f-display); font-weight: 900; }
+  .title { transform: none; letter-spacing: 0; }
+  /* Etiquetas y números: Archivo expandida */
+  .label, .label-sm { font-family: var(--f-mono); font-weight: 700; }
   .metric-xl, .metric-l, .metric, .metric-sm { font-family: var(--f-mono); font-weight: 800; letter-spacing: -.03em; }
-  #tileStreak .metric-xl { font-size: 64px; }
-  .num-hot, .num-metal { padding-right: 2px; }
-
-  /* Botones: píldora de 52 px. El principal, rojo; el resto, sin relleno */
-  .btn { height: 52px; border-radius: 999px; font: 600 15px/1 var(--f-ui); letter-spacing: 0; }
-  .btn--primary { background: var(--hot-solid); color: var(--hot-ink); box-shadow: none; }
-  .btn--primary:active { background: #A51C18; }
-  .btn--sec { background: transparent; border: 1px solid var(--line); color: var(--text); font-weight: 500; font-size: 15px; }
-  .btn--onheat { background: var(--bg); color: var(--text); box-shadow: none; }
-  .home-cta { height: 52px; }
-  .btn-icon { border-radius: 999px; background: transparent; border-color: var(--line); color: var(--text); }
-  .btn-icon--onheat { background: rgba(11,11,10,.35); border-color: rgba(236,232,225,.25); color: var(--text); }
-  .seg { border-radius: 999px; }
-  .seg-btn { border-radius: 999px; font: 600 13px/1 var(--f-ui); }
-  .seg-btn.active { background: var(--text); color: var(--bg); }
-
-  /* El Coach no es la acción principal: botón grafito, el rojo queda para la pantalla */
-  .coach-fab { background: var(--s3); color: var(--text); border: 1px solid var(--line-3); }
-  /* D3 · Píldora con nombre: se recoge a círculo al bajar y se abre al subir */
-  .coach-fab { width: auto; height: 46px; padding: 0 16px 0 14px; border-radius: 999px; display: inline-flex;
-    align-items: center; gap: 8px; font: 600 14px/1 var(--f-ui);
-    transition: padding 220ms var(--ease-out), gap 220ms var(--ease-out), transform 160ms var(--ease); }
-  .coach-fab svg { width: 20px; height: 20px; }
-  .coach-fab span { max-width: 80px; overflow: hidden; white-space: nowrap; transition: max-width 220ms var(--ease-out), opacity 160ms linear; }
-  .coach-fab.min { padding: 0 12px; gap: 0; }
-  .coach-fab.min span { max-width: 0; opacity: 0; }
-
-  /* D4 · Sugerencias del chat vacío */
-  .chat-sugs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-  .chat-sug { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--text);
-    font: 500 13.5px/1.2 var(--f-ui); background: transparent; text-align: left; }
-  .chat-sug:active { background: var(--s3); }
-
-  /* D7 · Etiquetas a 11 px como mínimo y sin grises por debajo de 4,5:1 */
-  :root { --ghost-2: #8F8B84; --off: #6F6B65; }
-  .label, .label-sm, .data, .data-sm, .eti, .hf-mac .label, nav.bottom button span { font-size: 11px; }
-  .check-week .wk-lbl { font-size: 11px; }
-  /* D6 · Que ningún titular deje una palabra sola */
-  .title, .home-title, .tk-exname, .rv-title, .ns-title { text-wrap: balance; }
-
-  /* D8 · Entreno sin título: arriba, dónde estás en el plan */
-  .e-top { padding-top: calc(env(safe-area-inset-top) + 10px); margin-bottom: 18px; }
-  .e-top .plan-headline { flex: 1; min-width: 0; margin: 0; padding: 0; background: none; border: 0;
-    font: 700 11px/1.45 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--dim); }
-  .e-top .plan-headline b { color: var(--text); font-weight: 700; }
-  .e-top .plan-headline.caducado { color: var(--hot-text); }
-  .e-top .status-chip { display: none; }
-  .e-fold { border-bottom: 1px solid var(--line); }
-  .e-row { list-style: none; display: flex; align-items: center; gap: 10px; height: 56px; cursor: pointer;
-    font: 500 16px/1 var(--f-ui); color: var(--text); }
-  .e-row::-webkit-details-marker { display: none; }
-  .e-row #planCount { margin-left: auto; }
-  .e-row::after { content: '›'; font-size: 22px; color: var(--dim); transition: transform 200ms var(--ease-out); }
-  .e-fold[open] > .e-row::after { transform: rotate(90deg); }
-  .e-fold[open] { padding-bottom: 12px; }
-  .n-top { height: calc(env(safe-area-inset-top) + 14px); }
-  /* Nutri (referencia 9): día arriba, kcal grandes, rumbo, macros, comidas en filas, registrar abajo */
-  #nutriTabs { display: none; }
-  .n-sum { display: grid; gap: 12px; margin: 22px 0 22px; }
-  .n-sum .hf-val .metric { font-size: 64px; line-height: .9; }
-  .n-sum .daytype { margin-left: auto; align-self: center; }
-  .n-hint { margin: 0; font-size: 14px; line-height: 1.45; color: var(--dim); }
-  .n-hint b { color: var(--text); font-weight: 600; }
-  .n-bottom { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 18px; }
-  .n-bottom .btn { margin: 0; }
-  .n-link { height: 52px; padding: 0 16px; background: none; border: 0; color: var(--text); font: 500 15px/1 var(--f-ui); }
-  .n-back { height: 40px; padding: 0; margin: 0 0 10px; color: var(--dim); }
-  .daynav { margin-top: 0; }
-  .daynav-btn { background: none; border: 0; color: var(--dim); }
-  /* Comidas: filas con línea, sin cajas; el bloque vacío es solo su fila */
-  #mealList .mt-block { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0;
-    padding: 0; margin: 0; box-shadow: none; }
-  #mealList .mt-block:last-child { border-bottom: 1px solid var(--line); }
-  #mealList .mt-head { padding: 14px 0; }
-  #mealList .mt-name { font: 500 15px/1 var(--f-ui); letter-spacing: 0; text-transform: none; }
-  #mealList .mt-name::first-letter { text-transform: uppercase; }
-  #mealList .mt-kcal { font: 700 13px/1 var(--f-mono); letter-spacing: 0; color: var(--text); }
-  #mealList .mt-count { display: none; }
-  #mealList .mt-chev { display: none; }
-  #mealList .mt-body .nutri-empty { display: none; }
-  #mealAddBtn { margin-bottom: 0; }
-  /* En Nutri el Coach sube por encima de «Registrar comida» */
-  body:has([data-screen="nutrition"].active) .coach-fab {
-    bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 84px); }
-
-  /* Detalles: sin ámbar en los objetivos; el chip de descanso no se corta */
-  .goal-val.low { color: var(--text); }
-  .goal-fill.low { background: var(--dim); }
-  .tk-chip { white-space: nowrap; flex-shrink: 0; }
-
-  /* Home (libro 08, 3 pestañas): bloques separados con línea, sin cajas.
-     Arriba fecha y semana; la voz; dos acciones; comida; racha; semana. */
-  [data-screen="home"] { padding-top: 0; }
-  .h-top { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px;
-    padding-top: calc(env(safe-area-inset-top) + 10px); }
-  .h-top > .label { margin-right: auto; }
-  .h-top .btn-icon { width: 32px; height: 32px; }
-  [data-screen="home"] .h-ava { width: 32px; height: 32px; background: var(--s3); border: 1px solid var(--line); }
-  [data-screen="home"] .h-ava .ini { font: 800 11px/1 var(--f-mono); }
-  .home-hero { position: relative; z-index: 2; margin-top: 30px; padding: 0; }
-  .home-title, .home-title.title { font-size: 34px; line-height: .9; max-width: 15ch; margin: 0; color: var(--text); }
-  .home-stats { display: block; margin: 12px 0 0; font: 700 10.5px/1.4 var(--f-mono); letter-spacing: .07em;
-    text-transform: uppercase; color: var(--dim); }
-  .home-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
-  .home-actions .btn { width: 100%; height: 46px; padding: 0 10px; font-size: 14px; gap: 7px; }
-  .home-actions .btn svg { display: none; }
-  .home-actions .btn--sec { background: transparent; border: 1px solid var(--line); color: var(--text); font-weight: 500; }
-
-  .home-food { display: grid; gap: 12px; width: 100%; margin-top: 24px; padding: 16px 0 0;
-    border-top: 1px solid var(--line); text-align: left; color: var(--text); }
-  .hf-val { display: flex; align-items: baseline; gap: 8px; }
-  .hf-val .metric { font-size: 44px; font-weight: 800; letter-spacing: -.03em; }
-  .hf-val small { font: 600 12px/1 var(--f-mono); letter-spacing: .02em; text-transform: uppercase; color: var(--dim); }
-  .hf-macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .hf-mac { display: grid; gap: 6px; }
-  .hf-mac .label { font-size: 9.5px; }
-  .hf-v { font: 700 13px/1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--text); }
-  .hf-v small { color: var(--dim); font-weight: 500; }
-  .hf-bar { height: 2px; background: var(--line); }
-  .hf-bar i { display: block; height: 100%; background: var(--text); transition: width 400ms var(--ease-out); }
-  .home-food:active { opacity: .7; }
-
-  .h-streak { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: end;
-    margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .h-big { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
-  .h-big .metric-xl, #statRacha { font-size: 52px; line-height: .9; color: var(--text); }
-  .h-of { font: 700 10.5px/1 var(--f-mono); letter-spacing: .07em; color: var(--dim); }
-  .h-chk { display: grid; gap: 6px; justify-items: end; text-align: right; }
-  .h-chk-v { font-size: 12.5px; color: var(--dim); }
-  .h-chk-v b { font: 700 13px/1 var(--f-mono); color: var(--text); }
-
-  .h-week { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px; align-items: center;
-    margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
-  .h-week .ws-nav { width: 28px; height: 36px; background: none; border: 0; color: var(--dim); }
-  .h-week .ws-nav svg { width: 18px; height: 18px; }
-  .h-cal { width: 32px; height: 32px; margin-left: 6px; border-radius: 50%; border: 1px solid var(--line);
-    display: grid; place-items: center; color: var(--dim); }
-  .h-cal svg { width: 17px; height: 17px; }
-  .h-wlabel { display: block; margin-top: 8px; text-align: center; }
-  .h-wlabel[hidden] { display: none; }
-  .h-week .wstrip { gap: 0; }
-  .h-week .ws-cell { height: 50px; gap: 5px; background: none; border: 0; border-radius: 8px; }
-  .h-week .ws-cell .ws-d { order: 1; font: 700 10px/1 var(--f-mono); letter-spacing: .02em; color: var(--dim); }
-  .h-week .ws-cell .tick { order: 0; width: 6px; height: 6px; border-radius: 50%; background: none; border: 1px solid var(--line-3); }
-  .h-week .ws-cell .ws-tag { order: 2; font: 700 7.5px/1 var(--f-mono); letter-spacing: .04em; color: var(--ghost-2); min-height: 8px; }
-  .h-week .ws-cell.plan .tick { border-color: var(--dim); }
-  .h-week .ws-cell.done .tick { background: var(--text); border-color: var(--text); }
-  .h-week .ws-cell.done .ws-tag { color: var(--dim); }
-  .h-week .ws-cell.missed .tick { border-color: var(--off); }
-  .h-week .ws-cell.today { background: none; border: 0; }
-  .h-week .ws-cell.today .ws-d { color: var(--text); }
-  .h-week .ws-cell.today .ws-tag { color: var(--text); }
-  .h-week .ws-cell.today .tick { background: var(--hot-solid); border-color: var(--hot-solid); }
-
-  /* Menos cajas: tiles y check en carbón con borde fino, aire de 12-16 px */
-  .tile, .card { background: var(--s1); border: 1px solid var(--line); box-shadow: none; }
-
-  /* Hoy en la tira: hueso, no rojo (el rojo de la pantalla es la acción) */
-  .prof-name, [data-screen="home"] .prof-name { font: 600 20px/1.15 var(--f-ui); letter-spacing: -.01em; }
-  .hf-macros { font-size: 10.5px; letter-spacing: .05em; }
-
-  /* Botones de acceso, alta y avisos: la misma píldora */
-  .btn-primary { height: 52px; padding: 0 18px; border-radius: 999px; background: var(--hot-solid); color: var(--hot-ink);
-    font: 600 15px/1 var(--f-ui); letter-spacing: 0; }
-  .btn-primary:active { background: #A51C18; }
-  .btn-ghost { height: 52px; padding: 0 18px; border-radius: 999px; background: transparent; border: 1px solid var(--line);
-    font: 500 15px/1 var(--f-ui); }
-  .cal-title { text-transform: none; font: 700 14px/1 var(--f-mono); letter-spacing: -.01em; }
-  .cal-title::first-letter { text-transform: uppercase; }
-
-  /* Hojas: carbón, radio 22, tirador; la acción en rojo y en píldora */
-  .hsheet { background: var(--s1); border-color: var(--line); padding-top: 22px; max-width: var(--maxw); margin: 0 auto; }
-  .hsheet::before { content: ''; position: absolute; top: 8px; left: 50%; width: 36px; height: 4px; margin-left: -18px;
-    border-radius: 2px; background: var(--line-3); }
-  .hsheet .ns-title { font: 900 26px/.9 var(--f-display); text-transform: uppercase; letter-spacing: 0; margin-bottom: 14px; }
-  .ns-actions { align-items: center; }
-  .ns-send { height: 48px; border-radius: 999px; background: var(--hot-solid); color: var(--hot-ink); font: 600 15px/1 var(--f-ui); }
-  .ns-photo { height: 48px; min-width: 48px; border-radius: 999px; background: transparent; border: 1px solid var(--line); color: var(--text); }
-  .ns-type { border-radius: 999px; }
-  #nsText { border-radius: 16px; background: var(--bg); border-color: var(--line); }
-  .dock-sheet { background: var(--bg); border-radius: 22px 22px 0 0; }
-
-  /* Nutri: hoy en hueso (el rojo es «Registrar comida»); bloques como filas */
-  .daynav-label.is-today { color: var(--text); }
-  .mt-block { background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin: 0; }
-  .mt-block:first-child { border-top: 1px solid var(--line); }
-  .mt-head { padding-left: 0; padding-right: 0; }
-  .mt-name { font: 900 17px/1 var(--f-display); letter-spacing: .02em; }
-  .mt-kcal, .mt-count { font-family: var(--f-mono); }
-
-  /* Entreno: «Mis entrenamientos» como fila, con la cuenta y la flecha */
-  .tr-routines-btn { height: 56px; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    border-radius: 0; padding: 0; font-size: 16px; margin: 4px 0 8px; }
-  .tr-routines-btn::after { content: '›'; font-size: 22px; color: var(--dim); margin-left: 10px; }
-  .home-cal-btn { margin-top: 18px; }
-
-  /* Si está la barra de «sin sincronizar», el Coach sube para no taparla */
-  body:has(#syncBar:not([hidden])) .coach-fab {
-    bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 76px); }
-  .syncbar { border-radius: 16px; border-color: var(--line-3); background: var(--s1); }
-
-  /* Sin logo mientras el nombre esté en pausa: firma con el nombre en expandida */
-  .logo { width: auto; height: auto; gap: 0; align-items: center; }
-  .logo i { display: none; }
-  .logo::before { content: 'ONIX'; font: 800 13px/1 var(--f-mono); letter-spacing: .07em; color: var(--text); }
-  /* Ningún titular en contorno: un solo tono */
-  h1 .out, h2 .out, .title .out, .title-out, .tk-exname .out, .rv-title .out { color: var(--text); -webkit-text-stroke: 0; }
-  /* Acceso: la luz roja desde arriba */
-  .auth-veil { background: var(--hot-field) no-repeat, var(--bg); }
-
-  /* Chat: el filete del Coach en rojo, sin degradado */
-  .chat-msg.bot { border-left: 2px solid var(--hot-solid); border-image: none; }
-  .chat-msg.user { background: var(--s1); border-color: var(--s1); }
+  /* Botones y texto corrido: Archivo normal */
+  .btn, .btn-primary, .btn-ghost, .seg-btn { font-family: var(--f-ui); }
 </style>
-
-<style>
-  /* ════════ MOVIMIENTO (libro 07 y 08 §5): 150-300 ms, ease-out, nada rebota ════════ */
-  :root { --mv: cubic-bezier(.2,.8,.2,1); }
-  /* Entre pestañas: la pantalla entra desde el lado de la pestaña tocada */
-  @keyframes mv-from-r { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
-  @keyframes mv-from-l { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
-  @keyframes mv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .screen.active.mv-r { animation: mv-from-r 260ms var(--mv) both; }
-  .screen.active.mv-l { animation: mv-from-l 260ms var(--mv) both; }
-  /* Y sus bloques, escalonados (los ocho primeros) */
-  .screen.active.mv-in > * { animation: mv-rise 320ms var(--mv) both; }
-  .screen.active.mv-in > *:nth-child(2) { animation-delay: 30ms; }
-  .screen.active.mv-in > *:nth-child(3) { animation-delay: 60ms; }
-  .screen.active.mv-in > *:nth-child(4) { animation-delay: 90ms; }
-  .screen.active.mv-in > *:nth-child(5) { animation-delay: 120ms; }
-  .screen.active.mv-in > *:nth-child(6) { animation-delay: 150ms; }
-  .screen.active.mv-in > *:nth-child(7) { animation-delay: 180ms; }
-  .screen.active.mv-in > *:nth-child(n+8) { animation-delay: 210ms; }
-  .screen.active.mv-in > .glow { animation: none; }
-
-  /* Paralaje: la luz y la voz de Home van más despacio que el scroll */
-  .glow { transform: translate3d(0, calc(var(--sy, 0) * .45px), 0); opacity: calc(1 - var(--sy, 0) / 520); will-change: transform; }
-  [data-screen="home"] .home-title { transform: translate3d(0, calc(var(--sy, 0) * .18px), 0);
-    opacity: calc(1 - var(--sy, 0) / 380); }
-
-  /* Ventanas: suben con el fondo desenfocado; el contenido entra después */
-  .dock-back, .hs-backdrop { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0);
-    transition: opacity 260ms var(--mv), backdrop-filter 260ms var(--mv), -webkit-backdrop-filter 260ms var(--mv); }
-  .coach-sheet.on .dock-back, .coach-dock.on .dock-back { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-  .dock-sheet { transition: transform 300ms var(--mv); }
-  .hsheet { transition: transform 300ms var(--mv); }
-  .coach-sheet.on .dock-head, .coach-sheet.on .dock-slot > *, .coach-sheet.on .pop-body,
-  .hsheet.open > * { animation: mv-rise 300ms var(--mv) both; animation-delay: 70ms; }
-  .hsheet.open > *:nth-child(3) { animation-delay: 100ms; }
-  .hsheet.open > *:nth-child(n+4) { animation-delay: 130ms; }
-  .chat-sug { animation: mv-rise 280ms var(--mv) both; }
-  .chat-sug:nth-child(2) { animation-delay: 50ms; }
-  .chat-sug:nth-child(3) { animation-delay: 100ms; }
-
-  /* Lo que se toca responde */
-  .btn:active, .btn-primary:active, .home-food:active, .e-row:active, .coach-fab:active { transform: scale(.97); }
-  nav.bottom button svg { transition: transform 200ms var(--mv); }
-  nav.bottom button.active svg { transform: translateY(-1px); }
-  .tk-chips-scroll { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
-
-  @media (prefers-reduced-motion: reduce) {
-    .screen.active.mv-r, .screen.active.mv-l, .screen.active.mv-in > *, .coach-sheet.on .dock-head,
-    .coach-sheet.on .dock-slot > *, .coach-sheet.on .pop-body, .hsheet.open > *, .chat-sug { animation: none; }
-    .glow, [data-screen="home"] .home-title { transform: none; opacity: 1; }
-    .dock-back, .hs-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
-  }
-</style>
-<script>
-  // Movimiento: dirección entre pestañas, paralaje, números que cuentan y el
-  // botón del Coach que se recoge al bajar. Todo se apaga con «reducir movimiento».
-  (() => {
-    const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const ORDEN = ['trainer', 'home', 'nutrition'];
-    let actual = 'home';
-
-    // Cuenta desde 0 hasta el valor que ya pinta la app (formato es-ES)
-    function cuenta(el) {
-      if (!el || quieto) return;
-      const fin = Number(String(el.textContent).replace(/\./g, '').replace(',', '.'));
-      if (!Number.isFinite(fin) || fin <= 0) return;
-      const t0 = performance.now(), dur = 600;
-      const paso = (t) => {
-        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-        el.textContent = Math.round(fin * e).toLocaleString('es-ES');
-        if (k < 1) requestAnimationFrame(paso);
-      };
-      requestAnimationFrame(paso);
-    }
-    const cuentaHome = () => { cuenta(document.getElementById('homeFoodKcal')); cuenta(document.getElementById('statRacha')); };
-
-    document.querySelectorAll('nav.bottom button').forEach((b) => b.addEventListener('click', () => {
-      const destino = b.dataset.go;
-      const pantalla = document.querySelector(`[data-screen="${destino}"]`);
-      if (!pantalla || destino === actual) return;
-      const lado = ORDEN.indexOf(destino) > ORDEN.indexOf(actual) ? 'mv-r' : 'mv-l';
-      actual = destino;
-      document.documentElement.style.setProperty('--sy', '0');
-      if (quieto) return;
-      pantalla.classList.remove('mv-r', 'mv-l', 'mv-in');
-      void pantalla.offsetWidth;
-      pantalla.classList.add(lado, 'mv-in');
-      if (destino === 'home') setTimeout(cuentaHome, 120);
-    }));
-    window.addEventListener('load', () => setTimeout(cuentaHome, 400));
-
-    // Paralaje y botón del Coach: un solo pase por fotograma
-    const fab = document.getElementById('coachFab');
-    let yPrev = 0, pendiente = false;
-    window.addEventListener('scroll', () => {
-      if (pendiente) return;
-      pendiente = true;
-      requestAnimationFrame(() => {
-        pendiente = false;
-        const y = Math.max(0, window.scrollY);
-        if (!quieto) document.documentElement.style.setProperty('--sy', String(Math.min(y, 600)));
-        if (fab) {
-          if (y > yPrev + 6 && y > 80) fab.classList.add('min');
-          else if (y < yPrev - 6 || y < 40) fab.classList.remove('min');
-        }
-        yPrev = y;
-      });
-    }, { passive: true });
-  })();
-</script>
 
 <!-- §1.7A · Grano global: última capa, sobre todo el contenido -->
 <div class="grain" aria-hidden="true"></div>
