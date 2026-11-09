@@ -9299,22 +9299,25 @@ const METRICS = [
   { k: 'sueno', label: 'Sueño', sub: 'Horas dormidas cada noche' },
 ];
 const METRICS_KEY = 'fitness_metrics_v1';
+// Pasos y sueño, ocultos de momento (Adrián, 9-nov): la tabla y el código ya
+// están; para enseñarlos basta con vaciar esta lista.
+const METRICAS_OCULTAS = ['pasos', 'sueno'];
 const metricasVisibles = () => {
   try { const v = JSON.parse(localStorage.getItem(METRICS_KEY)); if (Array.isArray(v)) return v; } catch { /* nada */ }
   return METRICS.map((m) => m.k);
 };
 function pintarMetricas() {
-  const vis = metricasVisibles();
+  const vis = metricasVisibles().filter((k) => !METRICAS_OCULTAS.includes(k));
   document.querySelectorAll('#metricCards [data-metric]').forEach((c) => { c.hidden = !vis.includes(c.dataset.metric); });
   pintarDiarias();
 }
 function pintarSelectorMetricas() {
   const vis = metricasVisibles();
-  $('metricsPick').innerHTML = METRICS.map((m) => `
+  $('metricsPick').innerHTML = METRICS.filter((m) => !METRICAS_OCULTAS.includes(m.k)).map((m) => `
     <label class="mp-row">
       <span><b>${m.label}</b><small>${m.sub}</small></span>
       <input type="checkbox" data-mk="${m.k}" ${vis.includes(m.k) ? 'checked' : ''}>
-    </label>`).join('') + '<p class="mp-hint">Más adelante: peso, pulsaciones en reposo y lo que conectemos de Salud o Google Fit.</p>';
+    </label>`).join('') + '<p class="mp-hint">Más adelante: pasos, sueño y lo que conectemos de Salud o Google Fit.</p>';
   $('metricsPick').querySelectorAll('[data-mk]').forEach((cb) => cb.addEventListener('change', () => {
     const nuevas = [...$('metricsPick').querySelectorAll('[data-mk]:checked')].map((x) => x.dataset.mk);
     try { localStorage.setItem(METRICS_KEY, JSON.stringify(nuevas)); } catch { /* sin almacenamiento */ }
