@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#050505" />
+<meta name="theme-color" content="#0B0B0A" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="ONIX" />
@@ -12,68 +12,68 @@
 <title>ONIX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
 <style>
   /* ════════════════════════════════════════════════════════════
      TOKENS · DESIGN.md §6 — fuente de verdad del sistema visual
      ════════════════════════════════════════════════════════════ */
   :root {
     /* Superficies (§1.1) */
-    --bg: #050505;
-    --s1: #0C0C0D;
-    --s2: #0E0E0F;
-    --s3: #141416;
-    --s4: #16171A;
-    --line: rgba(255,255,255,.09);
-    --line-2: rgba(255,255,255,.13);
-    --line-3: rgba(255,255,255,.22);
+    --bg: #0B0B0A;
+    --s1: #151514;
+    --s2: #151514;
+    --s3: #1F1E1C;
+    --s4: #1F1E1C;
+    --line: #2A2926;
+    --line-2: #2A2926;
+    --line-3: #3A3935;
 
     /* Texto (§1.2) */
-    --text: #F2F2F3;
-    --text-2: #E8E9EA;
-    --muted: #C8CBCF;
-    --dim: #8A8E93;
-    --faint: #7A7D82;
-    --ghost: #6E7175;
-    --ghost-2: #5A5D61;
-    --off: #3E4145;
+    --text: #ECE8E1;
+    --text-2: #ECE8E1;
+    --muted: #BDB9B2;
+    --dim: #8F8B84;
+    --faint: #8F8B84;
+    --ghost: #8F8B84;
+    --ghost-2: #6F6B65;
+    --off: #4A4843;
 
     /* Acento (§1.3) — cuota: 1 bloque de calor + máx 3 usos como tinta */
-    --hot: linear-gradient(155deg,#FF7A1F,#FF3B12);
-    --hot-solid: #FF4A1A;
-    --hot-text: #FF5A2B;
-    --hot-ink: #150300;
-    --hot-line: rgba(255,90,43,.55);
-    --hot-soft: rgba(255,90,26,.12);
-    --hot-num: linear-gradient(172deg,#FFC070 2%,#FF7A1F 36%,#FF3B12 76%,#DE2907 100%);
-    --hot-field: radial-gradient(118% 82% at 80% 6%,#FF8A2E 0%,#F0410F 22%,#8E1E06 44%,#3A0C02 64%,#0C0605 82%,#050505 100%);
+    --hot: #C8231E;
+    --hot-solid: #C8231E;
+    --hot-text: #E5574F;
+    --hot-ink: #F2EFE9;
+    --hot-line: rgba(200,35,30,.55);
+    --hot-soft: rgba(200,35,30,.12);
+    --hot-num: linear-gradient(#ECE8E1,#ECE8E1);
+    --hot-field: radial-gradient(70% 55% at 50% -8%,rgba(200,35,30,.62) 0%,rgba(165,28,24,.32) 34%,rgba(60,10,8,.12) 60%,transparent 78%);
 
     /* Blanco y metal (§1.4) */
-    --white: #F2F2F3;
-    --white-ink: #0A0A0A;
-    --metal: linear-gradient(178deg,#FFF 6%,#C6CBD0 42%,#7C8288 66%,#EDF0F2 100%);
-    --metal-bar: linear-gradient(0deg,#F2F4F6,#9CA1A6 55%,#5C6167);
+    --white: #ECE8E1;
+    --white-ink: #0B0B0A;
+    --metal: linear-gradient(#ECE8E1,#ECE8E1);
+    --metal-bar: linear-gradient(#ECE8E1,#ECE8E1);
 
     /* Semántica */
-    --ok: #4FE0A6;
-    --warn: #E0A64A;
-    --danger: #F4685E;
+    --ok: #ECE8E1;
+    --warn: #D9A441;
+    --danger: #E5574F;
 
     /* Macros: SOLO en Nutrición (§5.6) */
-    --p: #FF4A1A;  --h: #F2B23C;  --g: #5E9BE8;  --f: #35C2B0;
+    --p: #ECE8E1;  --h: #BDB9B2;  --g: #8F8B84;  --f: #5F5C57;
 
     /* Tipografía (§2.1) */
-    --f-ui: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --f-display: 'Space Grotesk', var(--f-ui);
-    --f-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --f-ui: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --f-display: 'Archivo Voz', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --f-mono: 'Archivo Dato', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
 
     /* Espaciado (§1.5) */
     --s-1:4px; --s-2:6px; --s-3:8px; --s-4:10px; --s-5:12px;
     --s-6:14px; --s-7:18px; --s-8:20px; --s-9:26px; --s-10:32px;
 
     /* Radios (§1.5) */
-    --r-1:3px; --r-2:6px; --r-3:8px; --r-4:9px;
-    --r-5:10px; --r-6:12px; --r-7:14px; --r-8:16px;
+    --r-1:8px; --r-2:8px; --r-3:8px; --r-4:8px;
+    --r-5:999px; --r-6:16px; --r-7:16px; --r-8:16px;
 
     /* Elevación (§1.6) — sombra de color PROHIBIDA */
     --sh-card: none;
@@ -159,10 +159,10 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23h)'/%3E%3C/svg%3E");
     background-size: 140px 140px;
   }
-  .heat-wash { position: absolute; inset: 0; background: linear-gradient(198deg, rgba(255,150,60,.12), transparent 44%); }
-  .heat-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, rgba(5,5,5,0), var(--bg)); }
+  .heat-wash { position: absolute; inset: 0; background: linear-gradient(198deg, rgba(200,35,30,.12), transparent 44%); }
+  .heat-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, rgba(11,11,10,0), var(--bg)); }
   .glow { position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none;
-          background: radial-gradient(100% 70% at 92% 0%, rgba(255,90,26,.18), rgba(255,59,18,.05) 44%, transparent 74%); }
+          background: radial-gradient(100% 70% at 92% 0%, rgba(200,35,30,.18), rgba(165,28,24,.05) 44%, transparent 74%); }
 
   /* ════════ §2.2 · Titular contorno + macizo ════════ */
   .title { font: 700 44px/.9 var(--f-display); letter-spacing: -.04em; transform: scaleY(1.12); transform-origin: left top; margin: 0; }
@@ -225,13 +225,13 @@
   .btn:active { transform: scale(.98); }
   .btn svg { width: 16px; height: 16px; }
   .btn--primary { background: var(--white); color: var(--white-ink); box-shadow: var(--sh-btn); }
-  .btn--onheat  { background: #0A0A0A; color: #fff; box-shadow: var(--sh-btn); }
+  .btn--onheat  { background: #0B0B0A; color: #ECE8E1; box-shadow: var(--sh-btn); }
   .btn--sec     { background: var(--s2); border: 1px solid var(--line-2); color: var(--muted); font-weight: 600; font-size: 15px; }
   .btn[disabled]{ background: var(--s2); color: var(--off); box-shadow: none; pointer-events: none; }
   .btn-icon { width: 34px; height: 34px; border-radius: var(--r-4); background: var(--s2);
               border: 1px solid var(--line); display: grid; place-items: center; color: var(--dim); flex-shrink: 0; }
   .btn-icon svg { width: 16px; height: 16px; }
-  .btn-icon--onheat { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.28); color: #fff; }
+  .btn-icon--onheat { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.28); color: #ECE8E1; }
 
   /* ════════ §4.1 · Todo lo tocable responde en <120ms ════════ */
   button, .tile, .chip, .seg-btn { transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
@@ -249,7 +249,7 @@
   .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
   .plan-card { background: linear-gradient(135deg, #1F2530 0%, #1A1F26 100%); border: 1px solid var(--line); position: relative; overflow: hidden; }
-  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(255,90,26,.14), transparent 70%); }
+  .plan-card::before { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(200,35,30,.14), transparent 70%); }
   .plan-card.rest::before { background: radial-gradient(circle, rgba(139,146,160,.18), transparent 70%); }
   .plan-card h2 { font-size: 24px; }
   .plan-card .muscles { color: var(--muted); margin-top: 4px; font-size: 14px; }
@@ -294,7 +294,7 @@
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--line-2); box-shadow: var(--sh-float);
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(3, 1fr);
     align-items: center; padding: 0 6px;
     max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
   }
@@ -314,11 +314,11 @@
   .day { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 4px; text-align: center; }
   .day .d { font-size: 10px; color: var(--muted); text-transform: uppercase; }
   .day .n { font-size: 16px; font-weight: 700; margin-top: 2px; }
-  .day.today { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .day.today .d, .day.today .n { color: #fff; }
+  .day.today { background: var(--accent); border-color: var(--accent); color: #ECE8E1; }
+  .day.today .d, .day.today .n { color: #ECE8E1; }
   .day.rest .n { color: var(--muted); }
   .day .pill { font-size: 9px; margin-top: 4px; padding: 2px 4px; border-radius: 4px; background: var(--bg-elev-2); color: var(--muted); }
-  .day.today .pill { background: rgba(255,255,255,.2); color: #fff; }
+  .day.today .pill { background: rgba(255,255,255,.2); color: #ECE8E1; }
 
   .routine-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 8px; }
   .routine-item .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--bg-elev-2); color: var(--muted); white-space: nowrap; }
@@ -344,7 +344,7 @@
   .block-item.current { border-color: var(--line-2); background: var(--s1); }
   .block-item.done { opacity: .55; }
   .block-item .b-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-elev-2); display: grid; place-items: center; font-weight: 700; font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .block-item.current .b-num { background: var(--accent); color: #fff; }
+  .block-item.current .b-num { background: var(--accent); color: #ECE8E1; }
   .block-item .b-info { flex: 1; min-width: 0; }
   .block-item .b-name { font-size: 14px; font-weight: 600; }
   .block-item .b-dates { font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -412,14 +412,14 @@
   .data-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--text); border-radius: var(--r-md); font-weight: 600; font-size: 13px; }
   .data-btn:active { background: var(--line); }
   .data-btn svg { width: 14px; height: 14px; }
-  .data-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .data-btn.primary { background: var(--accent); color: #ECE8E1; border-color: var(--accent); }
 
   /* Import sheet */
   .import-textarea { width: 100%; min-height: 140px; max-height: 240px; padding: 10px; background: var(--bg-elev-2); border: 1px solid var(--line); color: var(--text); border-radius: var(--r-md); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; resize: vertical; }
   .import-textarea:focus { outline: none; border-color: var(--accent); }
   .import-actions { display: flex; gap: 8px; margin-top: 10px; }
   .import-actions button { flex: 1; padding: 12px; border-radius: var(--r-md); font-weight: 600; font-size: 14px; border: 1px solid var(--line); background: var(--bg-elev-2); color: var(--text); }
-  .import-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .import-actions button.primary { background: var(--accent); color: #ECE8E1; border-color: var(--accent); }
   .import-actions button.danger { background: var(--s2); color: var(--danger); }
 
   /* Sheet para editar día */
@@ -565,7 +565,7 @@
   .rest-timer.show { display: flex; }
   .rest-timer .t { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
   .rest-timer .lbl { font-size: 11px; opacity: .8; text-transform: uppercase; letter-spacing: .6px; }
-  .rest-timer button { color: #fff; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.2); font-size: 12px; font-weight: 600; }
+  .rest-timer button { color: #ECE8E1; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.2); font-size: 12px; font-weight: 600; }
 
   .finish-btn {
     position: fixed; left: 18px; right: 18px; bottom: 24px;
@@ -598,7 +598,7 @@
   .sheet-body { overflow-y: auto; padding: 12px 14px 20px; }
   .sheet-tabs { display: flex; gap: 6px; padding: 12px 14px 0; flex-wrap: wrap; }
   .sheet-tabs button { padding: 6px 12px; border-radius: 999px; background: var(--bg-elev-2); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-  .sheet-tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sheet-tabs button.active { background: var(--accent); color: #ECE8E1; border-color: var(--accent); }
   .swap-item { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--bg-elev-2); margin-bottom: 6px; border: 1px solid transparent; }
   .swap-item:active { border-color: var(--accent); }
   .swap-item.current { opacity: .5; }
@@ -801,11 +801,11 @@
   .tk-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     padding: calc(env(safe-area-inset-top) + 10px) var(--gutter) 12px; }
   .tk-title { flex: 1; min-width: 0; text-align: center; }
-  .tk-name { font: 700 13px/1.2 var(--f-display); letter-spacing: .06em; color: #fff; }
+  .tk-name { font: 700 13px/1.2 var(--f-display); letter-spacing: .06em; color: #ECE8E1; }
   .tk-sub { margin-top: 4px; font: 500 9px/1 var(--f-mono); letter-spacing: .14em;
             text-transform: uppercase; color: rgba(255,255,255,.7); }
   .tk-progress { position: relative; z-index: 2; height: 3px; background: rgba(0,0,0,.3); flex-shrink: 0; }
-  .tk-progress-fill { height: 100%; background: #fff; width: 0; transition: width var(--t-base) var(--ease); }
+  .tk-progress-fill { height: 100%; background: #ECE8E1; width: 0; transition: width var(--t-base) var(--ease); }
 
   /* Baraja horizontal: un panel por ejercicio o superserie */
   .tk-deck { position: relative; z-index: 2; flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
@@ -821,7 +821,7 @@
   .tk-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .tk-kicker .rule { flex: 1; height: 1px; background: rgba(255,255,255,.18); }
   .tk-exname { font: 700 46px/.92 var(--f-display); letter-spacing: -.045em; margin: 0 0 16px;
-               transform: scaleY(1.12); transform-origin: left top; color: #fff;
+               transform: scaleY(1.12); transform-origin: left top; color: #ECE8E1;
                text-transform: uppercase; }
   /* Nombres largos bajan de cuerpo para no partirse en tres líneas */
   .tk-exname.len-m { font-size: 36px; }
@@ -833,13 +833,13 @@
   .tk-chips-scroll::-webkit-scrollbar { display: none; }
   .tk-chip { height: 34px; display: inline-flex; align-items: center; padding: 0 13px; border-radius: var(--r-3);
              background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.24);
-             font: 500 10px/1 var(--f-mono); letter-spacing: .12em; color: #fff; white-space: nowrap; }
+             font: 500 10px/1 var(--f-mono); letter-spacing: .12em; color: #ECE8E1; white-space: nowrap; }
   .tk-chip--swap { margin-left: auto; display: inline-flex; gap: 7px; }
   .tk-chip--swap svg { width: 13px; height: 13px; }
 
   /* Superserie: un único bloque, los ejercicios uno debajo del otro */
   .tk-ss-head { display: flex; align-items: center; gap: 9px; margin-bottom: 14px;
-    padding-left: 10px; border-left: 2px solid rgba(255,90,43,.6);
+    padding-left: 10px; border-left: 2px solid rgba(200,35,30,.6);
     font: 600 9px/1.5 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; color: var(--hot-text); }
   .tk-panel .exercise-card { background: none; border: none; border-radius: 0; padding: 0; margin: 0 0 26px; }
   .tk-panel .exercise-card:last-of-type { margin-bottom: 0; }
@@ -955,7 +955,7 @@
 
   /* Salto automático al siguiente ejercicio: se ve lo que ha pasado */
   .tk-jump { position: absolute; inset: 0; z-index: 130; display: grid; place-items: center;
-             background: rgba(5,5,5,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+             background: rgba(11,11,10,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
              opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease); }
   .tk-jump.on { opacity: 1; }
   .tk-jump-in { display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -967,7 +967,7 @@
                    background: var(--hot-soft); border: 1px solid var(--hot-line); color: var(--hot-text); }
   .tk-jump-arrow svg { width: 20px; height: 20px; }
   .tk-jump-name { font: 700 30px/1.02 var(--f-display); letter-spacing: -.035em;
-                  text-transform: uppercase; color: #fff; max-width: 100%; }
+                  text-transform: uppercase; color: #ECE8E1; max-width: 100%; }
   .tk-jump-pos { font: 500 9px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ghost); }
   @media (prefers-reduced-motion: reduce) {
     .tk-jump, .tk-jump-in { transition: none; }
@@ -1033,7 +1033,7 @@
   .cal-day { aspect-ratio: 1; background: none; border: none; display: grid; place-items: center; }
   .cal-num { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
              font: 500 13px/1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ghost-2); border: 1.5px solid transparent; }
-  .cal-day.trained .cal-num { border-color: rgba(255,90,43,.85); color: var(--hot-text); }
+  .cal-day.trained .cal-num { border-color: rgba(200,35,30,.85); color: var(--hot-text); }
   .cal-day.today .cal-num { background: var(--hot-solid); border-color: transparent; color: var(--hot-ink); font-weight: 700; }
   .cal-day.out-month { visibility: hidden; }
 
@@ -1054,7 +1054,7 @@
   .nl-val { margin-left: auto; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
             font-size: 12px; color: var(--ghost-2); white-space: nowrap; }
   .nl-val b { font-size: 14px; font-weight: 700; color: var(--text); }
-  .nl-bar { height: 5px; border-radius: 3px; background: #1C1D1F; margin-top: 7px; overflow: hidden; }
+  .nl-bar { height: 5px; border-radius: 3px; background: #1F1E1C; margin-top: 7px; overflow: hidden; }
   .nl-fill { height: 100%; border-radius: 3px; }
 
   /* Bloques desplegables de comidas */
@@ -1152,10 +1152,10 @@
   .goal-val small { font-size: 10px; color: var(--ghost); margin-left: 3px; }
   .goal-val.ok { color: var(--ok); }
   .goal-val.low { color: var(--warn); }
-  .goal-bar { height: 6px; border-radius: 3px; background: #1C1D1F; margin: 11px 0 9px; overflow: hidden; }
+  .goal-bar { height: 6px; border-radius: 3px; background: #1F1E1C; margin: 11px 0 9px; overflow: hidden; }
   .goal-fill { height: 100%; border-radius: 3px; background: var(--hot); }
-  .goal-fill.ok { background: linear-gradient(90deg,#4FE0A6,#2FA87A); }
-  .goal-fill.low { background: linear-gradient(90deg,#E0A64A,#C2802A); }
+  .goal-fill.ok { background: linear-gradient(90deg,#ECE8E1,#ECE8E1); }
+  .goal-fill.low { background: linear-gradient(90deg,#E0A64A,#D9A441); }
   .goal-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
                font: 500 9.5px/1.35 var(--f-mono); letter-spacing: .12em; color: var(--ghost-2); }
   .goal-foot b { color: var(--muted); font-weight: 500; text-transform: uppercase; }
@@ -1206,19 +1206,17 @@
 
         <div class="home-head">
           <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-          <span class="date-pill" id="todayPill"></span>
-          <button type="button" class="btn-icon btn-icon--onheat" id="homeAdd" aria-label="Añadir entrenamiento a hoy">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <!-- Fecha y «+» retirados (Adrián, 9-nov): para añadir, se toca el día -->
+          <span class="date-pill" id="todayPill" hidden></span>
+          <button type="button" id="homeAdd" hidden></button>
+          <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </button>
         </div>
 
         <div class="home-hero">
           <h1 class="title home-title" id="homeTitle"></h1>
           <div class="home-stats" id="homeStats"></div>
-          <button type="button" class="btn btn--primary home-cta" id="homeCta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-            <span id="homeCtaText">EMPEZAR SESIÓN</span>
-          </button>
         </div>
       </div>
 
@@ -1233,10 +1231,11 @@
       </div>
 
       <!-- §5.4 · Cinta de datos -->
-      <div class="ticker home-ticker">
+      <div class="ticker home-ticker" style="display:none">
         <span class="tag" id="tickerTag">HOY</span>
         <span class="vals" id="tickerVals"></span>
       </div>
+
 
       <!-- Tiles: racha + sesiones de la semana -->
       <div class="home-tiles">
@@ -1252,12 +1251,24 @@
               <circle cx="32" cy="32" r="27" fill="none" stroke="url(#ringHot)" stroke-width="6.5"
                       stroke-linecap="round" transform="rotate(-90 32 32)" id="weekRing"/>
               <defs><linearGradient id="ringHot" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#FF7A1F"/><stop offset="1" stop-color="#FF3B12"/>
+                <stop offset="0" stop-color="#C8231E"/><stop offset="1" stop-color="#A51C18"/>
               </linearGradient></defs>
             </svg>
             <span class="metric" id="statWeek">0/3</span>
           </div>
         </div>
+      </div>
+
+      <!-- Entrenar (rojo) y Registrar comida, a todo el ancho -->
+      <div class="home-acts">
+        <button type="button" class="btn btn--primary home-cta" id="homeCta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <span id="homeCtaText">Entrenar</span>
+        </button>
+        <button type="button" class="btn btn--sec home-meal" id="homeMealBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Registrar comida</span>
+        </button>
       </div>
 
       <!-- Tira de días (7 celdas) -->
@@ -1275,13 +1286,20 @@
         <div class="wstrip" id="weekStrip"></div>
       </div>
 
-      <!-- Últimos entrenamientos -->
-      <div class="sec-head">
-        <span class="label">Últimos</span>
-        <span class="rule"></span>
-        <span class="data-sm" id="recentCount"></span>
+
+      <div class="card check-card home-check">
+        <div class="nk-head">
+          <span class="label">Check semanal</span>
+          <span class="data-sm" id="checkGoal"></span>
+        </div>
+        <div class="check-grid" id="weeklyCheck"></div>
       </div>
-      <div id="recentList"></div>
+
+      <!-- El calendario vive en Entreno; aquí se abre en una ventana -->
+      <button type="button" class="btn btn--sec home-cal-btn" id="homeCalBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        VER CALENDARIO
+      </button>
     </section>
 
     <!-- =========== TRAINER · DESIGN.md §8.2 y §8.7 =========== -->
@@ -1290,83 +1308,129 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="trainerChip"></span>
-        <button type="button" class="btn-icon" id="trainerAdd" aria-label="Añadir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <!-- Semana del plan y «+» retirados (Adrián, 9-nov) -->
+        <span class="status-chip" id="trainerChip" hidden></span>
+        <button type="button" id="trainerAdd" hidden></button>
+        <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </button>
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
 
-      <div class="seg" id="trainerTabs">
-        <button class="seg-btn active" data-tab="entrenos">ENTRENOS</button>
-        <button class="seg-btn" data-tab="obj">OBJETIVOS</button>
-      </div>
+      <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
+      <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
 
-      <div class="tab-panel active" data-panel="entrenos">
-        <div class="plan-headline" id="planHeadline" hidden></div>
-        <div id="routineList"></div>
-      </div>
 
-      <div class="tab-panel" data-panel="obj">
-        <div class="seg" id="goalsSeg" style="margin-bottom:16px">
-          <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
-          <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
+
+
+      <!-- Progresión: la de los entrenos o la física, una cada vez -->
+      <div class="sec-head prog-switch-head">
+        <span class="label">Progresión</span>
+        <span class="rule"></span>
+        <div class="seg seg-mini" id="progSwitch">
+          <button type="button" class="seg-btn active" data-prog="progresion">Entreno</button>
+          <button type="button" class="seg-btn" data-prog="fisica">Físico</button>
         </div>
-        <div id="goalsPanel"></div>
       </div>
-    </section>
+      <div id="statsCards">
 
-    <!-- =========== ESTADÍSTICAS =========== -->
-    <section class="screen" data-screen="chat">
-      <div class="glow" aria-hidden="true"></div>
 
-      <!-- §8.3 · Cabecera: logo + chip de estado + menú -->
-      <div class="scr-head">
-        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="chatStatus"><i class="dot"></i>EN LÍNEA</span>
-        <button type="button" class="btn-icon" id="chatMenu" aria-label="Historial de chats">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
+
+      <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
+        <div class="prog-head">
+          <span class="label">Progresión</span>
+          <span class="pr-pill" id="progPr" style="display:none"></span>
+        </div>
+        <!-- El ejercicio que se ve; el botón de al lado abre la lista para cambiarlo -->
+        <div class="px-row" id="pxRow">
+          <span class="px-name" id="pxName"></span>
+          <button type="button" class="ib" id="pxSwap" aria-label="Cambiar de ejercicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M17.5 2.5v4h-4"/><path d="M6.5 21.5v-4h4"/></svg></button>
+          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+          <div class="px-menu" id="pxMenu" hidden></div>
+        </div>
+        <div class="ex-slider" id="exSlider" hidden></div>
+        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="prog-readrow"><div class="prog-readout" id="progReadout"></div>
+        </div>
+        <div class="prog-info" id="progInfo" hidden></div>
+        <div class="sub" id="progSub"></div>
+      </div>
+
+
+      <!-- Progresión física: peso, IMC y grasa -->
+      <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
+        <div class="prog-head">
+          <span class="label">Progresión física</span>
+          <span class="pr-pill" id="bodyDelta" style="display:none"></span>
+          <div class="metric-tabs" id="bodySlider"></div>
+          <button type="button" class="ib" id="bodyAddBtn" aria-label="Añadir métricas a mano"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+        </div>
+        <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="prog-readrow"><div class="prog-readout" id="bodyReadout"></div>
+        </div>
+        <div class="prog-info" id="bodyInfo" hidden></div>
+        <div class="sub" id="bodySub"></div>
+        <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          AÑADIR MÉTRICAS
+        </button>
+        <form class="weight-form" id="weightForm" style="display:none">
+          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
+          <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
+          <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
+          <button type="submit">Guardar</button>
+        </form>
+      </div>
+
+      </div><!-- /#statsCards -->
+
+      <!-- Mi plan y Mis rutinas: dos tarjetas, cada una abre su ventana -->
+      <div class="tr-tiles">
+        <button type="button" class="tr-tile" id="planBtn">
+          <svg class="tt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+          <span class="tt-n">Mi plan</span>
+          <span class="tt-s" id="planBtnWeek">Plan y objetivos</span>
+          <svg class="tt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="tr-tile" id="routinesBtn">
+          <svg class="tt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
+          <span class="tt-n">Mis rutinas</span>
+          <span class="tt-s" id="routinesCount"></span>
+          <svg class="tt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
         </button>
       </div>
 
-      <h1 class="title scr-title chat-title">COACH</h1>
-
-      <div class="seg" id="chatTabs">
-        <button type="button" class="seg-btn active" data-ctab="chat">ENTRENADOR</button>
-        <button type="button" class="seg-btn" data-ctab="prog">PROGRAMA</button>
+      <!-- Métricas: tarjetas que eliges tú (como en Salud): carrera, pasos, sueño… -->
+      <div class="sec-head">
+        <span class="label">Métricas</span>
+        <span class="rule"></span>
+        <button type="button" class="sec-link" id="metricsEdit">Editar</button>
+      </div>
+      <div id="metricCards">
+      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
+      <div class="card chart-card" data-metric="carrera">
+        <div class="prog-head">
+          <span class="label">Carrera</span>
+          <span class="pr-pill" id="runPill" style="display:none"></span>
+        </div>
+        <div id="runBody"></div>
       </div>
 
-      <div id="chatPane">
-        <div class="chat-box" id="chatBox">
-          <div class="chat-log" id="chatLog"></div>
+        <div class="card metric-card" data-metric="pasos">
+          <div class="prog-head"><span class="label">Pasos</span><button type="button" class="sec-link" data-log="steps">Añadir</button></div>
+          <div class="mc-body" id="stepsBody"></div>
+        </div>
+        <div class="card metric-card" data-metric="sueno">
+          <div class="prog-head"><span class="label">Sueño</span><button type="button" class="sec-link" data-log="sleep">Añadir</button></div>
+          <div class="mc-body" id="sleepBody"></div>
         </div>
       </div>
 
-      <div id="progPane" style="display:none">
-        <div class="ticker prog-ticker">
-          <span class="tag">AHORA</span>
-          <span class="vals" id="progTicker"></span>
-        </div>
-        <div class="sec-head">
-          <span class="label">Plan macro</span>
-          <span class="rule"></span>
-          <span class="data-sm" id="planCount"></span>
-        </div>
-        <div id="planBlocks"></div>
-      </div>
 
-      <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
-           empezarla, pero el campo de escritura funciona igualmente. -->
-      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
-        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
-      </div>
-
-      <form class="chat-input" id="chatForm">
-        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
-        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
-      </form>
     </section>
+
 
     <style>
       /* ════════ CHAT · DESIGN.md §8.3 y §5.8 ════════ */
@@ -1398,7 +1462,7 @@
       /* El coach: sin burbuja, filete degradado a la izquierda */
       .chat-msg.bot { align-self: stretch; max-width: 100%; padding: 0 0 0 12px;
         border-left: 2px solid transparent;
-        border-image: linear-gradient(180deg,#FF7A1F,rgba(255,59,18,.15)) 1;
+        border-image: linear-gradient(180deg,#C8231E,rgba(165,28,24,.15)) 1;
         background: none; font-size: 14.5px; line-height: 1.5; color: var(--text-2);
         white-space: pre-wrap; overflow-wrap: break-word; }
       .chat-msg.bot::before { content: 'COACH'; display: block; margin-bottom: 7px;
@@ -1415,7 +1479,7 @@
         bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 12px);
         max-width: calc(var(--maxw) - 32px); margin: 0 auto; }
       .chat-input::before { content: ''; position: absolute; left: -16px; right: -16px; bottom: -22px; top: -26px;
-        background: linear-gradient(180deg, transparent, #050505 26%); z-index: -1; pointer-events: none; }
+        background: linear-gradient(180deg, transparent, #0B0B0A 26%); z-index: -1; pointer-events: none; }
       .chat-locked button { flex: 1; height: 46px; border-radius: 23px; background: var(--white);
         color: var(--white-ink); font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
       .chat-locked button:active { transform: scale(.99); }
@@ -1432,7 +1496,7 @@
         border-bottom: 1px solid var(--line); border-radius: 0; margin: 0; align-items: flex-start; }
       .block-item:last-child { border-bottom: none; }
       .block-item .b-head { display: flex; align-items: baseline; gap: 11px; width: 100%; }
-      .block-item .b-num { width: 9px; height: 9px; border-radius: 50%; background: #26282A;
+      .block-item .b-num { width: 9px; height: 9px; border-radius: 50%; background: #2A2926;
         flex-shrink: 0; align-self: flex-start; margin-top: 5px; font-size: 0; padding: 0; border: none; }
       .block-item.done .b-num { background: #4E5155; }
       .block-item.current .b-num { background: var(--hot-solid); }
@@ -1460,115 +1524,8 @@
         width: 1px; background: var(--line); }
     </style>
 
-    <section class="screen" data-screen="stats">
-      <div class="glow" aria-hidden="true"></div>
-
-      <div class="scr-head">
-        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-      </div>
-
-      <!-- Cabecera de perfil: foto (toca para cambiarla), nombre, peso y racha.
-           Debajo sigue "TU PROGRESO" tal cual estaba. -->
-      <div class="prof-head" id="profHead">
-        <button type="button" class="prof-ava" id="profAva" aria-label="Foto de perfil">
-          <span class="ini" id="profIni">·</span>
-        </button>
-        <div class="prof-id">
-          <div class="prof-name" id="profName">—</div>
-          <div class="prof-stats">
-            <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
-            <span class="prof-sep"></span>
-            <span class="prof-stat"><span class="v" id="profStreak">—</span><span class="u">de racha</span></span>
-          </div>
-        </div>
-        <button type="button" class="btn-icon" id="profAcct" aria-label="Ajustes del perfil">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
-        </button>
-      </div>
-
-      <h1 class="title scr-title"><span class="out">TU</span> <span>PROGRESO</span></h1>
-
-      <!-- El orden de estas tarjetas lo decide cada usuario (Ajustes →
-           Rediseñar progreso) y se guarda en profiles.stats_order. -->
-      <div id="statsCards">
-
-      <div class="card check-card" data-sec="check" data-sec-name="Check semanal">
-        <div class="nk-head">
-          <span class="label">Check semanal</span>
-          <span class="data-sm" id="checkGoal"></span>
-        </div>
-        <div class="check-grid" id="weeklyCheck"></div>
-      </div>
-
-      <div class="card" data-sec="calendario" data-sec-name="Calendario">
-        <div class="cal-card-head">
-          <span class="label">Calendario</span>
-          <div class="seg seg-mini" id="calSeg">
-            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
-            <button type="button" class="seg-btn" data-calview="year">Año</button>
-          </div>
-        </div>
-        <div id="calMonthView">
-          <div class="cal-head">
-            <button type="button" class="cal-btn" id="calPrev">‹</button>
-            <div class="cal-title" id="calTitle"></div>
-            <button type="button" class="cal-btn" id="calNext">›</button>
-          </div>
-          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-          <div class="cal-grid" id="calGrid"></div>
-        </div>
-        <div id="calYearView" style="display:none">
-          <div class="yg-title">2026</div>
-          <div id="yearGrid"></div>
-        </div>
-      </div>
-
-      <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
-        <div class="prog-head">
-          <span class="label">Progresión</span>
-          <span class="pr-pill" id="progPr" style="display:none"></span>
-        </div>
-        <div class="ex-slider" id="exSlider"></div>
-        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="progReadout"></div>
-        <div class="sub" id="progSub"></div>
-      </div>
-
-      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
-      <div class="card chart-card" data-sec="carrera" data-sec-name="Carrera">
-        <div class="prog-head">
-          <span class="label">Carrera</span>
-          <span class="pr-pill" id="runPill" style="display:none"></span>
-        </div>
-        <div id="runBody"></div>
-      </div>
-
-      <!-- Progresión física: peso, IMC y grasa -->
-      <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
-        <div class="prog-head">
-          <span class="label">Progresión física</span>
-          <span class="pr-pill" id="bodyDelta" style="display:none"></span>
-        </div>
-        <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
-        <div class="metric-tabs" id="bodySlider"></div>
-        <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="bodyReadout"></div>
-        <div class="sub" id="bodySub"></div>
-        <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          AÑADIR MÉTRICAS
-        </button>
-        <form class="weight-form" id="weightForm" style="display:none">
-          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
-          <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
-          <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
-          <button type="submit">Guardar</button>
-        </form>
-      </div>
-
-      </div><!-- /#statsCards -->
-
-      <style>
+    <!-- Estilos de las tarjetas de progreso (ahora en Entreno) -->
+    <style>
         /* ---------- Stats v2 ---------- */
         .chart-card .line-chart { color: var(--accent); width: 100%; }
         .chart-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -1604,7 +1561,7 @@
         .ex-slider { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 12px -18px; padding: 2px 0 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .ex-slider::-webkit-scrollbar { display: none; }
         .ex-slider::before, .ex-slider::after { content: ''; flex: 0 0 calc(50% - 70px); }
-        .ex-chip { flex: 0 0 auto; scroll-snap-align: center; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 15px; font-size: 13px; white-space: nowrap; transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
+        .ex-chip { flex: 0 0 auto; scroll-snap-align: center; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 8px 15px; font-size: 13px; white-space: nowrap; transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
         .ex-chip.active { color: var(--accent); border-color: var(--accent); font-weight: 600; }
         #progChart { touch-action: none; }
         .prog-readout { text-align: center; margin-top: 10px; min-height: 40px; }
@@ -1619,7 +1576,7 @@
         .cal-day .dot, .cal-legend .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .cal-day .spacer { height: 5px; }
         .dot.gym { background: var(--accent); }
-        .dot.out { background: #4da3ff; }
+        .dot.out { background: #8F8B84; }
         .cal-legend { display: flex; gap: 16px; align-items: center; font-size: 11px; color: var(--muted); margin-top: 10px; }
         .cal-legend .dot { margin-right: 5px; width: 7px; height: 7px; }
         .weight-form { display: flex; gap: 8px; margin-top: 12px; }
@@ -1631,7 +1588,7 @@
         .yg-cols { display: flex; justify-content: space-between; padding: 0 4px; }
         .yg-col { display: flex; flex-direction: column; align-items: center; gap: 9px; }
         .yg-m { font-size: 10.5px; color: var(--muted); font-weight: 700; letter-spacing: .12em; margin-bottom: 2px; }
-        .yg-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); }
+        .yg-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); }
         .yg-dot.done { background: var(--accent); border-color: var(--accent); }
         .yg-dot.cur { outline: 1.5px solid var(--accent); outline-offset: 2px; }
 
@@ -1641,7 +1598,7 @@
         .op-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
         .op-head span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
         .op-head b { font-size: 19px; color: var(--accent); }
-        .op-bar { height: 10px; border-radius: 99px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); overflow: hidden; }
+        .op-bar { height: 10px; border-radius: 99px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); overflow: hidden; }
         .op-fill { height: 100%; border-radius: 99px; background: var(--hot); transition: width 400ms var(--ease-out); }
         .op-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
         .op-mini { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
@@ -1652,7 +1609,6 @@
         .swap-item.swap-new .swap-icon { color: var(--accent); }
       </style>
 
-    </section>
 
     <!-- =========== NUTRICIÓN =========== -->
     <section class="screen" data-screen="nutrition">
@@ -1660,9 +1616,18 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
+        <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
       </div>
 
-      <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+      <div class="n-title-row">
+        <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+        <button type="button" class="btn-pill" id="recipesBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h10.5"/><path d="M9 8.5h5M9 11.5h3.5"/></svg>
+          Recetas
+        </button>
+      </div>
 
       <div class="seg" id="nutriTabs">
         <button type="button" class="seg-btn active" data-ntab="daily">DIARIO</button>
@@ -1728,16 +1693,18 @@
 
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
-        <div class="ns-types" id="nsTypes"></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
 
         <div class="ns-actions">
           <button type="button" class="ns-photo" id="nsMic" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg></button>
-          <button type="button" class="ns-photo" id="nsPhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></svg> Foto</button>
+          <button type="button" class="ns-photo" id="nsPhoto" aria-label="Foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></svg></button>
           <button type="button" class="ns-send" id="nsSend">Analizar y añadir</button>
         </div>
         <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
         <div class="ns-status" id="nsStatus"></div>
+        <!-- Debajo: de qué es (desayuno, comida…) y tus recetas de ese tipo -->
+        <div class="ns-types" id="nsTypes"></div>
+        <div class="ns-recipes" id="nsRecipes" hidden></div>
       </div>
 
       <div class="hsheet nutri-sheet" id="maSheet">
@@ -1810,11 +1777,11 @@
         .nchat-log { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
         .nchat-msg { max-width: 88%; padding: 8px 12px; border-radius: 13px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: break-word; }
         .nchat-msg.user { align-self: flex-end; background: var(--accent); color: var(--white-ink); border-bottom-right-radius: 4px; }
-        .nchat-msg.bot { align-self: flex-start; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+        .nchat-msg.bot { align-self: flex-start; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
         .nchat-msg.typing { color: var(--muted); font-style: italic; }
         .nchat-empty { color: var(--muted); font-size: 12.5px; line-height: 1.5; padding: 2px 0 4px; }
         .nchat-input { display: flex; gap: 8px; }
-        .nchat-input input { flex: 1; min-width: 0; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 10px 13px; font-size: 16px; }
+        .nchat-input input { flex: 1; min-width: 0; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 10px 13px; font-size: 16px; }
         .nchat-input input:focus { outline: none; border-color: var(--accent); }
         .nchat-input button { width: 42px; border-radius: 12px; background: var(--accent); color: var(--white-ink); border: none; font-size: 15px; flex-shrink: 0; }
         .nchat-input button:disabled { opacity: .5; }
@@ -1827,28 +1794,28 @@
         .nw-row.today .nw-day { color: var(--accent); }
         .nw-row.future { opacity: .4; }
         .nw-bar { flex: 1; display: flex; gap: 3px; height: 14px; }
-        .nw-seg { flex: 1; background: var(--bg-elev-2, #15181C); border-radius: 4px; overflow: hidden; }
+        .nw-seg { flex: 1; background: var(--bg-elev-2, #151514); border-radius: 4px; overflow: hidden; }
         .nw-fill { height: 100%; border-radius: 4px; }
         .wm-legend { flex-direction: row; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 
         /* Selector de bloque en sheets */
         .ns-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
-        .ns-type { padding: 9px 2px; border-radius: 11px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--muted); font-size: 11.5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .ns-type { padding: 9px 2px; border-radius: 11px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--muted); font-size: 11.5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .ns-type span { font-size: 17px; }
         .ns-type.active { border-color: var(--accent); color: var(--accent); }
 
         /* Menú de acciones de un alimento */
         .ma-btns { display: flex; flex-direction: column; gap: 8px; }
-        .ma-btns button { padding: 13px; border-radius: 12px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); font-size: 14px; text-align: left; }
+        .ma-btns button { padding: 13px; border-radius: 12px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); font-size: 14px; text-align: left; }
         .ma-btns button:active { border-color: var(--accent); }
         .ma-btns .ma-danger { color: #ff7a8a; }
 
         /* Editor de alimento */
-        .ed-desc { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font-size: 15px; margin-bottom: 10px; }
+        .ed-desc { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font-size: 15px; margin-bottom: 10px; }
         .ed-desc:focus { outline: none; border-color: var(--accent); }
         .ed-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-bottom: 12px; }
         .ed-grid label { font-size: 10px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
-        .ed-grid input { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 9px; padding: 8px 6px; font-size: 14px; text-align: center; }
+        .ed-grid input { width: 100%; box-sizing: border-box; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 9px; padding: 8px 6px; font-size: 14px; text-align: center; }
         .ed-grid input:focus { outline: none; border-color: var(--accent); }
 
         .nutri-fab {
@@ -1863,13 +1830,13 @@
         .nutri-sheet .ns-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
         .nutri-sheet textarea {
           width: 100%; box-sizing: border-box; resize: none;
-          background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text);
+          background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text);
           border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit;
         }
         .nutri-sheet textarea:focus { outline: none; border-color: var(--accent); }
         .ns-hint { font-size: 11.5px; color: var(--muted); margin: 8px 2px 12px; }
         .ns-actions { display: flex; gap: 10px; }
-        .ns-photo { flex: 0 0 auto; padding: 12px 16px; border-radius: 12px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); font-size: 14px; }
+        .ns-photo { flex: 0 0 auto; padding: 12px 16px; border-radius: 12px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); font-size: 14px; }
         .ns-send { flex: 1; padding: 12px; border-radius: 12px; background: var(--accent); color: var(--white-ink); border: none; font-weight: 700; font-size: 14px; }
         .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
         .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
@@ -1879,16 +1846,207 @@
 
   </div>
 
+
+  <!-- =========== COACH FLOTANTE =========== -->
+  <!-- Ya no es una pestaña: botón en la esquina y ventana emergente. El
+       tracker toma prestadas estas mismas piezas durante el entreno. -->
+  <button type="button" class="coach-fab" id="coachFab" aria-label="Abrir el Coach">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <div class="coach-sheet" id="coachSheet" aria-hidden="true">
+    <div class="dock-back" id="coachSheetBack"></div>
+    <div class="dock-sheet" role="dialog" aria-label="Coach">
+      <div class="dock-head">
+        <span class="status-chip"><i class="dot"></i>COACH</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" id="chatMenu" aria-label="Historial de chats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
+        </button>
+        <button type="button" class="btn-icon" id="coachSheetClose" aria-label="Cerrar el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="dock-slot" id="coachSheetSlot">
+        <div class="chat-box" id="chatBox">
+          <div class="chat-log" id="chatLog"></div>
+        </div>
+      <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
+           empezarla, pero el campo de escritura funciona igualmente. -->
+      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      </div>
+      <form class="chat-input" id="chatForm">
+        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
+        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
+      </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventana de Mis entrenamientos (Entreno) -->
+  <div class="coach-sheet pop-sheet" id="routinesSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Mis entrenamientos">
+      <div class="dock-head">
+        <span class="label">Mis rutinas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body"><div id="routineList"></div></div>
+    </div>
+  </div>
+
+  <!-- Ventana de Recetas (Nutri): lista y editor en la misma hoja -->
+  <div class="coach-sheet pop-sheet rc-sheet" id="recipesSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Recetas">
+      <div class="dock-head">
+        <button type="button" class="btn-icon" id="rcBack" aria-label="Volver a tus recetas" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <span class="label" id="rcHeadTitle">Recetas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body">
+        <div id="rcList"></div>
+        <div id="rcEdit" hidden>
+          <input type="text" id="rcName" class="rc-name" placeholder="Nombre (p. ej. Bowl de arroz con atún)" autocomplete="off">
+          <div class="ns-types rc-cats" id="rcCats"></div>
+          <!-- Solo al crear (o al tocar «Añadir ingredientes»): raciones y la IA -->
+          <div class="rc-add" id="rcAdd">
+            <label class="rc-serv">Raciones que salen
+              <input type="number" id="rcServings" inputmode="decimal" min="0.5" step="0.5" value="1">
+            </label>
+            <textarea id="rcText" rows="4" placeholder="Ingredientes, uno por línea:&#10;200 g de arroz&#10;1 lata de atún&#10;un chorrito de aceite"></textarea>
+            <button type="button" class="btn btn--sec" id="rcCalc">Calcular ingredientes</button>
+          </div>
+          <div class="ns-status" id="rcStatus"></div>
+          <div id="rcItems"></div>
+          <button type="button" class="rc-more" id="rcMore" hidden>+ Añadir ingredientes</button>
+          <div class="rc-total" id="rcTotal" hidden></div>
+          <button type="button" class="btn btn--primary" id="rcSave" hidden>Guardar receta</button>
+          <button type="button" class="rc-del" id="rcDelete" hidden>Borrar receta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventana de Objetivos (Entreno): corto y largo plazo -->
+  <div class="coach-sheet pop-sheet mp-sheet" id="goalsSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Mi plan">
+      <div class="dock-head">
+        <span class="label">Mi plan</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body">
+        <div class="seg mp-tabs" id="mpTabs">
+          <button type="button" class="seg-btn active" data-mp="plan">Plan de entrenamiento</button>
+          <button type="button" class="seg-btn" data-mp="obj">Objetivos</button>
+        </div>
+        <div id="mpPlan">
+        <div class="plan-headline mp-head" id="planHeadline" hidden></div>
+      <div id="progPane">
+        <div class="ticker prog-ticker">
+          <span class="tag">AHORA</span>
+          <span class="vals" id="progTicker"></span>
+        </div>
+        <div class="mp-sub"><span class="label">Bloques</span><span class="data-sm" id="planCount"></span></div>
+        <div id="planBlocks"></div>
+      </div>
+        </div>
+        <div id="mpObj" hidden>
+      <div class="seg" id="goalsSeg" style="margin-bottom:16px">
+        <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
+        <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
+      </div>
+      <div id="goalsPanel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Elegir qué métricas se ven en Entreno -->
+  <div class="coach-sheet pop-sheet" id="metricsSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Métricas">
+      <div class="dock-head">
+        <span class="label">Tus métricas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body"><div id="metricsPick"></div></div>
+    </div>
+  </div>
+
+  <!-- Apuntar pasos o sueño de un día -->
+  <div class="coach-sheet pop-sheet" id="logMetricSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Apuntar">
+      <div class="dock-head">
+        <span class="label" id="lmTitle">Apuntar</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body lm-body">
+        <label class="lm-row">Día <input type="date" id="lmDate"></label>
+        <label class="lm-row"><span id="lmLabel">Valor</span> <input type="number" id="lmValue" inputmode="decimal"></label>
+        <div class="ns-status" id="lmStatus"></div>
+        <button type="button" class="btn btn--primary" id="lmSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventana del calendario (Home) -->
+  <div class="coach-sheet pop-sheet" id="calSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Calendario">
+      <div class="dock-head">
+        <span class="label">Calendario</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body" id="calSheetSlot">
+      <div class="card" data-sec="calendario" data-sec-name="Calendario">
+        <div class="cal-card-head">
+          <span class="label">Calendario</span>
+          <div class="seg seg-mini" id="calSeg">
+            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
+            <button type="button" class="seg-btn" data-calview="year">Año</button>
+          </div>
+        </div>
+        <div id="calMonthView">
+          <div class="cal-head">
+            <button type="button" class="cal-btn" id="calPrev">‹</button>
+            <div class="cal-title" id="calTitle"></div>
+            <button type="button" class="cal-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div id="calYearView" style="display:none">
+          <div class="yg-title">2026</div>
+          <div id="yearGrid"></div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
   <!-- =========== BOTTOM NAV =========== -->
-  <!-- §5.7 · Píldora flotante de 5 columnas. Solo la activa lleva etiqueta. -->
+  <!-- §5.7 · Píldora flotante de 3 columnas. Solo la activa lleva etiqueta. -->
   <nav class="bottom" aria-label="Principal">
-    <button data-go="chat" aria-label="Chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>CHAT</span>
-    </button>
-    <button data-go="trainer" aria-label="Trainer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      <span>PLAN</span>
+    <button data-go="trainer" aria-label="Entreno">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
+      <span>ENTRENO</span>
     </button>
     <button class="active" data-go="home" aria-label="Home" aria-current="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -1897,10 +2055,6 @@
     <button data-go="nutrition" aria-label="Nutrición">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8C10.7 6.5 8.5 6 7 7c-1.7 1.2-2.3 3.4-2.3 5.4 0 3.9 2.5 7.6 4.5 7.6.9 0 1.6-.5 2.8-.5s1.9.5 2.8.5c2 0 4.5-3.7 4.5-7.6 0-2-.6-4.2-2.3-5.4-1.5-1-3.7-.5-5 1z"/><path d="M12 8V5.2"/><path d="M12.2 5.2c1.5-.1 2.7-1.2 2.8-2.6-1.5-.1-2.8 1.1-2.8 2.6z"/></svg>
       <span>NUTRI</span>
-    </button>
-    <button data-go="stats" aria-label="Perfil">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>
-      <span>PERFIL</span>
     </button>
   </nav>
 
@@ -1965,14 +2119,14 @@
               border-radius: 1px; transform: skewX(-16deg); }
     .date-pill { margin-left: auto; height: 30px; display: inline-flex; align-items: center; padding: 0 13px;
                  border-radius: 999px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.22);
-                 font: 500 9.5px/1 var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: #fff; }
+                 font: 500 9.5px/1 var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: #ECE8E1; }
 
     /* Héroe: titular + línea de datos + acción */
     .home-hero { position: relative; z-index: 2; margin-top: auto; padding-bottom: 26px; }
     /* El nombre del entreno lo pone el Coach y puede ser largo: el titular se
        parte en dos líneas y el tamaño se calcula para que quepa (ajustarTitular). */
     .home-title { font-size: 92px; line-height: .88; letter-spacing: -.05em;
-                  margin: 0 0 14px; color: #fff; }
+                  margin: 0 0 14px; color: #ECE8E1; }
     .home-title span { display: block; }
     .home-title .out { color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.9); }
     .home-stats { display: flex; align-items: center; gap: 9px; margin-bottom: 18px;
@@ -1989,17 +2143,17 @@
       height: calc(88px + env(safe-area-inset-top));
       padding: env(safe-area-inset-top) var(--gutter) 0;
       display: flex; align-items: center; gap: 12px;
-      background: linear-gradient(160deg,#B33A0F,#5E1B06 78%);
+      background: linear-gradient(160deg,#A51C18,#3C0A08 78%);
       border-bottom: 1px solid var(--line);
       transform: translateY(-100%); transition: transform var(--t-base) var(--ease);
       pointer-events: none;
     }
     .home-mini.show { transform: none; pointer-events: auto; }
     .home-mini .hm-title { flex: 1; min-width: 0; font: 700 19px/1 var(--f-display);
-      letter-spacing: -.03em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      letter-spacing: -.03em; color: #ECE8E1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .home-mini .hm-title .out { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.9); }
     .home-mini .hm-cta { height: 38px; padding: 0 15px; border-radius: var(--r-5);
-      background: #0A0A0A; color: #fff; font: 700 11.5px/1 var(--f-display);
+      background: #0B0B0A; color: #ECE8E1; font: 700 11.5px/1 var(--f-display);
       letter-spacing: .04em; flex-shrink: 0; display: flex; align-items: center; gap: 7px; }
     .home-mini .hm-cta svg { width: 12px; height: 12px; }
 
@@ -2025,8 +2179,8 @@
                border: 1px solid var(--line); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .ws-cell .ws-d { font: 600 9px/1 var(--f-mono); letter-spacing: .14em; color: var(--ghost-2); }
     .ws-cell .ws-tag { font: 700 8.5px/1 var(--f-mono); letter-spacing: .08em; min-height: 9px; color: var(--dim); }
-    .ws-cell .tick { width: 7px; height: 7px; border-radius: 2px; background: #26282A; }
-    .ws-cell.plan .tick { background: #6B3218; }
+    .ws-cell .tick { width: 7px; height: 7px; border-radius: 2px; background: #2A2926; }
+    .ws-cell.plan .tick { background: #5E1512; }
     .ws-cell.done .tick { background: var(--hot-solid); }
     .ws-cell.done .ws-tag { color: var(--hot-text); }
     .ws-cell.missed .tick { background: var(--off); }
@@ -2063,8 +2217,8 @@
     .hsheet.open { transform: none; }
     .hs-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .hs-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
-    .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
-    .ai-rt-text { width: 100%; box-sizing: border-box; resize: none; background: var(--bg-elev-2, #15181C); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit; margin-bottom: 10px; }
+    .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
+    .ai-rt-text { width: 100%; box-sizing: border-box; resize: none; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 16px; line-height: 1.45; font-family: inherit; margin-bottom: 10px; }
     .ai-rt-text:focus { outline: none; border-color: var(--accent); }
     .hs-opt.danger { color: #ff7a7a; }
     .hs-ex { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
@@ -2228,7 +2382,7 @@
     .sw-recur { background: var(--s4); color: var(--muted); }
     .sw-recur.on { background: var(--hot); color: var(--hot-ink); }
     .sw-next  { background: var(--hot); color: var(--hot-ink); }
-    .sw-del   { background: color-mix(in srgb, var(--danger) 84%, #000); color: #fff; }
+    .sw-del   { background: color-mix(in srgb, var(--danger) 84%, #000); color: #ECE8E1; }
 
     /* Aviso flotante (Nutrición): va por encima de la barra de navegación */
     .nutri-toast { position: fixed; z-index: 60; left: 50%; bottom: calc(var(--nav-h) + var(--nav-gap) + 16px + env(safe-area-inset-bottom));
@@ -2333,7 +2487,7 @@
                    letter-spacing: .08em; color: var(--ghost-2); word-break: break-all; }
     .drawer-hint { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 4px 14px; }
     .ld-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
-                background: var(--hot-solid); color: #fff; font: 700 11px/20px var(--f-mono);
+                background: var(--hot-solid); color: #ECE8E1; font: 700 11px/20px var(--f-mono);
                 text-align: center; flex-shrink: 0; }
     .ld-badge[hidden] { display: none; }
 
@@ -2423,7 +2577,7 @@
                       -webkit-user-drag: none; }
     /* El círculo se dibuja con una sombra enorme: todo lo de fuera se oscurece */
     .crop-mask { position: absolute; inset: 0; border-radius: 50%;
-                 box-shadow: 0 0 0 9999px rgba(5,5,5,.72); pointer-events: none; }
+                 box-shadow: 0 0 0 9999px rgba(11,11,10,.72); pointer-events: none; }
     #cropZoom { width: 100%; margin: 0 0 20px; accent-color: var(--hot-solid); }
     .crop-actions { display: flex; gap: 10px; }
     .crop-actions .btn-ghost, .crop-actions .btn-primary { margin-top: 0; flex: 1; }
@@ -2991,6 +3145,38 @@
       <span class="drawer-name">ONIX</span>
     </div>
     <div class="drawer-list">
+    </div>
+  </div>
+
+</aside>
+
+<aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
+  <div id="pdMain">
+    <!-- Tú: foto (toca para cambiarla), nombre y peso -->
+    <div class="prof-head pd-who" id="profHead">
+      <button type="button" class="prof-ava" id="profAva" aria-label="Cambiar foto de perfil">
+        <span class="ini" id="profIni">·</span>
+      </button>
+      <div class="prof-id">
+        <div class="prof-name" id="profName">—</div>
+        <div class="prof-stats">
+          <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-list">
+      <button type="button" class="drawer-item" id="pdPhoto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="11.8" cy="12.6" r="3.2"/></svg>
+        <span>Cambiar foto de perfil</span>
+      </button>
+      <button type="button" class="drawer-item" id="pdEdit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        <span>Editar mis datos</span>
+      </button>
+      <button type="button" class="drawer-item" id="pdOrder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11"/><path d="M4 12h16"/><path d="M4 18h8"/><path d="M18 15l3 3-3 3"/></svg>
+        <span>Rediseñar progreso</span>
+      </button>
       <button type="button" class="drawer-item" id="ldSync">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 6.3 5.7L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 13.7 5.3L20 16"/><path d="M20 20v-4h-4"/></svg>
         <span>Entrenos sin sincronizar</span>
@@ -3018,26 +3204,7 @@
     </div>
     <div id="ldSyncBody"></div>
   </div>
-</aside>
 
-<aside class="drawer drawer--right" id="profDrawer" aria-hidden="true">
-  <div id="pdMain">
-    <div class="drawer-head"><span class="label">Ajustes de perfil</span></div>
-    <div class="drawer-list">
-      <button type="button" class="drawer-item" id="pdPhoto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="11.8" cy="12.6" r="3.2"/></svg>
-        <span>Cambiar foto de perfil</span>
-      </button>
-      <button type="button" class="drawer-item" id="pdEdit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-        <span>Editar mis datos</span>
-      </button>
-      <button type="button" class="drawer-item" id="pdOrder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11"/><path d="M4 12h16"/><path d="M4 18h8"/><path d="M18 15l3 3-3 3"/></svg>
-        <span>Rediseñar progreso</span>
-      </button>
-    </div>
-  </div>
 
   <div id="pdOrderPane" style="display:none">
     <div class="drawer-head">
@@ -3350,17 +3517,25 @@
     const disponible = el.clientWidth || el.parentElement?.clientWidth || 340;
     const familia = getComputedStyle(el).fontFamily;
     // Se mide una vez a 100px y se escala: el ancho es proporcional al tamaño
-    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `700 100px ${familia}`) / 100));
+    const porPixel = Math.max(...lineas.map((t) => anchoTexto(t, `900 100px ${familia}`) / 100));
     if (!porPixel) return;
     el.style.fontSize = Math.max(26, Math.min(maxPx, Math.floor(disponible * 0.98 / porPixel))) + 'px';
   }
+
+  const HOME_TITLE_PX = 88;   // tamaño fijo del titular; los nombres largos encogen
 
   function homeTitleHtml(name) {
     const words = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '';
     if (words.length === 1) return `<span>${words[0]}</span>`;
-    const last = words.pop();
-    return `<span class="out">${words.join(' ')}</span> <span>${last}</span>`;
+    // Dos líneas lo más parejas posible: así un nombre largo no deja una
+    // palabra suelta abajo («Torso empuje + tirón / A»)
+    let corte = 1, mejor = Infinity;
+    for (let k = 1; k < words.length; k++) {
+      const a = words.slice(0, k).join(' ').length, b = words.slice(k).join(' ').length;
+      if (Math.max(a, b) < mejor) { mejor = Math.max(a, b); corte = k; }
+    }
+    return `<span class="out">${words.slice(0, corte).join(' ')}</span> <span>${words.slice(corte).join(' ')}</span>`;
   }
 
   function renderHome() {
@@ -3393,22 +3568,23 @@
       const estMin = Math.round(totalSets * 2.5);
       const pos = planned.findIndex(x => x.id === heroId) + 1;
       titleEl.innerHTML = homeTitleHtml(r.name);
-      ajustarTitular(titleEl, 92);
+      ajustarTitular(titleEl, HOME_TITLE_PX);
       // Línea de datos: SESIÓN 02/03 ——— 88 MIN ——— 8 EJ
       statsEl.innerHTML =
         (pos > 0 ? `<span>SESIÓN ${String(pos).padStart(2,'0')}/${String(planned.length).padStart(2,'0')}</span><i></i>` : '') +
         `<span>${estMin} MIN</span><i></i><span>${r.exercises.length} EJ</span>`;
-      ctaTxt.textContent = doneToday ? 'REPETIR SESIÓN' : 'EMPEZAR SESIÓN';
+      ctaTxt.textContent = doneToday ? 'Repetir sesión' : 'Entrenar';
       ctaEl.style.display = '';
       ctaEl.dataset.rid = heroId;
       document.getElementById('miniTitle').innerHTML = homeTitleHtml(r.name);
       document.getElementById('homeMini').dataset.rid = heroId;
     } else {
       titleEl.innerHTML = homeTitleHtml('REST');
-      ajustarTitular(titleEl, 92);
+      ajustarTitular(titleEl, HOME_TITLE_PX);
       const hechos = week.length;
-      statsEl.innerHTML = `<span>HOY NO TOCA</span><i></i><span>${hechos} DE ${target} ESTA SEMANA</span>`;
-      ctaEl.style.display = 'none';
+      statsEl.innerHTML = '';
+      ctaTxt.textContent = 'Entrenar';
+      ctaEl.style.display = '';
       delete ctaEl.dataset.rid;
       document.getElementById('miniTitle').textContent = '';
       delete document.getElementById('homeMini').dataset.rid;
@@ -3480,6 +3656,7 @@
   document.getElementById('homeCta').addEventListener('click', (e) => {
     const rid = e.currentTarget.dataset.rid;
     if (rid) startSession(rid);
+    else document.querySelector('#weekStrip .ws-cell.today')?.click();   // sin sesión: elegir una para hoy
   });
   // «+» de la cabecera: asignar entreno al día de hoy
   document.getElementById('homeAdd').addEventListener('click', () => {
@@ -3579,8 +3756,8 @@
       let cls = 'ws-cell';
       if (done) cls += ' done';                       // tick naranja
       else if (planned && isPast) cls += ' missed';   // planificado y no hecho
-      else if (planned) cls += ' plan';               // tick #6B3218
-      else cls += ' empty';                           // libre, tick #26282A
+      else if (planned) cls += ' plan';               // tick #5E1512
+      else cls += ' empty';                           // libre, tick #2A2926
       if (dateIso === today) cls += ' today';         // bloque --hot
       // §8.1: hoy en bloque naranja con «HOY»; el resto, tag + tick de estado
       const isToday = dateIso === today;
@@ -3675,7 +3852,7 @@
       .map(([id, r]) => `<button type="button" class="hs-opt" data-act="pick" data-id="${id}">
         <b>${r.tag || ''}</b>&nbsp;${r.name}
         <span style="margin-left:auto;color:var(--muted);font-size:12px">${(r.exercises || []).length} ej</span></button>`);
-    return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Trainer o pídeselas al Chat.</div>';
+    return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Entreno o pídeselas al Coach.</div>';
   }
 
   // Ver/empezar un entreno desde la lista de Trainer→Entrenos
@@ -3839,10 +4016,8 @@
   }
 
   function renderTrainer() {
-    // Título y chip cambian con la pestaña
-    const enObjetivos = document.querySelector('#trainerTabs .seg-btn.active')?.dataset.tab === 'obj';
     document.getElementById('trainerTitle').innerHTML =
-      `<span class="out">TUS</span> <span>${enObjetivos ? 'OBJETIVOS' : 'ENTRENOS'}</span>`;
+      `<span class="out">TU</span> <span>ENTRENO</span>`;
 
     renderGoals();
 
@@ -3881,14 +4056,14 @@
         }).join('');
     };
     list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home)
-      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de arriba o pídeselos al Coach en el Chat.</div>`;
+      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de Entreno o pídeselos al Coach.</div>`;
+    const nRutinas = grupos.gym.length + grupos.home.length;
+    const cuenta = document.getElementById('routinesCount');
+    if (cuenta) cuenta.textContent = nRutinas ? `${nRutinas} ${nRutinas === 1 ? 'rutina' : 'rutinas'}` : 'Aún ninguna';
 
     renderPlanHeadline();
-    // Plan macro (bloques) — vive en Chat › Programa
+    // Plan macro (bloques): sección de Entreno; también pone la semana en el chip
     renderProgramTab();
-    const chip = document.getElementById('trainerChip');
-    const chatChip = document.getElementById('chatStatus');
-    if (chip) chip.textContent = chatChip?.dataset.week || 'PLAN';
   }
 
   // ===== Dónde estás en el plan: por FECHA, nunca por plan.current_block =====
@@ -3927,6 +4102,8 @@
     if (!el) return;
     const ps = planStatus();
     el.classList.remove('caducado');
+    const tile = document.getElementById('planBtnWeek');
+    if (tile) tile.textContent = !ps ? 'Plan y objetivos' : ps.caducado ? 'Plan terminado' : ps.antes ? `Empieza el ${fmtD(ps.ini)}` : `Semana ${ps.semana} de ${ps.semanas}`;
     if (!ps) { el.hidden = true; return; }
     if (ps.caducado) {
       el.innerHTML = `<b>Tu plan terminó el ${fmtD(ps.fin)}</b> · Habla con el coach para el siguiente`;
@@ -3957,8 +4134,8 @@
     const cur = blocks.find(b => todayIso >= b.startDate && todayIso <= b.endDate);
     const totalWeeks = blocks.reduce((a, b) => a + (Number(b.weeks) || 0), 0);
     const weekNo = blocks.length ? Math.max(1, weeksBetween(blocks[0].startDate, todayIso) + 1) : 0;
-    const chip = document.getElementById('chatStatus');
-    if (chip) chip.dataset.week = totalWeeks ? `SEM ${String(Math.min(weekNo, totalWeeks)).padStart(2,'0')} / ${totalWeeks}` : '';
+    const chip = document.getElementById('trainerChip');
+    if (chip) chip.textContent = totalWeeks ? `SEM ${String(Math.min(weekNo, totalWeeks)).padStart(2,'0')} / ${totalWeeks}` : 'PLAN';
 
     // Cinta: AHORA | BLOQUE / SEM x DE y / n SESIONES
     const ticker = document.getElementById('progTicker');
@@ -4366,12 +4543,12 @@
     const line = 'M ' + pts.join(' L ');
     svg.innerHTML = `
       <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="currentColor" stop-opacity=".28"/>
-        <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#ECE8E1" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="#ECE8E1" stop-opacity="0"/>
       </linearGradient></defs>
       <path d="${line} L ${W} ${H} L 0 ${H} Z" fill="url(#${gid})"/>
-      <path d="${line}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="currentColor"/>`).join('')}`;
+      <path d="${line}" fill="none" stroke="#C8231E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="#C8231E"/>`).join('')}`;
   }
 
   let progExId = null, progIdsKey = '', progSeries = [];
@@ -4386,7 +4563,9 @@
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
       slider.innerHTML = ''; chart.innerHTML = ''; chart.style.display = 'none';
-      document.getElementById('progReadout').innerHTML = '';
+      document.getElementById('pxRow').hidden = true;
+      document.getElementById('progReadout').innerHTML = '<span class="prog-empty">Aquí aparecerán los ejercicios con más de 4 sesiones registradas.</span>';
+      document.getElementById('progInfo').innerHTML = ''; document.getElementById('progInfo').hidden = true;
       pr.style.display = 'none'; progIdsKey = ''; progSeries = [];
       sub.textContent = 'Aquí aparecerán los ejercicios con más de 4 sesiones registradas';
       return;
@@ -4403,6 +4582,12 @@
         `<button type="button" class="ex-chip" data-ex="${id}">${getExercise(id).name}</button>`).join('');
     }
     slider.querySelectorAll('.ex-chip').forEach((c) => c.classList.toggle('active', c.dataset.ex === progExId));
+    // Cabecera: el ejercicio que se ve y la lista para cambiarlo
+    document.getElementById('pxRow').hidden = false;
+    document.getElementById('pxName').textContent = getExercise(progExId).name;
+    document.getElementById('pxSwap').hidden = ids.length < 2;
+    document.getElementById('pxMenu').innerHTML = ids.map((id) =>
+      `<button type="button" class="px-opt${id === progExId ? ' on' : ''}" data-px="${id}">${getExercise(id).name}</button>`).join('');
     centerActiveChip();
     const s = topSetSeries(progExId);
     progSeries = s;
@@ -4415,6 +4600,23 @@
     pr.textContent = `PR ${fmtKg(best.kg)} kg × ${best.reps}`;
     pr.style.display = '';
     setProgPoint(s.length - 1);
+    // Info (i): sesiones, cambio desde el principio, récord y lo que pide el plan
+    const meta = metaDelPlan(getExercise(progExId).name);
+    document.getElementById('progInfo').innerHTML =
+      `<p>${sub.textContent}</p><p>Récord: <b>${fmtKg(best.kg)} kg × ${best.reps}</b></p>` +
+      (meta ? `<p>En el plan: <b>${meta}</b></p>` : '');
+  }
+
+  // Lo que el plan espera de un ejercicio: el objetivo cuyo nombre lo contiene
+  function metaDelPlan(nombre) {
+    const goals = window.ROUTINES.goals || {};
+    const base = String(nombre || '').toLowerCase().split(/[\s(]+/).filter((w) => w.length > 3);
+    for (const [k, txt] of [['shortTerm', 'corto plazo'], ['longTerm', 'largo plazo']]) {
+      const g = goals[k];
+      const t = (g?.targets || []).find((x) => base.some((w) => String(x.metric || '').toLowerCase().includes(w)));
+      if (t) return `${t.target || t.metric} · ${txt}${g.deadline ? `, hasta el ${fmtD(g.deadline)}` : ''}`;
+    }
+    return '';
   }
 
   // Punto activo de la gráfica: lectura central fecha + peso
@@ -4425,10 +4627,27 @@
     document.getElementById('progReadout').innerHTML =
       `<b>${fmtKg(p.kg)} kg × ${p.reps}</b><span>${fmtD(p.date)}</span>`;
     document.getElementById('progChart').querySelectorAll('circle').forEach((c, i) => {
-      c.setAttribute('r', i === idx ? '4.5' : '3');
-      c.setAttribute('opacity', i === idx ? '1' : '.5');
+      c.setAttribute('r', i === idx ? '5.5' : '3');
+      c.setAttribute('fill', i === idx ? '#ECE8E1' : '#C8231E');
+      c.setAttribute('opacity', '1');
     });
   }
+
+  // Lista de ejercicios (botón de cambiar): elegir uno la cierra
+  document.getElementById('pxSwap').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const m = document.getElementById('pxMenu');
+    m.hidden = !m.hidden;
+  });
+  document.getElementById('pxMenu').addEventListener('click', (e) => {
+    const opt = e.target.closest('[data-px]');
+    if (!opt) return;
+    document.getElementById('pxMenu').hidden = true;
+    if (opt.dataset.px !== progExId) { progExId = opt.dataset.px; renderProgression(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#pxMenu') && !e.target.closest('#pxSwap')) document.getElementById('pxMenu').hidden = true;
+  });
 
   // Deslizador lateral de ejercicios
   const exSliderEl = document.getElementById('exSlider');
@@ -4449,6 +4668,7 @@
     });
     return best;
   }
+  window.appCenterChip = () => centerActiveChip();
   function centerActiveChip() {
     const chip = exSliderEl.querySelector('.ex-chip.active');
     if (!chip || nearestChip() === chip) return;
@@ -4551,8 +4771,9 @@
     // un hueco vacío enorme dentro de la tarjeta.
     if (!serie.length) {
       chart.innerHTML = ''; chart.style.display = 'none';
-      out.innerHTML = ''; delta.style.display = 'none';
-      sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el botón de abajo.`;
+      out.innerHTML = `<span class="prog-empty">Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el «+».</span>`; delta.style.display = 'none';
+      document.getElementById('bodyInfo').innerHTML = ''; document.getElementById('bodyInfo').hidden = true;
+      sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el «+».`;
       return;
     }
     const first = serie[0], last = serie[serie.length - 1];
@@ -4569,6 +4790,8 @@
     drawLine(chart, serie.map((p) => p.v), 'gBody');
     setBodyPoint(serie.length - 1);
     sub.textContent = `${serie.length} registros · desde ${fmtD(first.date)}`;
+    document.getElementById('bodyInfo').innerHTML =
+      `<p>${sub.textContent}</p><p>Cambio: <b>${delta.textContent}</b></p>`;
   }
   function setBodyPoint(idx) {
     if (!bodyPoints.length) return;
@@ -4578,8 +4801,9 @@
     document.getElementById('bodyReadout').innerHTML =
       `<b>${fmtKg(p.v)} ${def.unidad}</b><span>${fmtD(p.date)}</span>`;
     document.getElementById('bodyChart').querySelectorAll('circle').forEach((c, i) => {
-      c.setAttribute('r', i === idx ? '4.5' : '3');
-      c.setAttribute('opacity', i === idx ? '1' : '.5');
+      c.setAttribute('r', i === idx ? '5.5' : '3');
+      c.setAttribute('fill', i === idx ? '#ECE8E1' : '#C8231E');
+      c.setAttribute('opacity', '1');
     });
   }
   (() => {
@@ -4738,6 +4962,13 @@
   // Métricas: peso, IMC y % de grasa. El peso viaja a la nube (tabla body_weight);
   // IMC y grasa se guardan en la nota de ese día, que es donde caben hoy.
   document.getElementById('metricsAddBtn').addEventListener('click', toggleWeightForm);
+  document.getElementById('bodyAddBtn').addEventListener('click', toggleWeightForm);
+  [['progInfoBtn', 'progInfo'], ['bodyInfoBtn', 'bodyInfo']].forEach(([b, box]) =>
+    document.getElementById(b).addEventListener('click', (e) => {
+      const el = document.getElementById(box);
+      el.hidden = !el.hidden || !el.innerHTML.trim();
+      e.currentTarget.classList.toggle('on', !el.hidden);
+    }));
   document.getElementById('weightForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const num = (id) => {
@@ -4790,7 +5021,7 @@
     window.scrollTo(0, 0);
     // El slider de ejercicios se construye con la pantalla oculta (anchos 0):
     // re-centrar el chip activo cuando Perfil se hace visible
-    if (target === 'stats') requestAnimationFrame(() => centerActiveChip());
+    if (target === 'trainer') requestAnimationFrame(() => centerActiveChip());
   }));
 
   // ============ Tracker ============
@@ -5270,39 +5501,6 @@
     if (confirm('¿Salir sin guardar el entreno?')) { clearTimeout(draftTimer); clearDraft(); closeTracker(); }
   });
 
-  // Trainer: pestañas y navegación entre semanas
-  // Pestañas del Chat: Entrenador / Programa
-  document.querySelectorAll('#chatTabs .seg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#chatTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
-      const prog = btn.dataset.ctab === 'prog';
-      document.getElementById('chatPane').style.display = prog ? 'none' : '';
-      document.getElementById('progPane').style.display = prog ? '' : 'none';
-      document.getElementById('chatForm').style.display = prog ? 'none' : 'flex';
-      // La sugerencia de CREAR MI PLAN acompaña al formulario: fuera en
-      // Programa, y de vuelta solo si la primera sesión sigue pendiente.
-      const sinPlan = !!window.__profile && !window.__profile.first_session_done;
-      document.getElementById('chatLocked').style.display = (prog || !sinPlan) ? 'none' : '';
-      // §8.3/§8.2: el chip de la cabecera cambia con la pestaña
-      const chip = document.getElementById('chatStatus');
-      chip.classList.toggle('is-week', prog);
-      chip.innerHTML = prog
-        ? (chip.dataset.week || 'PLAN')
-        : '<i class="dot"></i>EN LÍNEA';
-    });
-  });
-
-  // El título de Trainer cambia con la pestaña (ENTRENOS / OBJETIVOS)
-  document.querySelectorAll('#trainerTabs .seg-btn').forEach(b =>
-    b.addEventListener('click', () => setTimeout(renderTrainer, 0)));
-
-  document.querySelectorAll('#trainerTabs .seg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#trainerTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
-      const tab = btn.dataset.tab;
-      document.querySelectorAll('[data-screen="trainer"] > .tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
-    });
-  });
   // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
   // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
@@ -6776,7 +6974,7 @@ localStorage.removeItem('fitness_nutri_advice_v1'); // resto de la versión con 
 // ponga los suyos. Unos macros inventados parecen «su plan» sin serlo.
 const NUTRI_DEFAULT_TARGETS = { protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 };
 const NUTRI_MACROS = [
-  { k: 'protein_g', label: 'Proteína', short: 'P', color: '#FF4A1A' },
+  { k: 'protein_g', label: 'Proteína', short: 'P', color: '#C8231E' },
   { k: 'carbs_g', label: 'Hidratos', short: 'H', color: '#F2B23C' },
   { k: 'fat_g', label: 'Grasa', short: 'G', color: '#5E9BE8' },
   { k: 'fiber_g', label: 'Fibra', short: 'F', color: '#35C2B0' },
@@ -6965,7 +7163,7 @@ function renderNutriDaily() {
   $('nutriRings').innerHTML = NUTRI_MACROS.map((m, i) => {
     const r = radii[i], circ = 2 * Math.PI * r;
     const pct = Math.min(1, (totals[m.k] || 0) / (targets[m.k] || 1));
-    return `<circle cx="80" cy="80" r="${r}" fill="none" stroke="#1C1D1F" stroke-width="8"/>` +
+    return `<circle cx="80" cy="80" r="${r}" fill="none" stroke="#1F1E1C" stroke-width="8"/>` +
       (pct > 0 ? `<circle cx="80" cy="80" r="${r}" fill="none" stroke="${m.color}" stroke-width="8" stroke-linecap="round"
         stroke-dasharray="${(pct * circ).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 80 80)"/>` : '');
   }).join('');
@@ -6995,6 +7193,7 @@ function renderNutriDaily() {
   const ICO_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
   const ICO_NEXT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"/><path d="M10.5 7l4.5 5-4.5 5"/><path d="M19.5 5v14"/></svg>`;
   const mealRow = (m) => {
+    if (m.recipe_id) return recipeMealRow(m, ICO_DEL);
     const esPeriodica = !!activeRecurringOf(m);
     return `
     <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">
@@ -7031,9 +7230,22 @@ function renderNutriDaily() {
       </button>
       <div class="mt-body">
         ${items.length ? items.map(mealRow).join('') : '<div class="nutri-empty">Nada registrado en este bloque.</div>'}
+        ${items.some((m) => !m.recipe_id) ? `<button type="button" class="mt-save-recipe" data-save-recipe="${t.k}">Guardar como receta</button>` : ''}
       </div>
     </div>`;
   }).join('');
+  // Receta: desplegar sus ingredientes (sin abrir la edición de la comida)
+  $('mealList').querySelectorAll('[data-ings]').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = b.closest('.meal-item')?.querySelector('.meal-ings');
+      if (box) { box.hidden = !box.hidden; b.classList.toggle('open', !box.hidden); }
+    });
+  });
+  // Bloque → receta
+  $('mealList').querySelectorAll('[data-save-recipe]').forEach((b) => {
+    b.addEventListener('click', () => saveBlockAsRecipe(b.dataset.saveRecipe));
+  });
   $('mealList').querySelectorAll('[data-toggle]').forEach((b) => {
     b.addEventListener('click', () => {
       const k = b.dataset.toggle;
@@ -7206,7 +7418,8 @@ function renderTypeChips(containerId, active, onPick) {
 }
 function openNutriSheet() {
   nsType = defaultMealType();
-  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; });
+  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; renderNsRecipes(); });
+  renderNsRecipes();
   nsStatus('');
   openSheet('nutriSheet');
   setTimeout(() => $('nsText').focus(), 250);
@@ -7301,6 +7514,301 @@ async function analyzeAndAdd({ text, imageB64 }) {
   return items.length;
 }
 
+// ============ RECETAS ============
+// Una receta guarda sus ingredientes (con los macros de cada uno) y los
+// totales de la receta entera. Se apunta de una vez, en la ración elegida,
+// como UNA fila de meals con recipe_id: el día se ve por recetas.
+const RECIPES_KEY = 'fitness_recipes_v1';
+const loadRecipes = () => { try { return JSON.parse(localStorage.getItem(RECIPES_KEY)) || []; } catch { return []; } };
+const saveRecipesLocal = (list) => localStorage.setItem(RECIPES_KEY, JSON.stringify(list));
+const MACRO_KEYS = ['kcal', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g'];
+const r1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
+const sumMacros = (items) => {
+  const t = {}; MACRO_KEYS.forEach((k) => { t[k] = r1(items.reduce((a, it) => a + (Number(it[k]) || 0), 0)); });
+  return t;
+};
+const escHtml = (x) => String(x ?? '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+const racionTxt = (n) => (n === 0.5 ? '½ ración' : n === 1 ? '1 ración' : `${String(n).replace('.', ',')} raciones`);
+
+async function pullRecipes() {
+  try {
+    const { data, error } = await sb.from('recipes').select('*').order('name');
+    if (!error && Array.isArray(data)) saveRecipesLocal(data);
+  } catch { /* sin red: se queda lo guardado */ }
+}
+
+// Fila de una comida que viene de una receta
+function recipeMealRow(m, icoDel) {
+  const rec = loadRecipes().find((r) => r.id === m.recipe_id);
+  const factor = rec ? (Number(m.recipe_servings) || 1) / (Number(rec.servings) || 1) : 1;
+  const ings = rec ? (rec.ingredients || []) : [];
+  return `
+    <div class="meal-item is-recipe" data-meal="${m.id}">
+      <div class="sw-side sw-side--right">
+        <button type="button" class="sw-act sw-del" data-act="del" aria-label="Eliminar">${icoDel}</button>
+      </div>
+      <div class="meal-face">
+        <div class="meal-top">
+          <span class="meal-name">${escHtml(m.description)}</span>
+          ${ings.length ? `<button type="button" class="meal-ing-btn" data-ings aria-label="Ver ingredientes">${ings.length} ingr.</button>` : ''}
+          <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
+        </div>
+        <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
+          `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}
+          <span class="meal-rtag">Receta · ${racionTxt(Number(m.recipe_servings) || 1)}</span></div>
+        <div class="meal-ings" hidden>${ings.map((it) =>
+          `<div class="mi-row"><span>${escHtml(it.description)}</span><b>${Math.round((Number(it.kcal) || 0) * factor)}</b></div>`).join('')}</div>
+      </div>
+    </div>`;
+}
+
+// Apuntar una receta en el día y bloque que se ven
+async function logRecipe(rec, raciones) {
+  const factor = raciones / (Number(rec.servings) || 1);
+  const fila = {
+    date: nutriDay, meal_type: nsType, source: 'recipe',
+    description: rec.name, recipe_id: rec.id, recipe_servings: raciones,
+  };
+  MACRO_KEYS.forEach((k) => { fila[k] = r1((Number(rec[k]) || 0) * factor); });
+  const { data, error } = await sb.from('meals').insert(fila).select();
+  if (error) throw error;
+  saveMeals(loadMeals().concat(data || []));
+}
+
+// Recetas en la hoja de registrar: botón por receta; al tocarlo, la ración
+function renderNsRecipes() {
+  const box = $('nsRecipes');
+  if (!box) return;
+  // Las del tipo elegido (las que aún no tienen tipo salen en todos)
+  const todas = loadRecipes();
+  const list = todas.filter((r) => !r.category || r.category === nsType);
+  box.hidden = !todas.length;
+  const tipo = (MEAL_TYPES.find((t) => t.k === nsType)?.label || '').toLowerCase();
+  if (!list.length) { box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div><div class="ns-rc-none">No tienes recetas de ${tipo}. Créalas en «Recetas».</div>`; return; }
+  box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div>
+    <div class="ns-rc-chips">${list.map((r) => `<button type="button" class="ns-rc" data-rc="${r.id}">${escHtml(r.name)}</button>`).join('')}</div>
+    <div class="ns-rc-pick" id="nsRcPick" hidden></div>`;
+  box.querySelectorAll('[data-rc]').forEach((b) => b.addEventListener('click', () => {
+    box.querySelectorAll('[data-rc]').forEach((x) => x.classList.toggle('active', x === b));
+    const rec = list.find((r) => r.id === b.dataset.rc);
+    const porRacion = Math.round((Number(rec.kcal) || 0) / (Number(rec.servings) || 1));
+    const pick = $('nsRcPick');
+    pick.hidden = false;
+    pick.innerHTML = `<span class="ns-rc-kcal">${porRacion} kcal por ración</span>` +
+      [0.5, 1, 2].map((n) => `<button type="button" class="ns-type" data-rac="${n}">${n === 0.5 ? '½' : n}</button>`).join('');
+    pick.querySelectorAll('[data-rac]').forEach((rb) => rb.addEventListener('click', async () => {
+      pick.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+      nsStatus('Apuntando…');
+      try {
+        await logRecipe(rec, Number(rb.dataset.rac));
+        if (navigator.vibrate) navigator.vibrate(30);
+        nsStatus('');
+        closeNutriSheet();
+        renderNutrition();
+      } catch (err) {
+        nsStatus(String(err?.message || err), true);
+        pick.querySelectorAll('button').forEach((x) => { x.disabled = false; });
+      }
+    }));
+  }));
+}
+
+// ----- Ventana de recetas: lista y editor -----
+const recipesSheet = $('recipesSheet');
+let rcEditando = null;   // receta que se edita (null = nueva)
+let rcItems = [];        // ingredientes calculados o cargados
+
+let rcCat = 'other';     // tipo de la receta que se edita
+let rcAbierto = -1;      // ingrediente abierto para editar
+
+// Lista agrupada por tipo: Desayuno, Comida, Cena y Otros; cada uno se despliega
+function rcMostrarLista() {
+  rcEditando = null;
+  $('rcEdit').hidden = true; $('rcList').hidden = false; $('rcBack').hidden = true;
+  $('rcHeadTitle').textContent = 'Recetas';
+  const list = loadRecipes();
+  const fila = (r) => {
+    const sv = Number(r.servings) || 1;
+    return `<button type="button" class="rc-row" data-edit="${r.id}">
+      <span class="rc-row-n">${escHtml(r.name)}<small>${(r.ingredients || []).length} ingredientes${sv !== 1 ? ` · ${racionTxt(sv)}` : ''}</small></span>
+      <span class="rc-row-k">${Math.round((Number(r.kcal) || 0) / sv)}<small> kcal/ración</small></span>
+    </button>`;
+  };
+  $('rcList').innerHTML = (list.length
+    ? MEAL_TYPES.map((t) => {
+        const deTipo = list.filter((r) => (r.category || 'other') === t.k);
+        return `<details class="rc-group" ${deTipo.length ? '' : 'data-empty'}>
+          <summary class="rc-gh"><span>${t.label}</span><span class="rc-gn">${deTipo.length || '—'}</span></summary>
+          ${deTipo.length ? deTipo.map(fila).join('') : '<div class="rc-gempty">Aún no hay recetas de este tipo.</div>'}
+        </details>`;
+      }).join('')
+    : '<div class="nutri-empty">Aún no tienes recetas. Crea una o guarda un bloque del día con «Guardar como receta».</div>')
+    + '<button type="button" class="btn btn--primary rc-new" id="rcNew">Nueva receta</button>';
+  $('rcList').querySelectorAll('[data-edit]').forEach((b) =>
+    b.addEventListener('click', () => rcAbrirEditor(list.find((r) => r.id === b.dataset.edit))));
+  $('rcNew').addEventListener('click', () => rcAbrirEditor(null));
+}
+
+function rcPintarCats() {
+  renderTypeChips('rcCats', rcCat, (t) => { rcCat = t; });
+}
+
+// Al abrir una receta se edita lo que ya tiene; lo de crear (raciones y la IA)
+// solo aparece en una nueva o al tocar «Añadir ingredientes»
+function rcAbrirEditor(rec) {
+  rcEditando = rec;
+  rcAbierto = -1;
+  rcItems = rec ? (rec.ingredients || []).map((x) => ({ ...x })) : [];
+  rcCat = rec?.category || (rec ? 'other' : nsType || 'other');
+  $('rcList').hidden = true; $('rcEdit').hidden = false; $('rcBack').hidden = false;
+  $('rcHeadTitle').textContent = rec ? 'Editar receta' : 'Nueva receta';
+  $('rcName').value = rec?.name || '';
+  $('rcServings').value = rec?.servings || 1;
+  $('rcText').value = '';
+  $('rcStatus').textContent = '';
+  $('rcDelete').hidden = !rec;
+  $('rcAdd').hidden = !!rec;
+  $('rcMore').hidden = !rec;
+  rcPintarCats();
+  rcPintarItems();
+}
+$('rcMore').addEventListener('click', () => { $('rcAdd').hidden = false; $('rcMore').hidden = true; $('rcText').focus(); });
+
+// Gramos de un ingrediente: los guardados o los que dice su nombre («200 g de arroz»)
+const gramosDe = (it) => {
+  if (Number(it.grams) > 0) return Number(it.grams);
+  const m = String(it.description || '').match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos)\b/i);
+  return m ? Number(m[1].replace(',', '.')) : null;
+};
+const CAMPOS_ING = [['grams', 'Gramos'], ['kcal', 'Kcal'], ['protein_g', 'Proteína'], ['carbs_g', 'Hidratos'], ['fat_g', 'Grasa'], ['fiber_g', 'Fibra']];
+
+function rcPintarItems() {
+  $('rcItems').innerHTML = rcItems.map((it, i) => {
+    const g = gramosDe(it);
+    const abierto = i === rcAbierto;
+    return `
+    <div class="rc-item${abierto ? ' open' : ''}" data-i="${i}">
+      <button type="button" class="rc-item-face" data-abrir="${i}">
+        <span class="rc-item-n">${escHtml(it.description)}</span>
+        <span class="rc-item-m">${g ? `${r1(g)} g · ` : ''}${Math.round(it.kcal || 0)} kcal · P ${r1(it.protein_g)} · H ${r1(it.carbs_g)} · G ${r1(it.fat_g)} · F ${r1(it.fiber_g)}</span>
+      </button>
+      <button type="button" class="rc-item-x" data-quitar="${i}" aria-label="Quitar">×</button>
+      ${abierto ? `<div class="rc-ed">
+        <input type="text" class="rc-ed-n" data-campo="description" value="${escHtml(it.description)}">
+        <div class="rc-ed-grid">${CAMPOS_ING.map(([k, l]) => `<label><span>${l}</span>
+          <input type="number" inputmode="decimal" step="0.1" data-campo="${k}" value="${k === 'grams' ? (g ?? '') : r1(it[k])}"></label>`).join('')}</div>
+        <p class="rc-ed-hint">Si cambias los gramos, el resto se ajusta en proporción.</p>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  $('rcItems').querySelectorAll('[data-quitar]').forEach((b) => b.addEventListener('click', () => {
+    rcItems.splice(Number(b.dataset.quitar), 1); rcAbierto = -1; rcPintarItems();
+  }));
+  $('rcItems').querySelectorAll('[data-abrir]').forEach((b) => b.addEventListener('click', () => {
+    const i = Number(b.dataset.abrir);
+    rcAbierto = rcAbierto === i ? -1 : i;
+    rcPintarItems();
+  }));
+  // Edición de un ingrediente: al cambiar los gramos, los macros se escalan
+  $('rcItems').querySelectorAll('.rc-ed [data-campo]').forEach((inp) => inp.addEventListener('change', () => {
+    const it = rcItems[rcAbierto];
+    const k = inp.dataset.campo;
+    if (k === 'description') { it.description = inp.value.trim() || it.description; }
+    else {
+      const v = Number(String(inp.value).replace(',', '.'));
+      if (!Number.isFinite(v) || v < 0) return;
+      if (k === 'grams') {
+        const antes = gramosDe(it);
+        if (antes && antes > 0) MACRO_KEYS.forEach((m) => { it[m] = r1((Number(it[m]) || 0) * v / antes); });
+        it.grams = v;
+        // Y el nombre dice los gramos nuevos («200 g de arroz» → «300 g de arroz»)
+        it.description = String(it.description).replace(/(\d+(?:[.,]\d+)?)(\s*(?:g|gr|grs|gramos)\b)/i, `${String(v).replace('.', ',')}$2`);
+      } else it[k] = v;
+    }
+    rcPintarItems();
+  }));
+  const t = sumMacros(rcItems);
+  const sv = Number($('rcServings').value) || 1;
+  $('rcTotal').hidden = !rcItems.length;
+  $('rcSave').hidden = !rcItems.length;
+  $('rcTotal').innerHTML = `<b>${Math.round(t.kcal)}</b> kcal en total` +
+    (sv !== 1 ? ` · <b>${Math.round(t.kcal / sv)}</b> por ración` : '') +
+    `<small>P ${t.protein_g} · H ${t.carbs_g} · G ${t.fat_g} · F ${t.fiber_g}</small>`;
+}
+$('rcServings').addEventListener('input', rcPintarItems);
+
+// Los ingredientes los calcula la misma IA que las comidas (no se guarda ninguna comida)
+$('rcCalc').addEventListener('click', async () => {
+  const text = $('rcText').value.trim();
+  if (!text) { $('rcStatus').textContent = 'Escribe los ingredientes, uno por línea.'; return; }
+  const btn = $('rcCalc');
+  btn.disabled = true; $('rcStatus').textContent = 'Calculando…';
+  try {
+    const { data, error } = await sb.functions.invoke('nutrition', { body: { mode: 'analyze', text } });
+    if (data?.limit) { $('rcStatus').textContent = ''; showAiLimit(data.limit); return; }
+    if (error || data?.error) throw new Error(data?.error || 'No he podido calcularlo. Prueba otra vez.');
+    const nuevos = (data?.items || []).map((it) => {
+      const x = { description: it.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(it[k]); }); return x;
+    });
+    if (!nuevos.length) throw new Error('No he reconocido ingredientes ahí.');
+    rcItems = rcItems.concat(nuevos);
+    $('rcText').value = '';
+    $('rcStatus').textContent = '';
+    rcPintarItems();
+  } catch (err) {
+    $('rcStatus').textContent = String(err?.message || err);
+  } finally { btn.disabled = false; }
+});
+
+$('rcSave').addEventListener('click', async () => {
+  const name = $('rcName').value.trim();
+  if (!name) { $('rcStatus').textContent = 'Ponle un nombre a la receta.'; $('rcName').focus(); return; }
+  const fila = { name, category: rcCat, servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
+    updated_at: new Date().toISOString() };
+  const btn = $('rcSave');
+  btn.disabled = true;
+  try {
+    const guardar = (f) => (rcEditando ? sb.from('recipes').update(f).eq('id', rcEditando.id) : sb.from('recipes').insert(f));
+    let { error } = await guardar(fila);
+    if (error && /category/i.test(error.message || '')) {
+      const { category, ...sinTipo } = fila; void category;
+      ({ error } = await guardar(sinTipo));
+    }
+    if (error) throw error;
+    await pullRecipes();
+    rcMostrarLista();
+  } catch (err) {
+    $('rcStatus').textContent = 'No se ha podido guardar: ' + String(err?.message || err);
+  } finally { btn.disabled = false; }
+});
+
+$('rcDelete').addEventListener('click', async () => {
+  if (!rcEditando || !confirm(`¿Borrar la receta «${rcEditando.name}»? Las comidas ya apuntadas no se borran.`)) return;
+  const { error } = await sb.from('recipes').delete().eq('id', rcEditando.id);
+  if (error) { $('rcStatus').textContent = 'No se ha podido borrar: ' + error.message; return; }
+  await pullRecipes();
+  rcMostrarLista();
+});
+
+$('rcBack').addEventListener('click', rcMostrarLista);
+$('recipesBtn').addEventListener('click', () => { rcMostrarLista(); abrirHoja(recipesSheet); pullRecipes().then(() => { if (!rcEditando && !$('rcList').hidden) rcMostrarLista(); }); });
+recipesSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(recipesSheet)));
+
+// «Guardar como receta»: lo apuntado en un bloque del día pasa a ser receta
+async function saveBlockAsRecipe(tipo) {
+  const items = mealsOf(nutriDay).filter((m) => (m.meal_type || 'other') === tipo && !m.recipe_id);
+  if (!items.length) return;
+  const name = prompt('Nombre de la receta', MEAL_TYPES.find((t) => t.k === tipo)?.label || 'Receta');
+  if (!name || !name.trim()) return;
+  const ingredients = items.map((m) => { const x = { description: m.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(m[k]); }); return x; });
+  const nueva = { name: name.trim(), category: tipo, servings: 1, ingredients, ...sumMacros(ingredients) };
+  let { error } = await sb.from('recipes').insert(nueva);
+  if (error && /category/i.test(error.message || '')) { delete nueva.category; ({ error } = await sb.from('recipes').insert(nueva)); }
+  if (error) { alert('No se ha podido guardar la receta: ' + error.message); return; }
+  await pullRecipes();
+  alert(`Receta «${name.trim()}» guardada. La tienes en Recetas y al registrar comida.`);
+}
+
 async function nsSubmit(imageB64) {
   const text = $('nsText').value.trim();
   if (!imageB64 && !text) { nsStatus('Escribe (o dicta) lo que has comido, o haz una foto.', true); return; }
@@ -7321,6 +7829,9 @@ async function nsSubmit(imageB64) {
 }
 
 $('mealAddBtn').addEventListener('click', openNutriSheet);
+// Las hojas de comida se abren también desde Home: al nivel de la página
+['nsBackdrop', 'nutriSheet', 'maSheet', 'editSheet'].forEach((id) => { const el = $(id); if (el) document.body.appendChild(el); });
+$('homeMealBtn').addEventListener('click', () => { nutriDay = nutriIso(); renderNutriDaily(); openNutriSheet(); });
 $('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
 $('nsPhoto').addEventListener('click', () => $('nsFile').click());
@@ -8029,7 +8540,7 @@ function cerrarIntroCoach() {
 // mensaje que la dispara no se enseña — el primero que se lee es el del Coach.
 function empezarPrimeraSesion() {
   cerrarIntroCoach();
-  document.querySelector('[data-go="chat"]')?.click();
+  window.appOpenCoach?.();
   setTimeout(() => sendChat('Quiero crear mi plan.', { oculto: true }), 250);
 }
 $('coachGo').addEventListener('click', empezarPrimeraSesion);
@@ -8055,14 +8566,14 @@ function cerrarCajones() {
 }
 function abrirCajon(el) {
   cerrarCajones();
-  if (el === logoDrawer) panelMenu();
+  if (el === profDrawer) panelMenu();
   el.classList.add('open');
   el.setAttribute('aria-hidden', 'false');
   drawerVeil.classList.add('open');
   // El email se rellena después y sin bloquear: sin conexión, `getUser()`
   // se queda colgado o falla, y el cajón no llegaba a abrirse — justo cuando
   // más falta hace (es donde se ve lo que está sin sincronizar).
-  if (el === logoDrawer) {
+  if (el === profDrawer) {
     sb.auth.getUser()
       .then(({ data }) => { $('ldEmail').textContent = data?.user?.email || ''; })
       .catch(() => {});
@@ -8070,17 +8581,17 @@ function abrirCajon(el) {
 }
 drawerVeil.addEventListener('click', cerrarCajones);
 
-// El logo de CUALQUIER pantalla abre el menú de la app
+// Los ajustes se abren desde el logo, arriba a la derecha en cada pantalla (Adrián, 9-nov)
 document.addEventListener('click', (e) => {
-  if (e.target.closest('.logo') && !e.target.closest('.drawer')) abrirCajon(logoDrawer);
+  if (e.target.closest('.logo') && !e.target.closest('.drawer')) { panelAjustes(); abrirCajon(profDrawer); }
 });
 
 // ---------- Panel "Sin sincronizar" (cajón de la izquierda) ----------
 // Tres cosas en un sitio: el entreno que quedó a medias, la cola que no ha
 // subido, y las notas de ejercicio que siguen en el móvil (de ahí se rescata
 // una sesión apuntada solo con notas que nunca llegó a la nube).
-const panelMenu = () => { $('ldMain').style.display = ''; $('ldSyncPane').style.display = 'none'; };
-const panelSync = () => { $('ldMain').style.display = 'none'; $('ldSyncPane').style.display = ''; pintarSync(); };
+const panelMenu = () => { $('pdMain').style.display = ''; $('pdOrderPane').style.display = 'none'; $('ldSyncPane').style.display = 'none'; };
+const panelSync = () => { $('pdMain').style.display = 'none'; $('pdOrderPane').style.display = 'none'; $('ldSyncPane').style.display = ''; pintarSync(); };
 $('ldSyncBack').addEventListener('click', panelMenu);
 $('ldSync').addEventListener('click', panelSync);
 
@@ -8212,8 +8723,8 @@ $('ldLogout').addEventListener('click', async () => {
 });
 
 // ---------- Ajustes de Perfil (cajón de la derecha) ----------
-const panelAjustes = () => { $('pdMain').style.display = ''; $('pdOrderPane').style.display = 'none'; };
-const panelOrden = () => { $('pdMain').style.display = 'none'; $('pdOrderPane').style.display = ''; };
+const panelAjustes = () => { $('pdMain').style.display = ''; $('pdOrderPane').style.display = 'none'; $('ldSyncPane').style.display = 'none'; };
+const panelOrden = () => { $('pdMain').style.display = 'none'; $('pdOrderPane').style.display = ''; $('ldSyncPane').style.display = 'none'; };
 
 $('profAcct')?.addEventListener('click', () => { panelAjustes(); abrirCajon(profDrawer); });
 $('pdPhoto').addEventListener('click', () => { cerrarCajones(); avatarInput.click(); });
@@ -8326,7 +8837,7 @@ const abrirHojaFoto = () => {
 const cerrarHojaFoto = () => { hsBack.classList.remove('open'); photoSheet.classList.remove('open'); };
 hsBack.addEventListener('click', cerrarHojaFoto);
 
-$('profAva')?.addEventListener('click', abrirHojaFoto);
+$('profAva')?.addEventListener('click', () => { cerrarCajones(); abrirHojaFoto(); });
 $('phNew').addEventListener('click', () => { cerrarHojaFoto(); avatarInput.click(); });
 $('phEdit').addEventListener('click', () => {
   cerrarHojaFoto();
@@ -8701,8 +9212,31 @@ chatForm.addEventListener('submit', (e) => {
   chatText.value = '';
   sendChat(text);
 });
-// Al volver al chat tras un rato inactivo, la conversación se archiva y se vacía
-document.querySelector('[data-go="chat"]')?.addEventListener('click', async () => {
+// ---------- Ventanas emergentes: Coach, Mis entrenamientos, Calendario ----------
+// Las tres son la misma hoja que el Coach del tracker. Se abren en dos pasos
+// (display y luego la transición) y se cierran igual, al revés.
+function abrirHoja(hoja) {
+  if (hoja.classList.contains('open')) return;
+  hoja.classList.add('open');
+  hoja.setAttribute('aria-hidden', 'false');
+  void hoja.offsetWidth;
+  hoja.classList.add('on');
+}
+function cerrarHoja(hoja, alCerrar) {
+  if (!hoja.classList.contains('open')) return;
+  hoja.classList.remove('on');
+  document.activeElement?.blur?.();
+  setTimeout(() => {
+    hoja.classList.remove('open');
+    hoja.setAttribute('aria-hidden', 'true');
+    alCerrar?.();
+  }, 260);
+}
+
+// Coach: al abrirlo tras un rato inactivo, la conversación se archiva y se vacía
+const coachSheet = $('coachSheet');
+async function abrirCoach() {
+  abrirHoja(coachSheet);
   if (!chatEnEspera && chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
     await archiveThread('coach', chatHistory, chatLastTs);
     saveLive('coach', [], 0);
@@ -8711,7 +9245,156 @@ document.querySelector('[data-go="chat"]')?.addEventListener('click', async () =
   }
   const box = $('chatBox');
   if (box) box.scrollTop = box.scrollHeight;
+}
+window.appOpenCoach = abrirCoach;
+$('coachFab').addEventListener('click', abrirCoach);
+// El Coach se abre desde el icono de arriba a la derecha de cada pantalla
+document.querySelectorAll('[data-coach]').forEach((b) => b.addEventListener('click', abrirCoach));
+$('coachSheetClose').addEventListener('click', () => cerrarHoja(coachSheet));
+$('coachSheetBack').addEventListener('click', () => cerrarHoja(coachSheet));
+
+// Mis entrenamientos (Entreno). Al tocar uno se abre su vista encima y, al
+// volver, la lista sigue ahí.
+const routinesSheet = $('routinesSheet');
+$('routinesBtn').addEventListener('click', () => abrirHoja(routinesSheet));
+routinesSheet.querySelectorAll('[data-close]').forEach((b) =>
+  b.addEventListener('click', () => cerrarHoja(routinesSheet)));
+
+// Calendario (Home): se presta la tarjeta de Entreno y se devuelve al cerrar,
+// para no tener dos calendarios con los mismos ids.
+const calSheet = $('calSheet');
+$('homeCalBtn').addEventListener('click', () => abrirHoja(calSheet));
+
+// ============ ENTRENO (Adrián, 9-nov) ============
+// Objetivos en su ventana
+const goalsSheet = $('goalsSheet');
+$('planBtn').addEventListener('click', () => abrirHoja(goalsSheet));
+document.querySelectorAll('#mpTabs [data-mp]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('#mpTabs [data-mp]').forEach((x) => x.classList.toggle('active', x === b));
+  $('mpPlan').hidden = b.dataset.mp !== 'plan';
+  $('mpObj').hidden = b.dataset.mp !== 'obj';
+}));
+goalsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(goalsSheet)));
+
+// Progresión: la de los entrenos o la física, una cada vez (se recuerda)
+const PROG_KEY = 'fitness_prog_view_v1';
+function pintarProgSwitch(vista) {
+  document.querySelectorAll('#progSwitch [data-prog]').forEach((b) => b.classList.toggle('active', b.dataset.prog === vista));
+  ['progresion', 'fisica'].forEach((k) => {
+    const card = document.querySelector(`#statsCards [data-sec="${k}"]`);
+    if (card) card.hidden = k !== vista;
+  });
+  if (vista === 'progresion') requestAnimationFrame(() => window.appCenterChip?.());
+}
+document.querySelectorAll('#progSwitch [data-prog]').forEach((b) => b.addEventListener('click', () => {
+  try { localStorage.setItem(PROG_KEY, b.dataset.prog); } catch { /* sin almacenamiento */ }
+  pintarProgSwitch(b.dataset.prog);
+}));
+pintarProgSwitch((() => { try { return localStorage.getItem(PROG_KEY) || 'progresion'; } catch { return 'progresion'; } })());
+
+// ----- Métricas: tú eliges qué tarjetas se ven (como en Salud) -----
+const METRICS = [
+  { k: 'carrera', label: 'Carrera', sub: 'Kilómetros por semana, ritmo y últimas salidas' },
+  { k: 'pasos', label: 'Pasos', sub: 'Pasos al día, apuntados a mano' },
+  { k: 'sueno', label: 'Sueño', sub: 'Horas dormidas cada noche' },
+];
+const METRICS_KEY = 'fitness_metrics_v1';
+const metricasVisibles = () => {
+  try { const v = JSON.parse(localStorage.getItem(METRICS_KEY)); if (Array.isArray(v)) return v; } catch { /* nada */ }
+  return METRICS.map((m) => m.k);
+};
+function pintarMetricas() {
+  const vis = metricasVisibles();
+  document.querySelectorAll('#metricCards [data-metric]').forEach((c) => { c.hidden = !vis.includes(c.dataset.metric); });
+  pintarDiarias();
+}
+function pintarSelectorMetricas() {
+  const vis = metricasVisibles();
+  $('metricsPick').innerHTML = METRICS.map((m) => `
+    <label class="mp-row">
+      <span><b>${m.label}</b><small>${m.sub}</small></span>
+      <input type="checkbox" data-mk="${m.k}" ${vis.includes(m.k) ? 'checked' : ''}>
+    </label>`).join('') + '<p class="mp-hint">Más adelante: peso, pulsaciones en reposo y lo que conectemos de Salud o Google Fit.</p>';
+  $('metricsPick').querySelectorAll('[data-mk]').forEach((cb) => cb.addEventListener('change', () => {
+    const nuevas = [...$('metricsPick').querySelectorAll('[data-mk]:checked')].map((x) => x.dataset.mk);
+    try { localStorage.setItem(METRICS_KEY, JSON.stringify(nuevas)); } catch { /* sin almacenamiento */ }
+    pintarMetricas();
+  }));
+}
+const metricsSheet = $('metricsSheet');
+$('metricsEdit').addEventListener('click', () => { pintarSelectorMetricas(); abrirHoja(metricsSheet); });
+metricsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(metricsSheet)));
+
+// ----- Pasos y sueño: un registro por día (tabla daily_metrics) -----
+const DAILY_KEY = 'fitness_daily_metrics_v1';
+let diariasActivas = true;   // false si la tabla aún no existe
+const loadDiarias = () => { try { return JSON.parse(localStorage.getItem(DAILY_KEY)) || []; } catch { return []; } };
+async function pullDailyMetrics() {
+  try {
+    const desde = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await sb.from('daily_metrics').select('date, steps, sleep_h').gte('date', desde).order('date');
+    if (error) { diariasActivas = !/daily_metrics|relation|schema cache/i.test(error.message || ''); }
+    else { diariasActivas = true; localStorage.setItem(DAILY_KEY, JSON.stringify(data || [])); }
+  } catch { /* sin red: lo guardado */ }
+  pintarMetricas();
+}
+const isoDia = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function tarjetaDiaria(campo, unidad, fmt) {
+  if (!diariasActivas) return '<div class="nutri-empty">Se activa en cuanto esté lista la base de datos.</div>';
+  const filas = loadDiarias();
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const iso = isoDia(d);
+    const f = filas.find((x) => x.date === iso);
+    dias.push({ iso, v: f && f[campo] != null ? Number(f[campo]) : null, l: 'LMXJVSD'[(d.getDay() + 6) % 7] });
+  }
+  const conDato = dias.filter((d) => d.v != null);
+  if (!conDato.length) return `<div class="nutri-empty">Aún no hay datos. Toca «Añadir» para apuntar el de hoy.</div>`;
+  const max = Math.max(...conDato.map((d) => d.v), 1);
+  const media = conDato.reduce((a, d) => a + d.v, 0) / conDato.length;
+  const ultimo = conDato[conDato.length - 1];
+  return `<div class="mc-top"><span class="metric-l">${fmt(ultimo.v)}</span><span class="mc-u">${unidad}</span>
+      <span class="mc-avg">Media 7 días <b>${fmt(media)}</b></span></div>
+    <div class="mc-bars">${dias.map((d) => `<span class="mc-bar"><i style="height:${d.v != null ? Math.max(4, (d.v / max) * 100) : 0}%"></i><small>${d.l}</small></span>`).join('')}</div>`;
+}
+function pintarDiarias() {
+  const pasos = $('stepsBody'), sueno = $('sleepBody');
+  if (pasos) pasos.innerHTML = tarjetaDiaria('steps', 'pasos', (n) => Math.round(n).toLocaleString('es-ES'));
+  if (sueno) sueno.innerHTML = tarjetaDiaria('sleep_h', 'h', (n) => (Math.round(n * 10) / 10).toLocaleString('es-ES'));
+}
+// Apuntar el dato de un día
+const logMetricSheet = $('logMetricSheet');
+let lmCampo = 'steps';
+document.querySelectorAll('[data-log]').forEach((b) => b.addEventListener('click', () => {
+  lmCampo = b.dataset.log;
+  const pasos = lmCampo === 'steps';
+  $('lmTitle').textContent = pasos ? 'Pasos' : 'Sueño';
+  $('lmLabel').textContent = pasos ? 'Pasos' : 'Horas dormidas';
+  $('lmValue').step = pasos ? '1' : '0.25';
+  $('lmValue').placeholder = pasos ? '8500' : '7,5';
+  $('lmValue').value = '';
+  $('lmDate').value = isoDia(new Date());
+  $('lmStatus').textContent = diariasActivas ? '' : 'Todavía no se puede guardar: falta activar la base de datos.';
+  abrirHoja(logMetricSheet);
+}));
+logMetricSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(logMetricSheet)));
+$('lmSave').addEventListener('click', async () => {
+  const v = Number(String($('lmValue').value).replace(',', '.'));
+  if (!Number.isFinite(v) || v < 0) { $('lmStatus').textContent = 'Escribe un número.'; return; }
+  const fila = { date: $('lmDate').value || isoDia(new Date()), [lmCampo]: lmCampo === 'steps' ? Math.round(v) : v };
+  const btn = $('lmSave'); btn.disabled = true;
+  try {
+    const { error } = await sb.from('daily_metrics').upsert(fila, { onConflict: 'user_id,date' });
+    if (error) throw error;
+    await pullDailyMetrics();
+    cerrarHoja(logMetricSheet);
+  } catch (err) {
+    $('lmStatus').textContent = 'No se ha podido guardar: ' + String(err?.message || err);
+  } finally { btn.disabled = false; }
 });
+pintarMetricas();
+calSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(calSheet)));
 
 // ---------- Hoja de historial ----------
 async function openChatHistory() {
@@ -8814,6 +9497,8 @@ async function boot(loggedIn) {
   await pullBodyWeight();
   await pullExNotes();
   await pullMeals();
+  await pullRecipes();
+  await pullDailyMetrics();
   await materializeRecurring();
   await flushStaleThreads();
   renderNutrition();
@@ -8830,6 +9515,282 @@ async function boot(loggedIn) {
 }
 boot(false);
 </script>
+
+<style>
+  /* ════════ Estructura de 3 pestañas (nov-2026): Entreno · Home · Nutri ════════ */
+  /* Sitio para que el botón del Coach no tape lo último de cada pantalla */
+  #app { padding-bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 96px); }
+
+  /* Home: quién eres, racha grande, check y el calendario a un botón */
+  [data-screen="home"] .prof-head { margin: 18px 0 14px; }
+  [data-screen="home"] .prof-ava { width: 58px; height: 58px; }
+  [data-screen="home"] .prof-ava .ini { font-size: 22px; }
+  [data-screen="home"] .prof-name { font-size: 23px; margin-bottom: 6px; }
+  [data-screen="home"] .prof-head .btn-icon { margin-left: auto; }
+  .home-tiles .tile { height: 116px; }
+  #tileStreak .metric-xl { font-size: 76px; }
+  .home-check { margin-top: 14px; }
+  .home-cal-btn, .tr-routines-btn { width: 100%; margin-top: 14px; }
+  .tr-routines-btn { margin: 0 0 6px; justify-content: flex-start; gap: 10px; }
+  .tr-routines-btn #routinesCount { margin-left: auto; }
+
+  /* Entreno: una sola vista, por secciones */
+  [data-screen="trainer"] #statsCards { margin-bottom: 6px; }
+  [data-screen="trainer"] #progPane .prog-ticker { margin-top: 8px; }
+
+  /* Botón del Coach: esquina inferior derecha, encima de la barra */
+  .coach-fab { position: fixed; z-index: 55; width: 54px; height: 54px; border-radius: 50%;
+    right: calc(max(0px, (100vw - var(--maxw)) / 2) + var(--nav-side));
+    bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 12px);
+    display: grid; place-items: center; border: 0;
+    background: var(--hot); color: var(--hot-ink); box-shadow: var(--sh-float); }
+  .coach-fab svg { width: 23px; height: 23px; }
+  .coach-fab:active { transform: scale(.96); }
+
+  /* Ventanas emergentes (Coach, Mis entrenamientos, Calendario): misma hoja
+     que el Coach del tracker, pero fuera de él */
+  .coach-sheet { position: fixed; inset: 0; z-index: 85; display: none; }
+  .coach-sheet.open { display: block; }
+  .coach-sheet.on .dock-back { opacity: 1; }
+  .coach-sheet.on .dock-sheet { transform: translateY(0); }
+  .coach-sheet .dock-sheet { max-width: var(--maxw); margin: 0 auto; }
+  .coach-sheet .dock-head .btn-icon + .btn-icon { margin-left: 0; }
+  .coach-sheet .dock-head .btn-icon:first-of-type { margin-left: auto; }
+  #coachSheetSlot .chat-box { height: auto; flex: 1; min-height: 0; }
+  #coachSheetSlot .chat-input { position: static; left: auto; right: auto; bottom: auto;
+    max-width: none; margin: 0; flex-shrink: 0; }
+  #coachSheetSlot .chat-input::before { display: none; }
+  .pop-sheet .dock-sheet { height: auto; max-height: 88dvh; }
+  .pop-body { flex: 1; min-height: 0; overflow-y: auto;
+    padding: 0 var(--gutter) calc(env(safe-area-inset-bottom) + 18px); }
+  .pop-body > .card { margin: 0; }
+  #calSheetSlot .cal-card-head .label { visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) { .coach-sheet .dock-sheet { transition: none; } }
+</style>
+
+<style>
+  /* ════════ LETRA Y COLOR DE MARCA (libro 03 y 04) sobre la estructura de mediodía ════════
+     Solo cambia la letra; las medidas y la distribución son las de antes. Los
+     colores ya van en los tokens de :root. Las tres anchuras de Archivo salen
+     del mismo archivo variable: cada familia fija la suya. */
+  @font-face { font-family: 'Archivo Voz'; font-style: normal; font-weight: 300 900; font-stretch: 62%; font-display: swap;
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Archivo Voz'; font-style: normal; font-weight: 300 900; font-stretch: 62%; font-display: swap;
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: 'Archivo Dato'; font-style: normal; font-weight: 300 900; font-stretch: 125%; font-display: swap;
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdnoLmvDIaI.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Archivo Dato'; font-style: normal; font-weight: 300 900; font-stretch: 125%; font-display: swap;
+    src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLmvDIaK18A.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  /* Titulares: Archivo condensada 900 (la voz) */
+  .title, .scr-title, .home-title, .tk-exname, .rv-title { font-family: var(--f-display); font-weight: 900; }
+  .title { transform: none; letter-spacing: 0; }
+  /* Etiquetas y números: Archivo expandida */
+  .label, .label-sm { font-family: var(--f-mono); font-weight: 700; }
+  .metric-xl, .metric-l, .metric, .metric-sm { font-family: var(--f-mono); font-weight: 800; letter-spacing: -.03em; }
+  /* Botones y texto corrido: Archivo normal */
+  .btn, .btn-primary, .btn-ghost, .seg-btn { font-family: var(--f-ui); }
+
+  /* ═══ Entreno (Adrián, 9-nov) ═══ */
+  [data-screen="trainer"] .scr-head .btn-pill { margin-left: auto; }
+  #trainerChip[hidden], #trainerAdd[hidden] { display: none !important; }
+  .prog-switch-head .seg-mini { margin: 0; }
+  #statsCards [hidden], #metricCards [hidden] { display: none !important; }
+  /* El selector ya dice qué progresión es: fuera el título repetido de la tarjeta */
+  #statsCards [data-sec] > .prog-head > .label { display: none; }
+  .sec-link { margin-left: auto; padding: 6px 2px; color: var(--text); font: 600 13px/1 var(--f-ui); background: none; border: 0; }
+  .prog-head .sec-link { margin-left: auto; }
+  #metricCards > .card + .card { margin-top: 14px; }
+  .mc-top { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; }
+  .mc-u { font: 700 12px/1 var(--f-mono); color: var(--dim); }
+  .mc-avg { margin-left: auto; font: 500 12px/1 var(--f-ui); color: var(--dim); }
+  .mc-avg b { font: 700 13px/1 var(--f-mono); color: var(--text); }
+  .mc-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 86px; margin-top: 14px; align-items: end; }
+  .mc-bar { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+  .mc-bar i { display: block; width: 100%; max-width: 22px; border-radius: 4px; background: var(--text); }
+  .mc-bar small { font: 700 10px/1 var(--f-mono); color: var(--dim); }
+  .mp-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .mp-row b { display: block; font: 500 15px/1.3 var(--f-ui); }
+  .mp-row small { display: block; margin-top: 3px; font-size: 12.5px; color: var(--dim); }
+  .mp-row input { width: 22px; height: 22px; accent-color: var(--hot-solid); flex-shrink: 0; }
+  .mp-hint { margin: 14px 0 0; font-size: 12.5px; color: var(--dim); }
+  .lm-body { display: flex; flex-direction: column; gap: 12px; }
+  .lm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--dim); }
+  .lm-row input { width: 170px; background: var(--s3); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font: 400 16px/1.2 var(--f-ui); }
+  #calSheetSlot .cal-card-head .label { visibility: hidden; }
+
+  /* ═══ Ronda 5 (Adrián, 9-nov) ═══ */
+  /* Logo arriba a la derecha en todas las pantallas; abre los ajustes */
+  .home-head .logo, .scr-head .logo { cursor: pointer; }
+  /* Home: el bloque de hoy sin aire de sobra arriba; Entrenar y Registrar comida bajo la racha */
+  .home-heat { height: auto; min-height: 0; }
+  .home-hero { margin-top: 56px; padding-bottom: 20px; }
+  .home-acts { display: grid; gap: 10px; margin: 12px 0 4px; }
+  .home-acts .btn { width: 100%; }
+  .home-acts .home-cta { height: 52px; background: var(--hot-solid); color: var(--hot-ink); box-shadow: none; }
+  .home-acts .home-cta:active { background: #A51C18; }
+  .home-acts .home-meal { background: transparent; border: 1px solid var(--line-2); color: var(--text); }
+  /* Entreno: Mi plan y Mis rutinas como filas */
+  /* Ventana Mi plan, más limpia: resumen, bloques y objetivos */
+  .mp-title { margin: 6px 0 12px; font: 900 22px/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; }
+  .mp-title + .plan-headline, .mp-head { margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; background: var(--s3);
+    border: 1px solid var(--line); font-size: 14px; line-height: 1.45; color: var(--dim); }
+  .mp-sheet #progPane .prog-ticker { display: none; }
+  .mp-sub { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; }
+  .mp-sub .data-sm { margin-left: auto; }
+  .mp-sheet #planBlocks { margin-bottom: 26px; }
+  .mp-sheet .seg { margin-bottom: 14px !important; }
+  /* Progresión: título más claro y selector con botones redondos */
+  .prog-switch-head .label { font: 900 22px/1 var(--f-display); letter-spacing: 0; text-transform: uppercase; color: var(--text); }
+  .prog-switch-head .rule { display: none; }
+  .prog-switch-head .seg-mini { margin-left: auto; }
+  .seg-mini .seg-btn, .seg .seg-btn { border-radius: 999px; }
+  /* Sin PR, cambio ni «11 sesiones…» a la vista: van en la info (i) */
+  #progPr, #bodyDelta, #progSub, #bodySub, #metricsAddBtn { display: none !important; }
+  .prog-head { gap: 6px; }
+  .prog-head .ib { margin-left: auto; }
+  .ib { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--dim);
+    border: 1px solid var(--line); background: transparent; }
+  .ib svg { width: 17px; height: 17px; }
+  .ib.on { color: var(--text); border-color: var(--line-3); }
+  .prog-info { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--s3); text-align: left; }
+  .prog-info p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
+  .prog-info p + p { margin-top: 4px; }
+  .prog-info b { color: var(--text); font-weight: 600; }
+  .prog-info[hidden] { display: none; }
+  .prog-empty { display: block; padding: 18px 8px 8px; font-size: 13.5px; line-height: 1.5; color: var(--dim); }
+
+  /* ═══ Ronda 6: Entreno ═══ */
+  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 6px; }
+  .tr-tile { position: relative; display: grid; gap: 4px; align-content: start; min-height: 104px; padding: 16px;
+    border-radius: 16px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
+  .tr-tile:active { transform: scale(.98); }
+  .tt-ico { width: 22px; height: 22px; margin-bottom: 10px; color: var(--hot-text); }
+  .tt-n { font: 600 16px/1.2 var(--f-ui); }
+  .tt-s, .tr-tile #routinesCount { margin: 0; justify-self: start; font: 600 11.5px/1.3 var(--f-mono); color: var(--dim); }
+  .tt-chev { position: absolute; top: 16px; right: 14px; width: 16px; height: 16px; color: var(--dim); }
+  .prog-readrow { position: relative; display: flex; justify-content: center; align-items: center; min-height: 40px; }
+  .prog-readrow .prog-readout { margin-top: 10px; }
+  .prog-readrow .ib { position: absolute; right: 0; top: 50%; transform: translateY(-30%); margin: 0; }
+  .mp-tabs { margin-bottom: 16px !important; }
+  .mp-tabs .seg-btn { font-size: 13px; }
+  #mpPlan[hidden], #mpObj[hidden] { display: none; }
+
+  /* ═══ Ronda 7 (Adrián, 9-nov) ═══ */
+  /* El chat arriba a la derecha de cada pantalla; fuera el botón flotante */
+  .coach-fab { display: none !important; }
+  .home-head .hdr-chat, .scr-head .hdr-chat { margin-left: auto; }
+  .home-head .hdr-chat { background: rgba(11,11,10,.35); border-color: rgba(236,232,225,.25); color: var(--text); }
+  .home-head #todayPill[hidden] + #homeAdd[hidden] + .hdr-chat { margin-left: auto; }
+  [data-screen="nutrition"] .scr-head .hdr-chat { margin-left: auto; }
+  /* Progresión: título algo más grande y aire entre el selector y la tarjeta */
+  .prog-switch-head { margin-top: 18px; margin-bottom: 16px; }
+  .prog-switch-head .label { font-size: 26px; }
+  /* Entreno: ejercicio a la izquierda, cambiar al lado y la (i) al otro lado */
+  .px-row { position: relative; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .px-row[hidden] { display: none; }
+  .px-name { font: 600 16px/1.2 var(--f-ui); color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .px-row #progInfoBtn { margin-left: auto; }
+  .px-menu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 20; width: min(280px, 100%); max-height: 260px; overflow-y: auto;
+    padding: 6px; border-radius: 14px; background: var(--s3); border: 1px solid var(--line-2); box-shadow: var(--sh-float); }
+  .px-menu[hidden] { display: none; }
+  .px-opt { display: block; width: 100%; padding: 11px 12px; border-radius: 10px; text-align: left; font: 500 14.5px/1.2 var(--f-ui); color: var(--text); }
+  .px-opt.on { background: var(--s4); }
+  .px-opt:active { background: var(--s4); }
+  [data-sec="progresion"] > .prog-head { display: none; }
+  /* Físico: Peso / IMC / Grasa a la izquierda; + y (i) a la derecha, en la misma línea */
+  [data-sec="fisica"] > .prog-head { align-items: center; }
+  [data-sec="fisica"] > .prog-head .metric-tabs { margin: 0; justify-content: flex-start; flex: 1; min-width: 0; }
+  [data-sec="fisica"] > .prog-head #bodyAddBtn { margin-left: auto; }
+
+  /* ═══ Recetas ═══ */
+  .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .n-title-row .scr-title { margin-right: auto; }
+  .btn-pill { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; flex-shrink: 0;
+    border-radius: 999px; border: 1px solid var(--line-2); background: var(--s2); color: var(--text);
+    font: 600 13.5px/1 var(--f-ui); }
+  .btn-pill svg { width: 16px; height: 16px; }
+  .rc-sheet .dock-sheet { height: 88dvh; }
+  .rc-sheet .dock-head .btn-icon:first-child { margin-left: 0; }
+  .rc-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 0; text-align: left;
+    border-bottom: 1px solid var(--line); color: var(--text); }
+  .rc-row-n { flex: 1; min-width: 0; font: 500 15px/1.3 var(--f-ui); }
+  .rc-row-n small, .rc-row-k small { display: block; margin-top: 4px; font: 500 12px/1.2 var(--f-ui); color: var(--dim); }
+  .rc-row-k { text-align: right; font: 800 18px/1 var(--f-mono); }
+  .rc-row-k small { display: inline; font-size: 11px; }
+  .rc-new { margin-top: 18px; }
+  #rcEdit { display: flex; flex-direction: column; gap: 12px; }
+  #rcEdit[hidden] { display: none; }
+  .rc-name, #rcText, .rc-serv input { width: 100%; box-sizing: border-box; background: var(--s3); border: 1px solid var(--line);
+    color: var(--text); border-radius: 12px; padding: 12px 14px; font: 400 16px/1.4 var(--f-ui); }
+  .rc-serv { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--dim); }
+  .rc-serv input { width: 88px; text-align: center; }
+  .rc-item { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rc-item-n { font: 500 14px/1.3 var(--f-ui); }
+  .rc-item-m { grid-column: 1; font: 600 11.5px/1.3 var(--f-mono); color: var(--dim); }
+  .rc-item-x { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 32px; height: 32px; color: var(--dim); font-size: 20px; }
+  .rc-total { font: 500 14px/1.4 var(--f-ui); color: var(--dim); }
+  .rc-total b { font: 800 22px/1 var(--f-mono); color: var(--text); }
+  .rc-total small { display: block; margin-top: 4px; font: 600 11.5px/1.3 var(--f-mono); }
+  .rc-del { color: var(--danger); font: 500 14px/1 var(--f-ui); padding: 10px 0; }
+  .ns-recipes { margin: 14px 0 0; }
+  #nutriSheet .ns-types { margin: 16px 0 0; }
+  .ns-rc-none { font-size: 13px; color: var(--dim); }
+  .rc-group { border-bottom: 1px solid var(--line); }
+  .rc-gh { list-style: none; display: flex; align-items: center; gap: 10px; height: 54px; cursor: pointer; font: 600 16px/1 var(--f-ui); }
+  .rc-gh::-webkit-details-marker { display: none; }
+  .rc-gh::after { content: '›'; font-size: 22px; color: var(--dim); transition: transform 200ms var(--ease-out); }
+  .rc-group[open] > .rc-gh::after { transform: rotate(90deg); }
+  .rc-gn { margin-left: auto; font: 700 12px/1 var(--f-mono); color: var(--dim); }
+  .rc-group .rc-row:last-child { border-bottom: 0; }
+  .rc-group .rc-row { padding-left: 4px; }
+  .rc-gempty { padding: 0 0 14px; font-size: 13px; color: var(--dim); }
+  .rc-cats { margin: 0; }
+  .rc-add { display: flex; flex-direction: column; gap: 12px; }
+  .rc-add[hidden] { display: none; }
+  .rc-more { align-self: flex-start; padding: 6px 0; color: var(--text); font: 600 14px/1 var(--f-ui); }
+  .rc-item { grid-template-columns: 1fr auto; }
+  .rc-item .rc-item-x { grid-row: 1; align-self: start; }
+  .rc-item-face { display: grid; gap: 3px; text-align: left; color: var(--text); padding: 0; background: none; border: 0; }
+  .rc-item.open .rc-item-face .rc-item-n { color: var(--text); }
+  .rc-ed { grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 10px; padding: 12px; border-radius: 12px; background: var(--s3); }
+  .rc-ed-n, .rc-ed-grid input { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line);
+    color: var(--text); border-radius: 10px; padding: 9px 11px; font: 400 15px/1.2 var(--f-ui); }
+  .rc-ed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rc-ed-grid label { display: grid; gap: 4px; font: 600 11px/1 var(--f-mono); color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  .rc-ed-hint { margin: 0; font-size: 12px; color: var(--dim); }
+  .ns-rc-label { margin-bottom: 8px; }
+  .ns-rc-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .ns-rc-chips::-webkit-scrollbar { display: none; }
+  .ns-rc { flex-shrink: 0; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--text);
+    font: 500 13.5px/1 var(--f-ui); background: transparent; }
+  .ns-rc.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .ns-rc-pick { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .ns-rc-pick[hidden] { display: none; }
+  .ns-rc-kcal { margin-right: auto; font: 600 12.5px/1 var(--f-ui); color: var(--dim); }
+  .ns-rc-pick .ns-type { flex: 0 0 auto; min-width: 52px; height: 40px; padding: 0 12px; font-size: 15px; }
+  .mt-save-recipe { display: block; margin: 6px 0 4px; padding: 8px 0; color: var(--dim); font: 500 13px/1 var(--f-ui); }
+  .meal-ing-btn { padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--dim);
+    font: 600 11px/1 var(--f-mono); margin-left: 6px; }
+  .meal-ing-btn.open { color: var(--text); border-color: var(--line-3); }
+  .is-recipe .meal-macros { flex-wrap: wrap; }
+  .is-recipe .meal-macros span { white-space: nowrap; }
+  .is-recipe .meal-macros .meal-rtag { flex-basis: 100%; margin-top: 6px; font: 600 10.5px/1 var(--f-mono); letter-spacing: .04em; color: var(--dim); }
+  .meal-ings { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .meal-ings[hidden] { display: none; }
+  .mi-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font: 400 13px/1.35 var(--f-ui); color: var(--dim); }
+  .mi-row b { font: 700 12.5px/1.35 var(--f-mono); color: var(--text); }
+
+  /* Home (Adrián, 9-nov): sin línea de datos los días sin sesión; la rueda arriba a la derecha */
+  .home-stats:empty { display: none; }
+  #todayPill[hidden], #homeAdd[hidden] { display: none !important; }
+  /* Cada línea del titular en una sola línea: el tamaño se ajusta para que quepa */
+  .home-title span { white-space: nowrap; }
+  .home-head #profAcct { margin-left: auto; }
+  /* Ajustes: arriba tú, con tu foto, tu nombre y tu peso */
+  .pd-who { margin: 6px 0 18px; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
+  .pd-who .prof-ava { width: 58px; height: 58px; }
+  .pd-who .prof-name { font: 600 20px/1.15 var(--f-ui); letter-spacing: -.01em; margin-bottom: 6px; }
+</style>
 
 <!-- §1.7A · Grano global: última capa, sobre todo el contenido -->
 <div class="grain" aria-hidden="true"></div>
