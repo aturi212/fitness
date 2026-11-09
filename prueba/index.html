@@ -1613,7 +1613,13 @@
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
       </div>
 
-      <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+      <div class="n-title-row">
+        <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+        <button type="button" class="btn-pill" id="recipesBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h10.5"/><path d="M9 8.5h5M9 11.5h3.5"/></svg>
+          Recetas
+        </button>
+      </div>
 
       <div class="seg" id="nutriTabs">
         <button type="button" class="seg-btn active" data-ntab="daily">DIARIO</button>
@@ -1680,6 +1686,8 @@
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
         <div class="ns-types" id="nsTypes"></div>
+        <!-- Tus recetas: un toque, eliges la ración y se apunta (sin IA) -->
+        <div class="ns-recipes" id="nsRecipes" hidden></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
 
         <div class="ns-actions">
@@ -1879,6 +1887,39 @@
         </button>
       </div>
       <div class="pop-body"><div id="routineList"></div></div>
+    </div>
+  </div>
+
+  <!-- Ventana de Recetas (Nutri): lista y editor en la misma hoja -->
+  <div class="coach-sheet pop-sheet rc-sheet" id="recipesSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Recetas">
+      <div class="dock-head">
+        <button type="button" class="btn-icon" id="rcBack" aria-label="Volver a tus recetas" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <span class="label" id="rcHeadTitle">Recetas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body">
+        <div id="rcList"></div>
+        <div id="rcEdit" hidden>
+          <input type="text" id="rcName" class="rc-name" placeholder="Nombre (p. ej. Bowl de arroz con atún)" autocomplete="off">
+          <label class="rc-serv">Raciones que salen
+            <input type="number" id="rcServings" inputmode="decimal" min="0.5" step="0.5" value="1">
+          </label>
+          <textarea id="rcText" rows="4" placeholder="Ingredientes, uno por línea:&#10;200 g de arroz&#10;1 lata de atún&#10;un chorrito de aceite"></textarea>
+          <button type="button" class="btn btn--sec" id="rcCalc">Calcular ingredientes</button>
+          <div class="ns-status" id="rcStatus"></div>
+          <div id="rcItems"></div>
+          <div class="rc-total" id="rcTotal" hidden></div>
+          <button type="button" class="btn btn--primary" id="rcSave" hidden>Guardar receta</button>
+          <button type="button" class="rc-del" id="rcDelete" hidden>Borrar receta</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -6991,6 +7032,7 @@ function renderNutriDaily() {
   const ICO_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
   const ICO_NEXT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"/><path d="M10.5 7l4.5 5-4.5 5"/><path d="M19.5 5v14"/></svg>`;
   const mealRow = (m) => {
+    if (m.recipe_id) return recipeMealRow(m, ICO_DEL);
     const esPeriodica = !!activeRecurringOf(m);
     return `
     <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">
@@ -7027,9 +7069,22 @@ function renderNutriDaily() {
       </button>
       <div class="mt-body">
         ${items.length ? items.map(mealRow).join('') : '<div class="nutri-empty">Nada registrado en este bloque.</div>'}
+        ${items.some((m) => !m.recipe_id) ? `<button type="button" class="mt-save-recipe" data-save-recipe="${t.k}">Guardar como receta</button>` : ''}
       </div>
     </div>`;
   }).join('');
+  // Receta: desplegar sus ingredientes (sin abrir la edición de la comida)
+  $('mealList').querySelectorAll('[data-ings]').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = b.closest('.meal-item')?.querySelector('.meal-ings');
+      if (box) { box.hidden = !box.hidden; b.classList.toggle('open', !box.hidden); }
+    });
+  });
+  // Bloque → receta
+  $('mealList').querySelectorAll('[data-save-recipe]').forEach((b) => {
+    b.addEventListener('click', () => saveBlockAsRecipe(b.dataset.saveRecipe));
+  });
   $('mealList').querySelectorAll('[data-toggle]').forEach((b) => {
     b.addEventListener('click', () => {
       const k = b.dataset.toggle;
@@ -7203,6 +7258,7 @@ function renderTypeChips(containerId, active, onPick) {
 function openNutriSheet() {
   nsType = defaultMealType();
   renderTypeChips('nsTypes', nsType, (t) => { nsType = t; });
+  renderNsRecipes();
   nsStatus('');
   openSheet('nutriSheet');
   setTimeout(() => $('nsText').focus(), 250);
@@ -7295,6 +7351,226 @@ async function analyzeAndAdd({ text, imageB64 }) {
   if (e2) throw e2;
   saveMeals(loadMeals().concat(inserted || []));
   return items.length;
+}
+
+// ============ RECETAS ============
+// Una receta guarda sus ingredientes (con los macros de cada uno) y los
+// totales de la receta entera. Se apunta de una vez, en la ración elegida,
+// como UNA fila de meals con recipe_id: el día se ve por recetas.
+const RECIPES_KEY = 'fitness_recipes_v1';
+const loadRecipes = () => { try { return JSON.parse(localStorage.getItem(RECIPES_KEY)) || []; } catch { return []; } };
+const saveRecipesLocal = (list) => localStorage.setItem(RECIPES_KEY, JSON.stringify(list));
+const MACRO_KEYS = ['kcal', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g'];
+const r1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
+const sumMacros = (items) => {
+  const t = {}; MACRO_KEYS.forEach((k) => { t[k] = r1(items.reduce((a, it) => a + (Number(it[k]) || 0), 0)); });
+  return t;
+};
+const escHtml = (x) => String(x ?? '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+const racionTxt = (n) => (n === 0.5 ? '½ ración' : n === 1 ? '1 ración' : `${String(n).replace('.', ',')} raciones`);
+
+async function pullRecipes() {
+  try {
+    const { data, error } = await sb.from('recipes').select('*').order('name');
+    if (!error && Array.isArray(data)) saveRecipesLocal(data);
+  } catch { /* sin red: se queda lo guardado */ }
+}
+
+// Fila de una comida que viene de una receta
+function recipeMealRow(m, icoDel) {
+  const rec = loadRecipes().find((r) => r.id === m.recipe_id);
+  const factor = rec ? (Number(m.recipe_servings) || 1) / (Number(rec.servings) || 1) : 1;
+  const ings = rec ? (rec.ingredients || []) : [];
+  return `
+    <div class="meal-item is-recipe" data-meal="${m.id}">
+      <div class="sw-side sw-side--right">
+        <button type="button" class="sw-act sw-del" data-act="del" aria-label="Eliminar">${icoDel}</button>
+      </div>
+      <div class="meal-face">
+        <div class="meal-top">
+          <span class="meal-name">${escHtml(m.description)}</span>
+          ${ings.length ? `<button type="button" class="meal-ing-btn" data-ings aria-label="Ver ingredientes">${ings.length} ingr.</button>` : ''}
+          <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
+        </div>
+        <div class="meal-macros">${NUTRI_MACROS.map((mm) =>
+          `<span style="color:${mm.color}">${mm.short} ${Math.round((Number(m[mm.k]) || 0) * 10) / 10}</span>`).join('')}
+          <span class="meal-rtag">Receta · ${racionTxt(Number(m.recipe_servings) || 1)}</span></div>
+        <div class="meal-ings" hidden>${ings.map((it) =>
+          `<div class="mi-row"><span>${escHtml(it.description)}</span><b>${Math.round((Number(it.kcal) || 0) * factor)}</b></div>`).join('')}</div>
+      </div>
+    </div>`;
+}
+
+// Apuntar una receta en el día y bloque que se ven
+async function logRecipe(rec, raciones) {
+  const factor = raciones / (Number(rec.servings) || 1);
+  const fila = {
+    date: nutriDay, meal_type: nsType, source: 'recipe',
+    description: rec.name, recipe_id: rec.id, recipe_servings: raciones,
+  };
+  MACRO_KEYS.forEach((k) => { fila[k] = r1((Number(rec[k]) || 0) * factor); });
+  const { data, error } = await sb.from('meals').insert(fila).select();
+  if (error) throw error;
+  saveMeals(loadMeals().concat(data || []));
+}
+
+// Recetas en la hoja de registrar: botón por receta; al tocarlo, la ración
+function renderNsRecipes() {
+  const box = $('nsRecipes');
+  if (!box) return;
+  const list = loadRecipes();
+  box.hidden = !list.length;
+  if (!list.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="ns-rc-label label">Tus recetas</div>
+    <div class="ns-rc-chips">${list.map((r) => `<button type="button" class="ns-rc" data-rc="${r.id}">${escHtml(r.name)}</button>`).join('')}</div>
+    <div class="ns-rc-pick" id="nsRcPick" hidden></div>`;
+  box.querySelectorAll('[data-rc]').forEach((b) => b.addEventListener('click', () => {
+    box.querySelectorAll('[data-rc]').forEach((x) => x.classList.toggle('active', x === b));
+    const rec = list.find((r) => r.id === b.dataset.rc);
+    const porRacion = Math.round((Number(rec.kcal) || 0) / (Number(rec.servings) || 1));
+    const pick = $('nsRcPick');
+    pick.hidden = false;
+    pick.innerHTML = `<span class="ns-rc-kcal">${porRacion} kcal por ración</span>` +
+      [0.5, 1, 2].map((n) => `<button type="button" class="ns-type" data-rac="${n}">${n === 0.5 ? '½' : n}</button>`).join('');
+    pick.querySelectorAll('[data-rac]').forEach((rb) => rb.addEventListener('click', async () => {
+      pick.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+      nsStatus('Apuntando…');
+      try {
+        await logRecipe(rec, Number(rb.dataset.rac));
+        if (navigator.vibrate) navigator.vibrate(30);
+        nsStatus('');
+        closeNutriSheet();
+        renderNutrition();
+      } catch (err) {
+        nsStatus(String(err?.message || err), true);
+        pick.querySelectorAll('button').forEach((x) => { x.disabled = false; });
+      }
+    }));
+  }));
+}
+
+// ----- Ventana de recetas: lista y editor -----
+const recipesSheet = $('recipesSheet');
+let rcEditando = null;   // receta que se edita (null = nueva)
+let rcItems = [];        // ingredientes calculados o cargados
+
+function rcMostrarLista() {
+  rcEditando = null;
+  $('rcEdit').hidden = true; $('rcList').hidden = false; $('rcBack').hidden = true;
+  $('rcHeadTitle').textContent = 'Recetas';
+  const list = loadRecipes();
+  $('rcList').innerHTML = (list.length
+    ? list.map((r) => {
+        const sv = Number(r.servings) || 1;
+        return `<button type="button" class="rc-row" data-edit="${r.id}">
+          <span class="rc-row-n">${escHtml(r.name)}<small>${(r.ingredients || []).length} ingredientes${sv !== 1 ? ` · ${racionTxt(sv)}` : ''}</small></span>
+          <span class="rc-row-k">${Math.round((Number(r.kcal) || 0) / sv)}<small> kcal/ración</small></span>
+        </button>`;
+      }).join('')
+    : '<div class="nutri-empty">Aún no tienes recetas. Crea una o guarda un bloque del día con «Guardar como receta».</div>')
+    + '<button type="button" class="btn btn--primary rc-new" id="rcNew">Nueva receta</button>';
+  $('rcList').querySelectorAll('[data-edit]').forEach((b) =>
+    b.addEventListener('click', () => rcAbrirEditor(list.find((r) => r.id === b.dataset.edit))));
+  $('rcNew').addEventListener('click', () => rcAbrirEditor(null));
+}
+
+function rcAbrirEditor(rec) {
+  rcEditando = rec;
+  rcItems = rec ? (rec.ingredients || []).map((x) => ({ ...x })) : [];
+  $('rcList').hidden = true; $('rcEdit').hidden = false; $('rcBack').hidden = false;
+  $('rcHeadTitle').textContent = rec ? 'Editar receta' : 'Nueva receta';
+  $('rcName').value = rec?.name || '';
+  $('rcServings').value = rec?.servings || 1;
+  $('rcText').value = '';
+  $('rcStatus').textContent = '';
+  $('rcDelete').hidden = !rec;
+  rcPintarItems();
+}
+
+function rcPintarItems() {
+  $('rcItems').innerHTML = rcItems.map((it, i) => `
+    <div class="rc-item">
+      <span class="rc-item-n">${escHtml(it.description)}</span>
+      <span class="rc-item-m">${Math.round(it.kcal || 0)} kcal · P ${r1(it.protein_g)} · H ${r1(it.carbs_g)} · G ${r1(it.fat_g)}</span>
+      <button type="button" class="rc-item-x" data-quitar="${i}" aria-label="Quitar">×</button>
+    </div>`).join('');
+  $('rcItems').querySelectorAll('[data-quitar]').forEach((b) => b.addEventListener('click', () => {
+    rcItems.splice(Number(b.dataset.quitar), 1); rcPintarItems();
+  }));
+  const t = sumMacros(rcItems);
+  const sv = Number($('rcServings').value) || 1;
+  $('rcTotal').hidden = !rcItems.length;
+  $('rcSave').hidden = !rcItems.length;
+  $('rcTotal').innerHTML = `<b>${Math.round(t.kcal)}</b> kcal en total` +
+    (sv !== 1 ? ` · <b>${Math.round(t.kcal / sv)}</b> por ración` : '') +
+    `<small>P ${t.protein_g} · H ${t.carbs_g} · G ${t.fat_g} · F ${t.fiber_g}</small>`;
+}
+$('rcServings').addEventListener('input', rcPintarItems);
+
+// Los ingredientes los calcula la misma IA que las comidas (no se guarda ninguna comida)
+$('rcCalc').addEventListener('click', async () => {
+  const text = $('rcText').value.trim();
+  if (!text) { $('rcStatus').textContent = 'Escribe los ingredientes, uno por línea.'; return; }
+  const btn = $('rcCalc');
+  btn.disabled = true; $('rcStatus').textContent = 'Calculando…';
+  try {
+    const { data, error } = await sb.functions.invoke('nutrition', { body: { mode: 'analyze', text } });
+    if (data?.limit) { $('rcStatus').textContent = ''; showAiLimit(data.limit); return; }
+    if (error || data?.error) throw new Error(data?.error || 'No he podido calcularlo. Prueba otra vez.');
+    const nuevos = (data?.items || []).map((it) => {
+      const x = { description: it.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(it[k]); }); return x;
+    });
+    if (!nuevos.length) throw new Error('No he reconocido ingredientes ahí.');
+    rcItems = rcItems.concat(nuevos);
+    $('rcText').value = '';
+    $('rcStatus').textContent = '';
+    rcPintarItems();
+  } catch (err) {
+    $('rcStatus').textContent = String(err?.message || err);
+  } finally { btn.disabled = false; }
+});
+
+$('rcSave').addEventListener('click', async () => {
+  const name = $('rcName').value.trim();
+  if (!name) { $('rcStatus').textContent = 'Ponle un nombre a la receta.'; $('rcName').focus(); return; }
+  const fila = { name, servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
+    updated_at: new Date().toISOString() };
+  const btn = $('rcSave');
+  btn.disabled = true;
+  try {
+    const q = rcEditando ? sb.from('recipes').update(fila).eq('id', rcEditando.id) : sb.from('recipes').insert(fila);
+    const { error } = await q;
+    if (error) throw error;
+    await pullRecipes();
+    rcMostrarLista();
+  } catch (err) {
+    $('rcStatus').textContent = 'No se ha podido guardar: ' + String(err?.message || err);
+  } finally { btn.disabled = false; }
+});
+
+$('rcDelete').addEventListener('click', async () => {
+  if (!rcEditando || !confirm(`¿Borrar la receta «${rcEditando.name}»? Las comidas ya apuntadas no se borran.`)) return;
+  const { error } = await sb.from('recipes').delete().eq('id', rcEditando.id);
+  if (error) { $('rcStatus').textContent = 'No se ha podido borrar: ' + error.message; return; }
+  await pullRecipes();
+  rcMostrarLista();
+});
+
+$('rcBack').addEventListener('click', rcMostrarLista);
+$('recipesBtn').addEventListener('click', () => { rcMostrarLista(); abrirHoja(recipesSheet); pullRecipes().then(() => { if (!rcEditando && !$('rcList').hidden) rcMostrarLista(); }); });
+recipesSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(recipesSheet)));
+
+// «Guardar como receta»: lo apuntado en un bloque del día pasa a ser receta
+async function saveBlockAsRecipe(tipo) {
+  const items = mealsOf(nutriDay).filter((m) => (m.meal_type || 'other') === tipo && !m.recipe_id);
+  if (!items.length) return;
+  const name = prompt('Nombre de la receta', MEAL_TYPES.find((t) => t.k === tipo)?.label || 'Receta');
+  if (!name || !name.trim()) return;
+  const ingredients = items.map((m) => { const x = { description: m.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(m[k]); }); return x; });
+  const { error } = await sb.from('recipes').insert({ name: name.trim(), servings: 1, ingredients, ...sumMacros(ingredients) });
+  if (error) { alert('No se ha podido guardar la receta: ' + error.message); return; }
+  await pullRecipes();
+  alert(`Receta «${name.trim()}» guardada. La tienes en Recetas y al registrar comida.`);
 }
 
 async function nsSubmit(imageB64) {
@@ -8860,6 +9136,7 @@ async function boot(loggedIn) {
   await pullBodyWeight();
   await pullExNotes();
   await pullMeals();
+  await pullRecipes();
   await materializeRecurring();
   await flushStaleThreads();
   renderNutrition();
@@ -8950,6 +9227,59 @@ boot(false);
   .metric-xl, .metric-l, .metric, .metric-sm { font-family: var(--f-mono); font-weight: 800; letter-spacing: -.03em; }
   /* Botones y texto corrido: Archivo normal */
   .btn, .btn-primary, .btn-ghost, .seg-btn { font-family: var(--f-ui); }
+
+  /* ═══ Recetas ═══ */
+  .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .n-title-row .scr-title { margin-right: auto; }
+  .btn-pill { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; flex-shrink: 0;
+    border-radius: 999px; border: 1px solid var(--line-2); background: var(--s2); color: var(--text);
+    font: 600 13.5px/1 var(--f-ui); }
+  .btn-pill svg { width: 16px; height: 16px; }
+  .rc-sheet .dock-sheet { height: 88dvh; }
+  .rc-sheet .dock-head .btn-icon:first-child { margin-left: 0; }
+  .rc-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 0; text-align: left;
+    border-bottom: 1px solid var(--line); color: var(--text); }
+  .rc-row-n { flex: 1; min-width: 0; font: 500 15px/1.3 var(--f-ui); }
+  .rc-row-n small, .rc-row-k small { display: block; margin-top: 4px; font: 500 12px/1.2 var(--f-ui); color: var(--dim); }
+  .rc-row-k { text-align: right; font: 800 18px/1 var(--f-mono); }
+  .rc-row-k small { display: inline; font-size: 11px; }
+  .rc-new { margin-top: 18px; }
+  #rcEdit { display: flex; flex-direction: column; gap: 12px; }
+  #rcEdit[hidden] { display: none; }
+  .rc-name, #rcText, .rc-serv input { width: 100%; box-sizing: border-box; background: var(--s3); border: 1px solid var(--line);
+    color: var(--text); border-radius: 12px; padding: 12px 14px; font: 400 16px/1.4 var(--f-ui); }
+  .rc-serv { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--dim); }
+  .rc-serv input { width: 88px; text-align: center; }
+  .rc-item { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rc-item-n { font: 500 14px/1.3 var(--f-ui); }
+  .rc-item-m { grid-column: 1; font: 600 11.5px/1.3 var(--f-mono); color: var(--dim); }
+  .rc-item-x { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 32px; height: 32px; color: var(--dim); font-size: 20px; }
+  .rc-total { font: 500 14px/1.4 var(--f-ui); color: var(--dim); }
+  .rc-total b { font: 800 22px/1 var(--f-mono); color: var(--text); }
+  .rc-total small { display: block; margin-top: 4px; font: 600 11.5px/1.3 var(--f-mono); }
+  .rc-del { color: var(--danger); font: 500 14px/1 var(--f-ui); padding: 10px 0; }
+  .ns-recipes { margin: 0 0 12px; }
+  .ns-rc-label { margin-bottom: 8px; }
+  .ns-rc-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .ns-rc-chips::-webkit-scrollbar { display: none; }
+  .ns-rc { flex-shrink: 0; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--text);
+    font: 500 13.5px/1 var(--f-ui); background: transparent; }
+  .ns-rc.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .ns-rc-pick { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .ns-rc-pick[hidden] { display: none; }
+  .ns-rc-kcal { margin-right: auto; font: 600 12.5px/1 var(--f-ui); color: var(--dim); }
+  .ns-rc-pick .ns-type { flex: 0 0 auto; min-width: 52px; height: 40px; padding: 0 12px; font-size: 15px; }
+  .mt-save-recipe { display: block; margin: 6px 0 4px; padding: 8px 0; color: var(--dim); font: 500 13px/1 var(--f-ui); }
+  .meal-ing-btn { padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--dim);
+    font: 600 11px/1 var(--f-mono); margin-left: 6px; }
+  .meal-ing-btn.open { color: var(--text); border-color: var(--line-3); }
+  .is-recipe .meal-macros { flex-wrap: wrap; }
+  .is-recipe .meal-macros span { white-space: nowrap; }
+  .is-recipe .meal-macros .meal-rtag { flex-basis: 100%; margin-top: 6px; font: 600 10.5px/1 var(--f-mono); letter-spacing: .04em; color: var(--dim); }
+  .meal-ings { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .meal-ings[hidden] { display: none; }
+  .mi-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font: 400 13px/1.35 var(--f-ui); color: var(--dim); }
+  .mi-row b { font: 700 12.5px/1.35 var(--f-mono); color: var(--text); }
 
   /* Home (Adrián, 9-nov): sin línea de datos los días sin sesión; la rueda arriba a la derecha */
   .home-stats:empty { display: none; }
