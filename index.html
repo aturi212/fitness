@@ -1679,18 +1679,18 @@
 
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
-        <div class="ns-types" id="nsTypes"></div>
-        <!-- Tus recetas: un toque, eliges la ración y se apunta (sin IA) -->
-        <div class="ns-recipes" id="nsRecipes" hidden></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
 
         <div class="ns-actions">
           <button type="button" class="ns-photo" id="nsMic" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg></button>
-          <button type="button" class="ns-photo" id="nsPhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></svg> Foto</button>
+          <button type="button" class="ns-photo" id="nsPhoto" aria-label="Foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.6"/></svg></button>
           <button type="button" class="ns-send" id="nsSend">Analizar y añadir</button>
         </div>
         <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
         <div class="ns-status" id="nsStatus"></div>
+        <!-- Debajo: de qué es (desayuno, comida…) y tus recetas de ese tipo -->
+        <div class="ns-types" id="nsTypes"></div>
+        <div class="ns-recipes" id="nsRecipes" hidden></div>
       </div>
 
       <div class="hsheet nutri-sheet" id="maSheet">
@@ -1902,13 +1902,18 @@
         <div id="rcList"></div>
         <div id="rcEdit" hidden>
           <input type="text" id="rcName" class="rc-name" placeholder="Nombre (p. ej. Bowl de arroz con atún)" autocomplete="off">
-          <label class="rc-serv">Raciones que salen
-            <input type="number" id="rcServings" inputmode="decimal" min="0.5" step="0.5" value="1">
-          </label>
-          <textarea id="rcText" rows="4" placeholder="Ingredientes, uno por línea:&#10;200 g de arroz&#10;1 lata de atún&#10;un chorrito de aceite"></textarea>
-          <button type="button" class="btn btn--sec" id="rcCalc">Calcular ingredientes</button>
+          <div class="ns-types rc-cats" id="rcCats"></div>
+          <!-- Solo al crear (o al tocar «Añadir ingredientes»): raciones y la IA -->
+          <div class="rc-add" id="rcAdd">
+            <label class="rc-serv">Raciones que salen
+              <input type="number" id="rcServings" inputmode="decimal" min="0.5" step="0.5" value="1">
+            </label>
+            <textarea id="rcText" rows="4" placeholder="Ingredientes, uno por línea:&#10;200 g de arroz&#10;1 lata de atún&#10;un chorrito de aceite"></textarea>
+            <button type="button" class="btn btn--sec" id="rcCalc">Calcular ingredientes</button>
+          </div>
           <div class="ns-status" id="rcStatus"></div>
           <div id="rcItems"></div>
+          <button type="button" class="rc-more" id="rcMore" hidden>+ Añadir ingredientes</button>
           <div class="rc-total" id="rcTotal" hidden></div>
           <button type="button" class="btn btn--primary" id="rcSave" hidden>Guardar receta</button>
           <button type="button" class="rc-del" id="rcDelete" hidden>Borrar receta</button>
@@ -7376,7 +7381,7 @@ function renderTypeChips(containerId, active, onPick) {
 }
 function openNutriSheet() {
   nsType = defaultMealType();
-  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; });
+  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; renderNsRecipes(); });
   renderNsRecipes();
   nsStatus('');
   openSheet('nutriSheet');
@@ -7537,10 +7542,13 @@ async function logRecipe(rec, raciones) {
 function renderNsRecipes() {
   const box = $('nsRecipes');
   if (!box) return;
-  const list = loadRecipes();
-  box.hidden = !list.length;
-  if (!list.length) { box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="ns-rc-label label">Tus recetas</div>
+  // Las del tipo elegido (las que aún no tienen tipo salen en todos)
+  const todas = loadRecipes();
+  const list = todas.filter((r) => !r.category || r.category === nsType);
+  box.hidden = !todas.length;
+  const tipo = (MEAL_TYPES.find((t) => t.k === nsType)?.label || '').toLowerCase();
+  if (!list.length) { box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div><div class="ns-rc-none">No tienes recetas de ${tipo}. Créalas en «Recetas».</div>`; return; }
+  box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div>
     <div class="ns-rc-chips">${list.map((r) => `<button type="button" class="ns-rc" data-rc="${r.id}">${escHtml(r.name)}</button>`).join('')}</div>
     <div class="ns-rc-pick" id="nsRcPick" hidden></div>`;
   box.querySelectorAll('[data-rc]').forEach((b) => b.addEventListener('click', () => {
@@ -7573,18 +7581,29 @@ const recipesSheet = $('recipesSheet');
 let rcEditando = null;   // receta que se edita (null = nueva)
 let rcItems = [];        // ingredientes calculados o cargados
 
+let rcCat = 'other';     // tipo de la receta que se edita
+let rcAbierto = -1;      // ingrediente abierto para editar
+
+// Lista agrupada por tipo: Desayuno, Comida, Cena y Otros; cada uno se despliega
 function rcMostrarLista() {
   rcEditando = null;
   $('rcEdit').hidden = true; $('rcList').hidden = false; $('rcBack').hidden = true;
   $('rcHeadTitle').textContent = 'Recetas';
   const list = loadRecipes();
+  const fila = (r) => {
+    const sv = Number(r.servings) || 1;
+    return `<button type="button" class="rc-row" data-edit="${r.id}">
+      <span class="rc-row-n">${escHtml(r.name)}<small>${(r.ingredients || []).length} ingredientes${sv !== 1 ? ` · ${racionTxt(sv)}` : ''}</small></span>
+      <span class="rc-row-k">${Math.round((Number(r.kcal) || 0) / sv)}<small> kcal/ración</small></span>
+    </button>`;
+  };
   $('rcList').innerHTML = (list.length
-    ? list.map((r) => {
-        const sv = Number(r.servings) || 1;
-        return `<button type="button" class="rc-row" data-edit="${r.id}">
-          <span class="rc-row-n">${escHtml(r.name)}<small>${(r.ingredients || []).length} ingredientes${sv !== 1 ? ` · ${racionTxt(sv)}` : ''}</small></span>
-          <span class="rc-row-k">${Math.round((Number(r.kcal) || 0) / sv)}<small> kcal/ración</small></span>
-        </button>`;
+    ? MEAL_TYPES.map((t) => {
+        const deTipo = list.filter((r) => (r.category || 'other') === t.k);
+        return `<details class="rc-group" ${deTipo.length ? '' : 'data-empty'}>
+          <summary class="rc-gh"><span>${t.label}</span><span class="rc-gn">${deTipo.length || '—'}</span></summary>
+          ${deTipo.length ? deTipo.map(fila).join('') : '<div class="rc-gempty">Aún no hay recetas de este tipo.</div>'}
+        </details>`;
       }).join('')
     : '<div class="nutri-empty">Aún no tienes recetas. Crea una o guarda un bloque del día con «Guardar como receta».</div>')
     + '<button type="button" class="btn btn--primary rc-new" id="rcNew">Nueva receta</button>';
@@ -7593,9 +7612,17 @@ function rcMostrarLista() {
   $('rcNew').addEventListener('click', () => rcAbrirEditor(null));
 }
 
+function rcPintarCats() {
+  renderTypeChips('rcCats', rcCat, (t) => { rcCat = t; });
+}
+
+// Al abrir una receta se edita lo que ya tiene; lo de crear (raciones y la IA)
+// solo aparece en una nueva o al tocar «Añadir ingredientes»
 function rcAbrirEditor(rec) {
   rcEditando = rec;
+  rcAbierto = -1;
   rcItems = rec ? (rec.ingredients || []).map((x) => ({ ...x })) : [];
+  rcCat = rec?.category || (rec ? 'other' : nsType || 'other');
   $('rcList').hidden = true; $('rcEdit').hidden = false; $('rcBack').hidden = false;
   $('rcHeadTitle').textContent = rec ? 'Editar receta' : 'Nueva receta';
   $('rcName').value = rec?.name || '';
@@ -7603,18 +7630,65 @@ function rcAbrirEditor(rec) {
   $('rcText').value = '';
   $('rcStatus').textContent = '';
   $('rcDelete').hidden = !rec;
+  $('rcAdd').hidden = !!rec;
+  $('rcMore').hidden = !rec;
+  rcPintarCats();
   rcPintarItems();
 }
+$('rcMore').addEventListener('click', () => { $('rcAdd').hidden = false; $('rcMore').hidden = true; $('rcText').focus(); });
+
+// Gramos de un ingrediente: los guardados o los que dice su nombre («200 g de arroz»)
+const gramosDe = (it) => {
+  if (Number(it.grams) > 0) return Number(it.grams);
+  const m = String(it.description || '').match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grs|gramos)\b/i);
+  return m ? Number(m[1].replace(',', '.')) : null;
+};
+const CAMPOS_ING = [['grams', 'Gramos'], ['kcal', 'Kcal'], ['protein_g', 'Proteína'], ['carbs_g', 'Hidratos'], ['fat_g', 'Grasa'], ['fiber_g', 'Fibra']];
 
 function rcPintarItems() {
-  $('rcItems').innerHTML = rcItems.map((it, i) => `
-    <div class="rc-item">
-      <span class="rc-item-n">${escHtml(it.description)}</span>
-      <span class="rc-item-m">${Math.round(it.kcal || 0)} kcal · P ${r1(it.protein_g)} · H ${r1(it.carbs_g)} · G ${r1(it.fat_g)}</span>
+  $('rcItems').innerHTML = rcItems.map((it, i) => {
+    const g = gramosDe(it);
+    const abierto = i === rcAbierto;
+    return `
+    <div class="rc-item${abierto ? ' open' : ''}" data-i="${i}">
+      <button type="button" class="rc-item-face" data-abrir="${i}">
+        <span class="rc-item-n">${escHtml(it.description)}</span>
+        <span class="rc-item-m">${g ? `${r1(g)} g · ` : ''}${Math.round(it.kcal || 0)} kcal · P ${r1(it.protein_g)} · H ${r1(it.carbs_g)} · G ${r1(it.fat_g)} · F ${r1(it.fiber_g)}</span>
+      </button>
       <button type="button" class="rc-item-x" data-quitar="${i}" aria-label="Quitar">×</button>
-    </div>`).join('');
+      ${abierto ? `<div class="rc-ed">
+        <input type="text" class="rc-ed-n" data-campo="description" value="${escHtml(it.description)}">
+        <div class="rc-ed-grid">${CAMPOS_ING.map(([k, l]) => `<label><span>${l}</span>
+          <input type="number" inputmode="decimal" step="0.1" data-campo="${k}" value="${k === 'grams' ? (g ?? '') : r1(it[k])}"></label>`).join('')}</div>
+        <p class="rc-ed-hint">Si cambias los gramos, el resto se ajusta en proporción.</p>
+      </div>` : ''}
+    </div>`;
+  }).join('');
   $('rcItems').querySelectorAll('[data-quitar]').forEach((b) => b.addEventListener('click', () => {
-    rcItems.splice(Number(b.dataset.quitar), 1); rcPintarItems();
+    rcItems.splice(Number(b.dataset.quitar), 1); rcAbierto = -1; rcPintarItems();
+  }));
+  $('rcItems').querySelectorAll('[data-abrir]').forEach((b) => b.addEventListener('click', () => {
+    const i = Number(b.dataset.abrir);
+    rcAbierto = rcAbierto === i ? -1 : i;
+    rcPintarItems();
+  }));
+  // Edición de un ingrediente: al cambiar los gramos, los macros se escalan
+  $('rcItems').querySelectorAll('.rc-ed [data-campo]').forEach((inp) => inp.addEventListener('change', () => {
+    const it = rcItems[rcAbierto];
+    const k = inp.dataset.campo;
+    if (k === 'description') { it.description = inp.value.trim() || it.description; }
+    else {
+      const v = Number(String(inp.value).replace(',', '.'));
+      if (!Number.isFinite(v) || v < 0) return;
+      if (k === 'grams') {
+        const antes = gramosDe(it);
+        if (antes && antes > 0) MACRO_KEYS.forEach((m) => { it[m] = r1((Number(it[m]) || 0) * v / antes); });
+        it.grams = v;
+        // Y el nombre dice los gramos nuevos («200 g de arroz» → «300 g de arroz»)
+        it.description = String(it.description).replace(/(\d+(?:[.,]\d+)?)(\s*(?:g|gr|grs|gramos)\b)/i, `${String(v).replace('.', ',')}$2`);
+      } else it[k] = v;
+    }
+    rcPintarItems();
   }));
   const t = sumMacros(rcItems);
   const sv = Number($('rcServings').value) || 1;
@@ -7652,13 +7726,17 @@ $('rcCalc').addEventListener('click', async () => {
 $('rcSave').addEventListener('click', async () => {
   const name = $('rcName').value.trim();
   if (!name) { $('rcStatus').textContent = 'Ponle un nombre a la receta.'; $('rcName').focus(); return; }
-  const fila = { name, servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
+  const fila = { name, category: rcCat, servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
     updated_at: new Date().toISOString() };
   const btn = $('rcSave');
   btn.disabled = true;
   try {
-    const q = rcEditando ? sb.from('recipes').update(fila).eq('id', rcEditando.id) : sb.from('recipes').insert(fila);
-    const { error } = await q;
+    const guardar = (f) => (rcEditando ? sb.from('recipes').update(f).eq('id', rcEditando.id) : sb.from('recipes').insert(f));
+    let { error } = await guardar(fila);
+    if (error && /category/i.test(error.message || '')) {
+      const { category, ...sinTipo } = fila; void category;
+      ({ error } = await guardar(sinTipo));
+    }
     if (error) throw error;
     await pullRecipes();
     rcMostrarLista();
@@ -7686,7 +7764,9 @@ async function saveBlockAsRecipe(tipo) {
   const name = prompt('Nombre de la receta', MEAL_TYPES.find((t) => t.k === tipo)?.label || 'Receta');
   if (!name || !name.trim()) return;
   const ingredients = items.map((m) => { const x = { description: m.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(m[k]); }); return x; });
-  const { error } = await sb.from('recipes').insert({ name: name.trim(), servings: 1, ingredients, ...sumMacros(ingredients) });
+  const nueva = { name: name.trim(), category: tipo, servings: 1, ingredients, ...sumMacros(ingredients) };
+  let { error } = await sb.from('recipes').insert(nueva);
+  if (error && /category/i.test(error.message || '')) { delete nueva.category; ({ error } = await sb.from('recipes').insert(nueva)); }
   if (error) { alert('No se ha podido guardar la receta: ' + error.message); return; }
   await pullRecipes();
   alert(`Receta «${name.trim()}» guardada. La tienes en Recetas y al registrar comida.`);
@@ -9586,7 +9666,32 @@ boot(false);
   .rc-total b { font: 800 22px/1 var(--f-mono); color: var(--text); }
   .rc-total small { display: block; margin-top: 4px; font: 600 11.5px/1.3 var(--f-mono); }
   .rc-del { color: var(--danger); font: 500 14px/1 var(--f-ui); padding: 10px 0; }
-  .ns-recipes { margin: 0 0 12px; }
+  .ns-recipes { margin: 14px 0 0; }
+  #nutriSheet .ns-types { margin: 16px 0 0; }
+  .ns-rc-none { font-size: 13px; color: var(--dim); }
+  .rc-group { border-bottom: 1px solid var(--line); }
+  .rc-gh { list-style: none; display: flex; align-items: center; gap: 10px; height: 54px; cursor: pointer; font: 600 16px/1 var(--f-ui); }
+  .rc-gh::-webkit-details-marker { display: none; }
+  .rc-gh::after { content: '›'; font-size: 22px; color: var(--dim); transition: transform 200ms var(--ease-out); }
+  .rc-group[open] > .rc-gh::after { transform: rotate(90deg); }
+  .rc-gn { margin-left: auto; font: 700 12px/1 var(--f-mono); color: var(--dim); }
+  .rc-group .rc-row:last-child { border-bottom: 0; }
+  .rc-group .rc-row { padding-left: 4px; }
+  .rc-gempty { padding: 0 0 14px; font-size: 13px; color: var(--dim); }
+  .rc-cats { margin: 0; }
+  .rc-add { display: flex; flex-direction: column; gap: 12px; }
+  .rc-add[hidden] { display: none; }
+  .rc-more { align-self: flex-start; padding: 6px 0; color: var(--text); font: 600 14px/1 var(--f-ui); }
+  .rc-item { grid-template-columns: 1fr auto; }
+  .rc-item .rc-item-x { grid-row: 1; align-self: start; }
+  .rc-item-face { display: grid; gap: 3px; text-align: left; color: var(--text); padding: 0; background: none; border: 0; }
+  .rc-item.open .rc-item-face .rc-item-n { color: var(--text); }
+  .rc-ed { grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 10px; padding: 12px; border-radius: 12px; background: var(--s3); }
+  .rc-ed-n, .rc-ed-grid input { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line);
+    color: var(--text); border-radius: 10px; padding: 9px 11px; font: 400 15px/1.2 var(--f-ui); }
+  .rc-ed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rc-ed-grid label { display: grid; gap: 4px; font: 600 11px/1 var(--f-mono); color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  .rc-ed-hint { margin: 0; font-size: 12px; color: var(--dim); }
   .ns-rc-label { margin-bottom: 8px; }
   .ns-rc-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
   .ns-rc-chips::-webkit-scrollbar { display: none; }
