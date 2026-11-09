@@ -1316,17 +1316,6 @@
       <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
       <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
 
-      <!-- Mi plan (bloques y objetivos) y Mis rutinas, cada uno en su ventana -->
-      <button type="button" class="btn btn--sec tr-routines-btn" id="planBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
-        <span>Mi plan</span>
-        <span class="data-sm" id="planBtnWeek"></span>
-      </button>
-      <button type="button" class="btn btn--sec tr-routines-btn" id="routinesBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
-        <span>Mis rutinas</span>
-        <span class="data-sm" id="routinesCount"></span>
-      </button>
 
 
 
@@ -1347,11 +1336,12 @@
         <div class="prog-head">
           <span class="label">Progresión</span>
           <span class="pr-pill" id="progPr" style="display:none"></span>
-          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
         </div>
         <div class="ex-slider" id="exSlider"></div>
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="progReadout"></div>
+        <div class="prog-readrow"><div class="prog-readout" id="progReadout"></div>
+          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+        </div>
         <div class="prog-info" id="progInfo" hidden></div>
         <div class="sub" id="progSub"></div>
       </div>
@@ -1362,13 +1352,14 @@
         <div class="prog-head">
           <span class="label">Progresión física</span>
           <span class="pr-pill" id="bodyDelta" style="display:none"></span>
-          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
           <button type="button" class="ib" id="bodyAddBtn" aria-label="Añadir métricas a mano"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></button>
         </div>
         <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
         <div class="metric-tabs" id="bodySlider"></div>
         <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="bodyReadout"></div>
+        <div class="prog-readrow"><div class="prog-readout" id="bodyReadout"></div>
+          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+        </div>
         <div class="prog-info" id="bodyInfo" hidden></div>
         <div class="sub" id="bodySub"></div>
         <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
@@ -1384,6 +1375,22 @@
       </div>
 
       </div><!-- /#statsCards -->
+
+      <!-- Mi plan y Mis rutinas: dos tarjetas, cada una abre su ventana -->
+      <div class="tr-tiles">
+        <button type="button" class="tr-tile" id="planBtn">
+          <svg class="tt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+          <span class="tt-n">Mi plan</span>
+          <span class="tt-s" id="planBtnWeek">Plan y objetivos</span>
+          <svg class="tt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="tr-tile" id="routinesBtn">
+          <svg class="tt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
+          <span class="tt-n">Mis rutinas</span>
+          <span class="tt-s" id="routinesCount"></span>
+          <svg class="tt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
 
       <!-- Métricas: tarjetas que eliges tú (como en Salud): carrera, pasos, sueño… -->
       <div class="sec-head">
@@ -1921,7 +1928,11 @@
         <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="pop-body">
-        <h3 class="mp-title">Plan de entrenamiento</h3>
+        <div class="seg mp-tabs" id="mpTabs">
+          <button type="button" class="seg-btn active" data-mp="plan">Plan de entrenamiento</button>
+          <button type="button" class="seg-btn" data-mp="obj">Objetivos</button>
+        </div>
+        <div id="mpPlan">
         <div class="plan-headline mp-head" id="planHeadline" hidden></div>
       <div id="progPane">
         <div class="ticker prog-ticker">
@@ -1931,12 +1942,14 @@
         <div class="mp-sub"><span class="label">Bloques</span><span class="data-sm" id="planCount"></span></div>
         <div id="planBlocks"></div>
       </div>
-        <h3 class="mp-title">Objetivos</h3>
+        </div>
+        <div id="mpObj" hidden>
       <div class="seg" id="goalsSeg" style="margin-bottom:16px">
         <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
         <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
       </div>
       <div id="goalsPanel"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -4028,7 +4041,7 @@
       || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de Entreno o pídeselos al Coach.</div>`;
     const nRutinas = grupos.gym.length + grupos.home.length;
     const cuenta = document.getElementById('routinesCount');
-    if (cuenta) cuenta.textContent = nRutinas ? String(nRutinas) : '';
+    if (cuenta) cuenta.textContent = nRutinas ? `${nRutinas} ${nRutinas === 1 ? 'rutina' : 'rutinas'}` : 'Aún ninguna';
 
     renderPlanHeadline();
     // Plan macro (bloques): sección de Entreno; también pone la semana en el chip
@@ -4071,6 +4084,8 @@
     if (!el) return;
     const ps = planStatus();
     el.classList.remove('caducado');
+    const tile = document.getElementById('planBtnWeek');
+    if (tile) tile.textContent = !ps ? 'Plan y objetivos' : ps.caducado ? 'Plan terminado' : ps.antes ? `Empieza el ${fmtD(ps.ini)}` : `Semana ${ps.semana} de ${ps.semanas}`;
     if (!ps) { el.hidden = true; return; }
     if (ps.caducado) {
       el.innerHTML = `<b>Tu plan terminó el ${fmtD(ps.fin)}</b> · Habla con el coach para el siguiente`;
@@ -9136,6 +9151,11 @@ $('homeCalBtn').addEventListener('click', () => abrirHoja(calSheet));
 // Objetivos en su ventana
 const goalsSheet = $('goalsSheet');
 $('planBtn').addEventListener('click', () => abrirHoja(goalsSheet));
+document.querySelectorAll('#mpTabs [data-mp]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('#mpTabs [data-mp]').forEach((x) => x.classList.toggle('active', x === b));
+  $('mpPlan').hidden = b.dataset.mp !== 'plan';
+  $('mpObj').hidden = b.dataset.mp !== 'obj';
+}));
 goalsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(goalsSheet)));
 
 // Progresión: la de los entrenos o la física, una cada vez (se recuerda)
@@ -9492,8 +9512,6 @@ boot(false);
   .home-acts .home-cta:active { background: #A51C18; }
   .home-acts .home-meal { background: transparent; border: 1px solid var(--line-2); color: var(--text); }
   /* Entreno: Mi plan y Mis rutinas como filas */
-  #planBtn { margin-bottom: 8px; }
-  #planBtnWeek { margin-left: auto; }
   /* Ventana Mi plan, más limpia: resumen, bloques y objetivos */
   .mp-title { margin: 6px 0 12px; font: 900 22px/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; }
   .mp-title + .plan-headline, .mp-head { margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; background: var(--s3);
@@ -9511,7 +9529,7 @@ boot(false);
   /* Sin PR, cambio ni «11 sesiones…» a la vista: van en la info (i) */
   #progPr, #bodyDelta, #progSub, #bodySub, #metricsAddBtn { display: none !important; }
   .prog-head { gap: 6px; }
-  .prog-head .ib:first-of-type { margin-left: auto; }
+  .prog-head .ib { margin-left: auto; }
   .ib { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--dim);
     border: 1px solid var(--line); background: transparent; }
   .ib svg { width: 17px; height: 17px; }
@@ -9522,6 +9540,22 @@ boot(false);
   .prog-info b { color: var(--text); font-weight: 600; }
   .prog-info[hidden] { display: none; }
   .prog-empty { display: block; padding: 18px 8px 8px; font-size: 13.5px; line-height: 1.5; color: var(--dim); }
+
+  /* ═══ Ronda 6: Entreno ═══ */
+  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 6px; }
+  .tr-tile { position: relative; display: grid; gap: 4px; align-content: start; min-height: 104px; padding: 16px;
+    border-radius: 16px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
+  .tr-tile:active { transform: scale(.98); }
+  .tt-ico { width: 22px; height: 22px; margin-bottom: 10px; color: var(--hot-text); }
+  .tt-n { font: 600 16px/1.2 var(--f-ui); }
+  .tt-s, .tr-tile #routinesCount { margin: 0; justify-self: start; font: 600 11.5px/1.3 var(--f-mono); color: var(--dim); }
+  .tt-chev { position: absolute; top: 16px; right: 14px; width: 16px; height: 16px; color: var(--dim); }
+  .prog-readrow { position: relative; display: flex; justify-content: center; align-items: center; min-height: 40px; }
+  .prog-readrow .prog-readout { margin-top: 10px; }
+  .prog-readrow .ib { position: absolute; right: 0; top: 50%; transform: translateY(-30%); margin: 0; }
+  .mp-tabs { margin-bottom: 16px !important; }
+  .mp-tabs .seg-btn { font-size: 13px; }
+  #mpPlan[hidden], #mpObj[hidden] { display: none; }
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
