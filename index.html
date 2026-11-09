@@ -294,7 +294,7 @@
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--line-2); box-shadow: var(--sh-float);
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(3, 1fr);
     align-items: center; padding: 0 6px;
     max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
   }
@@ -1233,9 +1233,25 @@
       </div>
 
       <!-- §5.4 · Cinta de datos -->
-      <div class="ticker home-ticker">
+      <div class="ticker home-ticker" style="display:none">
         <span class="tag" id="tickerTag">HOY</span>
         <span class="vals" id="tickerVals"></span>
+      </div>
+
+      <!-- Quién eres: foto (toca para cambiarla), nombre y peso. Ajustes en el engranaje. -->
+      <div class="prof-head" id="profHead">
+        <button type="button" class="prof-ava" id="profAva" aria-label="Foto de perfil">
+          <span class="ini" id="profIni">·</span>
+        </button>
+        <div class="prof-id">
+          <div class="prof-name" id="profName">—</div>
+          <div class="prof-stats">
+            <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
+          </div>
+        </div>
+        <button type="button" class="btn-icon" id="profAcct" aria-label="Ajustes del perfil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
+        </button>
       </div>
 
       <!-- Tiles: racha + sesiones de la semana -->
@@ -1275,13 +1291,20 @@
         <div class="wstrip" id="weekStrip"></div>
       </div>
 
-      <!-- Últimos entrenamientos -->
-      <div class="sec-head">
-        <span class="label">Últimos</span>
-        <span class="rule"></span>
-        <span class="data-sm" id="recentCount"></span>
+
+      <div class="card check-card home-check">
+        <div class="nk-head">
+          <span class="label">Check semanal</span>
+          <span class="data-sm" id="checkGoal"></span>
+        </div>
+        <div class="check-grid" id="weeklyCheck"></div>
       </div>
-      <div id="recentList"></div>
+
+      <!-- El calendario vive en Entreno; aquí se abre en una ventana -->
+      <button type="button" class="btn btn--sec home-cal-btn" id="homeCalBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        VER CALENDARIO
+      </button>
     </section>
 
     <!-- =========== TRAINER · DESIGN.md §8.2 y §8.7 =========== -->
@@ -1298,52 +1321,26 @@
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
 
-      <div class="seg" id="trainerTabs">
-        <button class="seg-btn active" data-tab="entrenos">ENTRENOS</button>
-        <button class="seg-btn" data-tab="obj">OBJETIVOS</button>
+      <div class="plan-headline" id="planHeadline" hidden></div>
+
+      <!-- Los entrenos que has creado, en una ventana: aquí solo el botón -->
+      <button type="button" class="btn btn--sec tr-routines-btn" id="routinesBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
+        <span>MIS ENTRENAMIENTOS</span>
+        <span class="data-sm" id="routinesCount"></span>
+      </button>
+
+      <div class="sec-head">
+        <span class="label">Objetivos</span>
+        <span class="rule"></span>
       </div>
-
-      <div class="tab-panel active" data-panel="entrenos">
-        <div class="plan-headline" id="planHeadline" hidden></div>
-        <div id="routineList"></div>
+      <div class="seg" id="goalsSeg" style="margin-bottom:16px">
+        <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
+        <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
       </div>
+      <div id="goalsPanel"></div>
 
-      <div class="tab-panel" data-panel="obj">
-        <div class="seg" id="goalsSeg" style="margin-bottom:16px">
-          <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
-          <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
-        </div>
-        <div id="goalsPanel"></div>
-      </div>
-    </section>
-
-    <!-- =========== ESTADÍSTICAS =========== -->
-    <section class="screen" data-screen="chat">
-      <div class="glow" aria-hidden="true"></div>
-
-      <!-- §8.3 · Cabecera: logo + chip de estado + menú -->
-      <div class="scr-head">
-        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="chatStatus"><i class="dot"></i>EN LÍNEA</span>
-        <button type="button" class="btn-icon" id="chatMenu" aria-label="Historial de chats">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
-        </button>
-      </div>
-
-      <h1 class="title scr-title chat-title">COACH</h1>
-
-      <div class="seg" id="chatTabs">
-        <button type="button" class="seg-btn active" data-ctab="chat">ENTRENADOR</button>
-        <button type="button" class="seg-btn" data-ctab="prog">PROGRAMA</button>
-      </div>
-
-      <div id="chatPane">
-        <div class="chat-box" id="chatBox">
-          <div class="chat-log" id="chatLog"></div>
-        </div>
-      </div>
-
-      <div id="progPane" style="display:none">
+      <div id="progPane">
         <div class="ticker prog-ticker">
           <span class="tag">AHORA</span>
           <span class="vals" id="progTicker"></span>
@@ -1356,17 +1353,91 @@
         <div id="planBlocks"></div>
       </div>
 
-      <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
-           empezarla, pero el campo de escritura funciona igualmente. -->
-      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
-        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      <!-- Progreso: calendario, por ejercicio, carrera y físico -->
+      <div class="sec-head">
+        <span class="label">Progreso</span>
+        <span class="rule"></span>
+      </div>
+      <div id="statsCards">
+
+
+      <div class="card" data-sec="calendario" data-sec-name="Calendario">
+        <div class="cal-card-head">
+          <span class="label">Calendario</span>
+          <div class="seg seg-mini" id="calSeg">
+            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
+            <button type="button" class="seg-btn" data-calview="year">Año</button>
+          </div>
+        </div>
+        <div id="calMonthView">
+          <div class="cal-head">
+            <button type="button" class="cal-btn" id="calPrev">‹</button>
+            <div class="cal-title" id="calTitle"></div>
+            <button type="button" class="cal-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div id="calYearView" style="display:none">
+          <div class="yg-title">2026</div>
+          <div id="yearGrid"></div>
+        </div>
       </div>
 
-      <form class="chat-input" id="chatForm">
-        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
-        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
-      </form>
+      <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
+        <div class="prog-head">
+          <span class="label">Progresión</span>
+          <span class="pr-pill" id="progPr" style="display:none"></span>
+        </div>
+        <div class="ex-slider" id="exSlider"></div>
+        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="prog-readout" id="progReadout"></div>
+        <div class="sub" id="progSub"></div>
+      </div>
+
+      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
+      <div class="card chart-card" data-sec="carrera" data-sec-name="Carrera">
+        <div class="prog-head">
+          <span class="label">Carrera</span>
+          <span class="pr-pill" id="runPill" style="display:none"></span>
+        </div>
+        <div id="runBody"></div>
+      </div>
+
+      <!-- Progresión física: peso, IMC y grasa -->
+      <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
+        <div class="prog-head">
+          <span class="label">Progresión física</span>
+          <span class="pr-pill" id="bodyDelta" style="display:none"></span>
+        </div>
+        <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
+        <div class="metric-tabs" id="bodySlider"></div>
+        <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+        <div class="prog-readout" id="bodyReadout"></div>
+        <div class="sub" id="bodySub"></div>
+        <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          AÑADIR MÉTRICAS
+        </button>
+        <form class="weight-form" id="weightForm" style="display:none">
+          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
+          <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
+          <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
+          <button type="submit">Guardar</button>
+        </form>
+      </div>
+
+      </div><!-- /#statsCards -->
+
+      <!-- Últimos entrenamientos -->
+      <div class="sec-head">
+        <span class="label">Últimos</span>
+        <span class="rule"></span>
+        <span class="data-sm" id="recentCount"></span>
+      </div>
+      <div id="recentList"></div>
     </section>
+
 
     <style>
       /* ════════ CHAT · DESIGN.md §8.3 y §5.8 ════════ */
@@ -1460,115 +1531,8 @@
         width: 1px; background: var(--line); }
     </style>
 
-    <section class="screen" data-screen="stats">
-      <div class="glow" aria-hidden="true"></div>
-
-      <div class="scr-head">
-        <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-      </div>
-
-      <!-- Cabecera de perfil: foto (toca para cambiarla), nombre, peso y racha.
-           Debajo sigue "TU PROGRESO" tal cual estaba. -->
-      <div class="prof-head" id="profHead">
-        <button type="button" class="prof-ava" id="profAva" aria-label="Foto de perfil">
-          <span class="ini" id="profIni">·</span>
-        </button>
-        <div class="prof-id">
-          <div class="prof-name" id="profName">—</div>
-          <div class="prof-stats">
-            <span class="prof-stat"><span class="v" id="profWeight">—</span><span class="u">kg</span></span>
-            <span class="prof-sep"></span>
-            <span class="prof-stat"><span class="v" id="profStreak">—</span><span class="u">de racha</span></span>
-          </div>
-        </div>
-        <button type="button" class="btn-icon" id="profAcct" aria-label="Ajustes del perfil">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
-        </button>
-      </div>
-
-      <h1 class="title scr-title"><span class="out">TU</span> <span>PROGRESO</span></h1>
-
-      <!-- El orden de estas tarjetas lo decide cada usuario (Ajustes →
-           Rediseñar progreso) y se guarda en profiles.stats_order. -->
-      <div id="statsCards">
-
-      <div class="card check-card" data-sec="check" data-sec-name="Check semanal">
-        <div class="nk-head">
-          <span class="label">Check semanal</span>
-          <span class="data-sm" id="checkGoal"></span>
-        </div>
-        <div class="check-grid" id="weeklyCheck"></div>
-      </div>
-
-      <div class="card" data-sec="calendario" data-sec-name="Calendario">
-        <div class="cal-card-head">
-          <span class="label">Calendario</span>
-          <div class="seg seg-mini" id="calSeg">
-            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
-            <button type="button" class="seg-btn" data-calview="year">Año</button>
-          </div>
-        </div>
-        <div id="calMonthView">
-          <div class="cal-head">
-            <button type="button" class="cal-btn" id="calPrev">‹</button>
-            <div class="cal-title" id="calTitle"></div>
-            <button type="button" class="cal-btn" id="calNext">›</button>
-          </div>
-          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-          <div class="cal-grid" id="calGrid"></div>
-        </div>
-        <div id="calYearView" style="display:none">
-          <div class="yg-title">2026</div>
-          <div id="yearGrid"></div>
-        </div>
-      </div>
-
-      <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
-        <div class="prog-head">
-          <span class="label">Progresión</span>
-          <span class="pr-pill" id="progPr" style="display:none"></span>
-        </div>
-        <div class="ex-slider" id="exSlider"></div>
-        <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="progReadout"></div>
-        <div class="sub" id="progSub"></div>
-      </div>
-
-      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
-      <div class="card chart-card" data-sec="carrera" data-sec-name="Carrera">
-        <div class="prog-head">
-          <span class="label">Carrera</span>
-          <span class="pr-pill" id="runPill" style="display:none"></span>
-        </div>
-        <div id="runBody"></div>
-      </div>
-
-      <!-- Progresión física: peso, IMC y grasa -->
-      <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
-        <div class="prog-head">
-          <span class="label">Progresión física</span>
-          <span class="pr-pill" id="bodyDelta" style="display:none"></span>
-        </div>
-        <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
-        <div class="metric-tabs" id="bodySlider"></div>
-        <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
-        <div class="prog-readout" id="bodyReadout"></div>
-        <div class="sub" id="bodySub"></div>
-        <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          AÑADIR MÉTRICAS
-        </button>
-        <form class="weight-form" id="weightForm" style="display:none">
-          <input id="weightInput" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="Peso (kg)">
-          <input id="bmiInput" type="number" inputmode="decimal" step="0.1" min="10" max="60" placeholder="IMC">
-          <input id="fatInput" type="number" inputmode="decimal" step="0.1" min="3" max="60" placeholder="% grasa">
-          <button type="submit">Guardar</button>
-        </form>
-      </div>
-
-      </div><!-- /#statsCards -->
-
-      <style>
+    <!-- Estilos de las tarjetas de progreso (ahora en Entreno) -->
+    <style>
         /* ---------- Stats v2 ---------- */
         .chart-card .line-chart { color: var(--accent); width: 100%; }
         .chart-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -1652,7 +1616,6 @@
         .swap-item.swap-new .swap-icon { color: var(--accent); }
       </style>
 
-    </section>
 
     <!-- =========== NUTRICIÓN =========== -->
     <section class="screen" data-screen="nutrition">
@@ -1879,16 +1842,79 @@
 
   </div>
 
+
+  <!-- =========== COACH FLOTANTE =========== -->
+  <!-- Ya no es una pestaña: botón en la esquina y ventana emergente. El
+       tracker toma prestadas estas mismas piezas durante el entreno. -->
+  <button type="button" class="coach-fab" id="coachFab" aria-label="Abrir el Coach">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <div class="coach-sheet" id="coachSheet" aria-hidden="true">
+    <div class="dock-back" id="coachSheetBack"></div>
+    <div class="dock-sheet" role="dialog" aria-label="Coach">
+      <div class="dock-head">
+        <span class="status-chip"><i class="dot"></i>COACH</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" id="chatMenu" aria-label="Historial de chats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
+        </button>
+        <button type="button" class="btn-icon" id="coachSheetClose" aria-label="Cerrar el Coach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="dock-slot" id="coachSheetSlot">
+        <div class="chat-box" id="chatBox">
+          <div class="chat-log" id="chatLog"></div>
+        </div>
+      <!-- Mientras no se haya hecho la primera sesión, este botón sugiere
+           empezarla, pero el campo de escritura funciona igualmente. -->
+      <div class="chat-input chat-locked" id="chatLocked" style="display:none">
+        <button type="button" id="chatStartPlan">CREAR MI PLAN</button>
+      </div>
+      <form class="chat-input" id="chatForm">
+        <input id="chatText" type="text" placeholder="Pide un cambio…" autocomplete="off" enterkeyhint="send">
+        <button type="submit" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex-shrink:0"><path d="M4 12h14M12 6l6 6-6 6"/></svg></button>
+      </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventana de Mis entrenamientos (Entreno) -->
+  <div class="coach-sheet pop-sheet" id="routinesSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Mis entrenamientos">
+      <div class="dock-head">
+        <span class="label">Mis entrenamientos</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body"><div id="routineList"></div></div>
+    </div>
+  </div>
+
+  <!-- Ventana del calendario (Home): se le presta la tarjeta de Entreno -->
+  <div class="coach-sheet pop-sheet" id="calSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Calendario">
+      <div class="dock-head">
+        <span class="label">Calendario</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body" id="calSheetSlot"></div>
+    </div>
+  </div>
+
   <!-- =========== BOTTOM NAV =========== -->
-  <!-- §5.7 · Píldora flotante de 5 columnas. Solo la activa lleva etiqueta. -->
+  <!-- §5.7 · Píldora flotante de 3 columnas. Solo la activa lleva etiqueta. -->
   <nav class="bottom" aria-label="Principal">
-    <button data-go="chat" aria-label="Chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>CHAT</span>
-    </button>
-    <button data-go="trainer" aria-label="Trainer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      <span>PLAN</span>
+    <button data-go="trainer" aria-label="Entreno">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
+      <span>ENTRENO</span>
     </button>
     <button class="active" data-go="home" aria-label="Home" aria-current="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -1897,10 +1923,6 @@
     <button data-go="nutrition" aria-label="Nutrición">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8C10.7 6.5 8.5 6 7 7c-1.7 1.2-2.3 3.4-2.3 5.4 0 3.9 2.5 7.6 4.5 7.6.9 0 1.6-.5 2.8-.5s1.9.5 2.8.5c2 0 4.5-3.7 4.5-7.6 0-2-.6-4.2-2.3-5.4-1.5-1-3.7-.5-5 1z"/><path d="M12 8V5.2"/><path d="M12.2 5.2c1.5-.1 2.7-1.2 2.8-2.6-1.5-.1-2.8 1.1-2.8 2.6z"/></svg>
       <span>NUTRI</span>
-    </button>
-    <button data-go="stats" aria-label="Perfil">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>
-      <span>PERFIL</span>
     </button>
   </nav>
 
@@ -3675,7 +3697,7 @@
       .map(([id, r]) => `<button type="button" class="hs-opt" data-act="pick" data-id="${id}">
         <b>${r.tag || ''}</b>&nbsp;${r.name}
         <span style="margin-left:auto;color:var(--muted);font-size:12px">${(r.exercises || []).length} ej</span></button>`);
-    return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Trainer o pídeselas al Chat.</div>';
+    return items.join('') || '<div class="hs-sub">Aún no hay rutinas — créalas en Entreno o pídeselas al Coach.</div>';
   }
 
   // Ver/empezar un entreno desde la lista de Trainer→Entrenos
@@ -3839,10 +3861,8 @@
   }
 
   function renderTrainer() {
-    // Título y chip cambian con la pestaña
-    const enObjetivos = document.querySelector('#trainerTabs .seg-btn.active')?.dataset.tab === 'obj';
     document.getElementById('trainerTitle').innerHTML =
-      `<span class="out">TUS</span> <span>${enObjetivos ? 'OBJETIVOS' : 'ENTRENOS'}</span>`;
+      `<span class="out">TU</span> <span>ENTRENO</span>`;
 
     renderGoals();
 
@@ -3881,14 +3901,14 @@
         }).join('');
     };
     list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home)
-      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de arriba o pídeselos al Coach en el Chat.</div>`;
+      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de Entreno o pídeselos al Coach.</div>`;
+    const nRutinas = grupos.gym.length + grupos.home.length;
+    const cuenta = document.getElementById('routinesCount');
+    if (cuenta) cuenta.textContent = nRutinas ? String(nRutinas) : '';
 
     renderPlanHeadline();
-    // Plan macro (bloques) — vive en Chat › Programa
+    // Plan macro (bloques): sección de Entreno; también pone la semana en el chip
     renderProgramTab();
-    const chip = document.getElementById('trainerChip');
-    const chatChip = document.getElementById('chatStatus');
-    if (chip) chip.textContent = chatChip?.dataset.week || 'PLAN';
   }
 
   // ===== Dónde estás en el plan: por FECHA, nunca por plan.current_block =====
@@ -3957,8 +3977,8 @@
     const cur = blocks.find(b => todayIso >= b.startDate && todayIso <= b.endDate);
     const totalWeeks = blocks.reduce((a, b) => a + (Number(b.weeks) || 0), 0);
     const weekNo = blocks.length ? Math.max(1, weeksBetween(blocks[0].startDate, todayIso) + 1) : 0;
-    const chip = document.getElementById('chatStatus');
-    if (chip) chip.dataset.week = totalWeeks ? `SEM ${String(Math.min(weekNo, totalWeeks)).padStart(2,'0')} / ${totalWeeks}` : '';
+    const chip = document.getElementById('trainerChip');
+    if (chip) chip.textContent = totalWeeks ? `SEM ${String(Math.min(weekNo, totalWeeks)).padStart(2,'0')} / ${totalWeeks}` : 'PLAN';
 
     // Cinta: AHORA | BLOQUE / SEM x DE y / n SESIONES
     const ticker = document.getElementById('progTicker');
@@ -4790,7 +4810,7 @@
     window.scrollTo(0, 0);
     // El slider de ejercicios se construye con la pantalla oculta (anchos 0):
     // re-centrar el chip activo cuando Perfil se hace visible
-    if (target === 'stats') requestAnimationFrame(() => centerActiveChip());
+    if (target === 'trainer') requestAnimationFrame(() => centerActiveChip());
   }));
 
   // ============ Tracker ============
@@ -5270,39 +5290,6 @@
     if (confirm('¿Salir sin guardar el entreno?')) { clearTimeout(draftTimer); clearDraft(); closeTracker(); }
   });
 
-  // Trainer: pestañas y navegación entre semanas
-  // Pestañas del Chat: Entrenador / Programa
-  document.querySelectorAll('#chatTabs .seg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#chatTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
-      const prog = btn.dataset.ctab === 'prog';
-      document.getElementById('chatPane').style.display = prog ? 'none' : '';
-      document.getElementById('progPane').style.display = prog ? '' : 'none';
-      document.getElementById('chatForm').style.display = prog ? 'none' : 'flex';
-      // La sugerencia de CREAR MI PLAN acompaña al formulario: fuera en
-      // Programa, y de vuelta solo si la primera sesión sigue pendiente.
-      const sinPlan = !!window.__profile && !window.__profile.first_session_done;
-      document.getElementById('chatLocked').style.display = (prog || !sinPlan) ? 'none' : '';
-      // §8.3/§8.2: el chip de la cabecera cambia con la pestaña
-      const chip = document.getElementById('chatStatus');
-      chip.classList.toggle('is-week', prog);
-      chip.innerHTML = prog
-        ? (chip.dataset.week || 'PLAN')
-        : '<i class="dot"></i>EN LÍNEA';
-    });
-  });
-
-  // El título de Trainer cambia con la pestaña (ENTRENOS / OBJETIVOS)
-  document.querySelectorAll('#trainerTabs .seg-btn').forEach(b =>
-    b.addEventListener('click', () => setTimeout(renderTrainer, 0)));
-
-  document.querySelectorAll('#trainerTabs .seg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#trainerTabs .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
-      const tab = btn.dataset.tab;
-      document.querySelectorAll('[data-screen="trainer"] > .tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
-    });
-  });
   // Se guarda PRIMERO y luego se enseña la ventana: así "queda guardado" es
   // cierto cuando se lee, no una promesa.
   document.getElementById('finishBtn').addEventListener('click', () => {
@@ -8029,7 +8016,7 @@ function cerrarIntroCoach() {
 // mensaje que la dispara no se enseña — el primero que se lee es el del Coach.
 function empezarPrimeraSesion() {
   cerrarIntroCoach();
-  document.querySelector('[data-go="chat"]')?.click();
+  window.appOpenCoach?.();
   setTimeout(() => sendChat('Quiero crear mi plan.', { oculto: true }), 250);
 }
 $('coachGo').addEventListener('click', empezarPrimeraSesion);
@@ -8701,8 +8688,31 @@ chatForm.addEventListener('submit', (e) => {
   chatText.value = '';
   sendChat(text);
 });
-// Al volver al chat tras un rato inactivo, la conversación se archiva y se vacía
-document.querySelector('[data-go="chat"]')?.addEventListener('click', async () => {
+// ---------- Ventanas emergentes: Coach, Mis entrenamientos, Calendario ----------
+// Las tres son la misma hoja que el Coach del tracker. Se abren en dos pasos
+// (display y luego la transición) y se cierran igual, al revés.
+function abrirHoja(hoja) {
+  if (hoja.classList.contains('open')) return;
+  hoja.classList.add('open');
+  hoja.setAttribute('aria-hidden', 'false');
+  void hoja.offsetWidth;
+  hoja.classList.add('on');
+}
+function cerrarHoja(hoja, alCerrar) {
+  if (!hoja.classList.contains('open')) return;
+  hoja.classList.remove('on');
+  document.activeElement?.blur?.();
+  setTimeout(() => {
+    hoja.classList.remove('open');
+    hoja.setAttribute('aria-hidden', 'true');
+    alCerrar?.();
+  }, 260);
+}
+
+// Coach: al abrirlo tras un rato inactivo, la conversación se archiva y se vacía
+const coachSheet = $('coachSheet');
+async function abrirCoach() {
+  abrirHoja(coachSheet);
   if (!chatEnEspera && chatHistory.length && Date.now() - chatLastTs > CHAT_IDLE_MS) {
     await archiveThread('coach', chatHistory, chatLastTs);
     saveLive('coach', [], 0);
@@ -8711,7 +8721,37 @@ document.querySelector('[data-go="chat"]')?.addEventListener('click', async () =
   }
   const box = $('chatBox');
   if (box) box.scrollTop = box.scrollHeight;
+}
+window.appOpenCoach = abrirCoach;
+$('coachFab').addEventListener('click', abrirCoach);
+$('coachSheetClose').addEventListener('click', () => cerrarHoja(coachSheet));
+$('coachSheetBack').addEventListener('click', () => cerrarHoja(coachSheet));
+
+// Mis entrenamientos (Entreno). Al tocar uno se abre su vista encima y, al
+// volver, la lista sigue ahí.
+const routinesSheet = $('routinesSheet');
+$('routinesBtn').addEventListener('click', () => abrirHoja(routinesSheet));
+routinesSheet.querySelectorAll('[data-close]').forEach((b) =>
+  b.addEventListener('click', () => cerrarHoja(routinesSheet)));
+
+// Calendario (Home): se presta la tarjeta de Entreno y se devuelve al cerrar,
+// para no tener dos calendarios con los mismos ids.
+const calSheet = $('calSheet');
+let calPrestado = null;
+$('homeCalBtn').addEventListener('click', () => {
+  const card = document.querySelector('[data-sec="calendario"]');
+  if (card && !calPrestado) {
+    calPrestado = { padre: card.parentNode, siguiente: card.nextSibling };
+    $('calSheetSlot').appendChild(card);
+  }
+  abrirHoja(calSheet);
 });
+calSheet.querySelectorAll('[data-close]').forEach((b) =>
+  b.addEventListener('click', () => cerrarHoja(calSheet, () => {
+    const card = $('calSheetSlot').querySelector('[data-sec="calendario"]');
+    if (card && calPrestado) calPrestado.padre.insertBefore(card, calPrestado.siguiente);
+    calPrestado = null;
+  })));
 
 // ---------- Hoja de historial ----------
 async function openChatHistory() {
@@ -8830,6 +8870,58 @@ async function boot(loggedIn) {
 }
 boot(false);
 </script>
+
+<style>
+  /* ════════ Estructura de 3 pestañas (nov-2026): Entreno · Home · Nutri ════════ */
+  /* Sitio para que el botón del Coach no tape lo último de cada pantalla */
+  #app { padding-bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 96px); }
+
+  /* Home: quién eres, racha grande, check y el calendario a un botón */
+  [data-screen="home"] .prof-head { margin: 18px 0 14px; }
+  [data-screen="home"] .prof-ava { width: 58px; height: 58px; }
+  [data-screen="home"] .prof-ava .ini { font-size: 22px; }
+  [data-screen="home"] .prof-name { font-size: 23px; margin-bottom: 6px; }
+  [data-screen="home"] .prof-head .btn-icon { margin-left: auto; }
+  .home-tiles .tile { height: 116px; }
+  #tileStreak .metric-xl { font-size: 76px; }
+  .home-check { margin-top: 14px; }
+  .home-cal-btn, .tr-routines-btn { width: 100%; margin-top: 14px; }
+  .tr-routines-btn { margin: 0 0 6px; justify-content: flex-start; gap: 10px; }
+  .tr-routines-btn #routinesCount { margin-left: auto; }
+
+  /* Entreno: una sola vista, por secciones */
+  [data-screen="trainer"] #statsCards { margin-bottom: 6px; }
+  [data-screen="trainer"] #progPane .prog-ticker { margin-top: 8px; }
+
+  /* Botón del Coach: esquina inferior derecha, encima de la barra */
+  .coach-fab { position: fixed; z-index: 55; width: 54px; height: 54px; border-radius: 50%;
+    right: calc(max(0px, (100vw - var(--maxw)) / 2) + var(--nav-side));
+    bottom: calc(var(--nav-h) + var(--nav-gap) + env(safe-area-inset-bottom) + 12px);
+    display: grid; place-items: center; border: 0;
+    background: var(--hot); color: var(--hot-ink); box-shadow: var(--sh-float); }
+  .coach-fab svg { width: 23px; height: 23px; }
+  .coach-fab:active { transform: scale(.96); }
+
+  /* Ventanas emergentes (Coach, Mis entrenamientos, Calendario): misma hoja
+     que el Coach del tracker, pero fuera de él */
+  .coach-sheet { position: fixed; inset: 0; z-index: 85; display: none; }
+  .coach-sheet.open { display: block; }
+  .coach-sheet.on .dock-back { opacity: 1; }
+  .coach-sheet.on .dock-sheet { transform: translateY(0); }
+  .coach-sheet .dock-sheet { max-width: var(--maxw); margin: 0 auto; }
+  .coach-sheet .dock-head .btn-icon + .btn-icon { margin-left: 0; }
+  .coach-sheet .dock-head .btn-icon:first-of-type { margin-left: auto; }
+  #coachSheetSlot .chat-box { height: auto; flex: 1; min-height: 0; }
+  #coachSheetSlot .chat-input { position: static; left: auto; right: auto; bottom: auto;
+    max-width: none; margin: 0; flex-shrink: 0; }
+  #coachSheetSlot .chat-input::before { display: none; }
+  .pop-sheet .dock-sheet { height: auto; max-height: 88dvh; }
+  .pop-body { flex: 1; min-height: 0; overflow-y: auto;
+    padding: 0 var(--gutter) calc(env(safe-area-inset-bottom) + 18px); }
+  .pop-body > .card { margin: 0; }
+  #calSheetSlot .cal-card-head .label { visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) { .coach-sheet .dock-sheet { transition: none; } }
+</style>
 
 <!-- §1.7A · Grano global: última capa, sobre todo el contenido -->
 <div class="grain" aria-hidden="true"></div>
