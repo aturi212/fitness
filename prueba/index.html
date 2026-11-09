@@ -1301,15 +1301,19 @@
 
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
-        <span class="status-chip" id="trainerChip"></span>
-        <button type="button" class="btn-icon" id="trainerAdd" aria-label="Añadir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <!-- Semana del plan y «+» retirados (Adrián, 9-nov) -->
+        <span class="status-chip" id="trainerChip" hidden></span>
+        <button type="button" id="trainerAdd" hidden></button>
+        <button type="button" class="btn-pill" id="goalsBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+          Objetivos
         </button>
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
 
-      <div class="plan-headline" id="planHeadline" hidden></div>
+      <div class="plan-headline" id="planHeadline" hidden data-off></div>
+      <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
+      <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
 
       <!-- Los entrenos que has creado, en una ventana: aquí solo el botón -->
       <button type="button" class="btn btn--sec tr-routines-btn" id="routinesBtn">
@@ -1318,15 +1322,6 @@
         <span class="data-sm" id="routinesCount"></span>
       </button>
 
-      <div class="sec-head">
-        <span class="label">Objetivos</span>
-        <span class="rule"></span>
-      </div>
-      <div class="seg" id="goalsSeg" style="margin-bottom:16px">
-        <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
-        <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
-      </div>
-      <div id="goalsPanel"></div>
 
       <div id="progPane">
         <div class="ticker prog-ticker">
@@ -1341,36 +1336,18 @@
         <div id="planBlocks"></div>
       </div>
 
-      <!-- Progreso: calendario, por ejercicio, carrera y físico -->
-      <div class="sec-head">
-        <span class="label">Progreso</span>
+      <!-- Progresión: la de los entrenos o la física, una cada vez -->
+      <div class="sec-head prog-switch-head">
+        <span class="label">Progresión</span>
         <span class="rule"></span>
+        <div class="seg seg-mini" id="progSwitch">
+          <button type="button" class="seg-btn active" data-prog="progresion">Entreno</button>
+          <button type="button" class="seg-btn" data-prog="fisica">Físico</button>
+        </div>
       </div>
       <div id="statsCards">
 
 
-      <div class="card" data-sec="calendario" data-sec-name="Calendario">
-        <div class="cal-card-head">
-          <span class="label">Calendario</span>
-          <div class="seg seg-mini" id="calSeg">
-            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
-            <button type="button" class="seg-btn" data-calview="year">Año</button>
-          </div>
-        </div>
-        <div id="calMonthView">
-          <div class="cal-head">
-            <button type="button" class="cal-btn" id="calPrev">‹</button>
-            <div class="cal-title" id="calTitle"></div>
-            <button type="button" class="cal-btn" id="calNext">›</button>
-          </div>
-          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-          <div class="cal-grid" id="calGrid"></div>
-        </div>
-        <div id="calYearView" style="display:none">
-          <div class="yg-title">2026</div>
-          <div id="yearGrid"></div>
-        </div>
-      </div>
 
       <div class="card chart-card" data-sec="progresion" data-sec-name="Progresión por ejercicio">
         <div class="prog-head">
@@ -1383,14 +1360,6 @@
         <div class="sub" id="progSub"></div>
       </div>
 
-      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
-      <div class="card chart-card" data-sec="carrera" data-sec-name="Carrera">
-        <div class="prog-head">
-          <span class="label">Carrera</span>
-          <span class="pr-pill" id="runPill" style="display:none"></span>
-        </div>
-        <div id="runBody"></div>
-      </div>
 
       <!-- Progresión física: peso, IMC y grasa -->
       <div class="card chart-card" data-sec="fisica" data-sec-name="Progresión física">
@@ -1417,13 +1386,33 @@
 
       </div><!-- /#statsCards -->
 
-      <!-- Últimos entrenamientos -->
+      <!-- Métricas: tarjetas que eliges tú (como en Salud): carrera, pasos, sueño… -->
       <div class="sec-head">
-        <span class="label">Últimos</span>
+        <span class="label">Métricas</span>
         <span class="rule"></span>
-        <span class="data-sm" id="recentCount"></span>
+        <button type="button" class="sec-link" id="metricsEdit">Editar</button>
       </div>
-      <div id="recentList"></div>
+      <div id="metricCards">
+      <!-- Carrera: km por semana, ritmo por salida y últimas salidas -->
+      <div class="card chart-card" data-metric="carrera">
+        <div class="prog-head">
+          <span class="label">Carrera</span>
+          <span class="pr-pill" id="runPill" style="display:none"></span>
+        </div>
+        <div id="runBody"></div>
+      </div>
+
+        <div class="card metric-card" data-metric="pasos">
+          <div class="prog-head"><span class="label">Pasos</span><button type="button" class="sec-link" data-log="steps">Añadir</button></div>
+          <div class="mc-body" id="stepsBody"></div>
+        </div>
+        <div class="card metric-card" data-metric="sueno">
+          <div class="prog-head"><span class="label">Sueño</span><button type="button" class="sec-link" data-log="sleep">Añadir</button></div>
+          <div class="mc-body" id="sleepBody"></div>
+        </div>
+      </div>
+
+
     </section>
 
 
@@ -1923,7 +1912,57 @@
     </div>
   </div>
 
-  <!-- Ventana del calendario (Home): se le presta la tarjeta de Entreno -->
+  <!-- Ventana de Objetivos (Entreno): corto y largo plazo -->
+  <div class="coach-sheet pop-sheet" id="goalsSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Objetivos">
+      <div class="dock-head">
+        <span class="label">Objetivos</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body">
+      <div class="seg" id="goalsSeg" style="margin-bottom:16px">
+        <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
+        <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
+      </div>
+      <div id="goalsPanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Elegir qué métricas se ven en Entreno -->
+  <div class="coach-sheet pop-sheet" id="metricsSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Métricas">
+      <div class="dock-head">
+        <span class="label">Tus métricas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body"><div id="metricsPick"></div></div>
+    </div>
+  </div>
+
+  <!-- Apuntar pasos o sueño de un día -->
+  <div class="coach-sheet pop-sheet" id="logMetricSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Apuntar">
+      <div class="dock-head">
+        <span class="label" id="lmTitle">Apuntar</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="pop-body lm-body">
+        <label class="lm-row">Día <input type="date" id="lmDate"></label>
+        <label class="lm-row"><span id="lmLabel">Valor</span> <input type="number" id="lmValue" inputmode="decimal"></label>
+        <div class="ns-status" id="lmStatus"></div>
+        <button type="button" class="btn btn--primary" id="lmSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ventana del calendario (Home) -->
   <div class="coach-sheet pop-sheet" id="calSheet" aria-hidden="true">
     <div class="dock-back" data-close></div>
     <div class="dock-sheet" role="dialog" aria-label="Calendario">
@@ -1934,7 +1973,30 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="pop-body" id="calSheetSlot"></div>
+      <div class="pop-body" id="calSheetSlot">
+      <div class="card" data-sec="calendario" data-sec-name="Calendario">
+        <div class="cal-card-head">
+          <span class="label">Calendario</span>
+          <div class="seg seg-mini" id="calSeg">
+            <button type="button" class="seg-btn active" data-calview="month">Mes</button>
+            <button type="button" class="seg-btn" data-calview="year">Año</button>
+          </div>
+        </div>
+        <div id="calMonthView">
+          <div class="cal-head">
+            <button type="button" class="cal-btn" id="calPrev">‹</button>
+            <div class="cal-title" id="calTitle"></div>
+            <button type="button" class="cal-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-grid cal-dows"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div id="calYearView" style="display:none">
+          <div class="yg-title">2026</div>
+          <div id="yearGrid"></div>
+        </div>
+      </div>
+      </div>
     </div>
   </div>
 
@@ -4519,6 +4581,7 @@
     });
     return best;
   }
+  window.appCenterChip = () => centerActiveChip();
   function centerActiveChip() {
     const chip = exSliderEl.querySelector('.ex-chip.active');
     if (!chip || nearestChip() === chip) return;
@@ -9019,21 +9082,133 @@ routinesSheet.querySelectorAll('[data-close]').forEach((b) =>
 // Calendario (Home): se presta la tarjeta de Entreno y se devuelve al cerrar,
 // para no tener dos calendarios con los mismos ids.
 const calSheet = $('calSheet');
-let calPrestado = null;
-$('homeCalBtn').addEventListener('click', () => {
-  const card = document.querySelector('[data-sec="calendario"]');
-  if (card && !calPrestado) {
-    calPrestado = { padre: card.parentNode, siguiente: card.nextSibling };
-    $('calSheetSlot').appendChild(card);
+$('homeCalBtn').addEventListener('click', () => abrirHoja(calSheet));
+
+// ============ ENTRENO (Adrián, 9-nov) ============
+// Objetivos en su ventana
+const goalsSheet = $('goalsSheet');
+$('goalsBtn').addEventListener('click', () => abrirHoja(goalsSheet));
+goalsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(goalsSheet)));
+
+// Progresión: la de los entrenos o la física, una cada vez (se recuerda)
+const PROG_KEY = 'fitness_prog_view_v1';
+function pintarProgSwitch(vista) {
+  document.querySelectorAll('#progSwitch [data-prog]').forEach((b) => b.classList.toggle('active', b.dataset.prog === vista));
+  ['progresion', 'fisica'].forEach((k) => {
+    const card = document.querySelector(`#statsCards [data-sec="${k}"]`);
+    if (card) card.hidden = k !== vista;
+  });
+  if (vista === 'progresion') requestAnimationFrame(() => window.appCenterChip?.());
+}
+document.querySelectorAll('#progSwitch [data-prog]').forEach((b) => b.addEventListener('click', () => {
+  try { localStorage.setItem(PROG_KEY, b.dataset.prog); } catch { /* sin almacenamiento */ }
+  pintarProgSwitch(b.dataset.prog);
+}));
+pintarProgSwitch((() => { try { return localStorage.getItem(PROG_KEY) || 'progresion'; } catch { return 'progresion'; } })());
+
+// ----- Métricas: tú eliges qué tarjetas se ven (como en Salud) -----
+const METRICS = [
+  { k: 'carrera', label: 'Carrera', sub: 'Kilómetros por semana, ritmo y últimas salidas' },
+  { k: 'pasos', label: 'Pasos', sub: 'Pasos al día, apuntados a mano' },
+  { k: 'sueno', label: 'Sueño', sub: 'Horas dormidas cada noche' },
+];
+const METRICS_KEY = 'fitness_metrics_v1';
+const metricasVisibles = () => {
+  try { const v = JSON.parse(localStorage.getItem(METRICS_KEY)); if (Array.isArray(v)) return v; } catch { /* nada */ }
+  return METRICS.map((m) => m.k);
+};
+function pintarMetricas() {
+  const vis = metricasVisibles();
+  document.querySelectorAll('#metricCards [data-metric]').forEach((c) => { c.hidden = !vis.includes(c.dataset.metric); });
+  pintarDiarias();
+}
+function pintarSelectorMetricas() {
+  const vis = metricasVisibles();
+  $('metricsPick').innerHTML = METRICS.map((m) => `
+    <label class="mp-row">
+      <span><b>${m.label}</b><small>${m.sub}</small></span>
+      <input type="checkbox" data-mk="${m.k}" ${vis.includes(m.k) ? 'checked' : ''}>
+    </label>`).join('') + '<p class="mp-hint">Más adelante: peso, pulsaciones en reposo y lo que conectemos de Salud o Google Fit.</p>';
+  $('metricsPick').querySelectorAll('[data-mk]').forEach((cb) => cb.addEventListener('change', () => {
+    const nuevas = [...$('metricsPick').querySelectorAll('[data-mk]:checked')].map((x) => x.dataset.mk);
+    try { localStorage.setItem(METRICS_KEY, JSON.stringify(nuevas)); } catch { /* sin almacenamiento */ }
+    pintarMetricas();
+  }));
+}
+const metricsSheet = $('metricsSheet');
+$('metricsEdit').addEventListener('click', () => { pintarSelectorMetricas(); abrirHoja(metricsSheet); });
+metricsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(metricsSheet)));
+
+// ----- Pasos y sueño: un registro por día (tabla daily_metrics) -----
+const DAILY_KEY = 'fitness_daily_metrics_v1';
+let diariasActivas = true;   // false si la tabla aún no existe
+const loadDiarias = () => { try { return JSON.parse(localStorage.getItem(DAILY_KEY)) || []; } catch { return []; } };
+async function pullDailyMetrics() {
+  try {
+    const desde = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await sb.from('daily_metrics').select('date, steps, sleep_h').gte('date', desde).order('date');
+    if (error) { diariasActivas = !/daily_metrics|relation|schema cache/i.test(error.message || ''); }
+    else { diariasActivas = true; localStorage.setItem(DAILY_KEY, JSON.stringify(data || [])); }
+  } catch { /* sin red: lo guardado */ }
+  pintarMetricas();
+}
+const isoDia = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function tarjetaDiaria(campo, unidad, fmt) {
+  if (!diariasActivas) return '<div class="nutri-empty">Se activa en cuanto esté lista la base de datos.</div>';
+  const filas = loadDiarias();
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const iso = isoDia(d);
+    const f = filas.find((x) => x.date === iso);
+    dias.push({ iso, v: f && f[campo] != null ? Number(f[campo]) : null, l: 'LMXJVSD'[(d.getDay() + 6) % 7] });
   }
-  abrirHoja(calSheet);
+  const conDato = dias.filter((d) => d.v != null);
+  if (!conDato.length) return `<div class="nutri-empty">Aún no hay datos. Toca «Añadir» para apuntar el de hoy.</div>`;
+  const max = Math.max(...conDato.map((d) => d.v), 1);
+  const media = conDato.reduce((a, d) => a + d.v, 0) / conDato.length;
+  const ultimo = conDato[conDato.length - 1];
+  return `<div class="mc-top"><span class="metric-l">${fmt(ultimo.v)}</span><span class="mc-u">${unidad}</span>
+      <span class="mc-avg">Media 7 días <b>${fmt(media)}</b></span></div>
+    <div class="mc-bars">${dias.map((d) => `<span class="mc-bar"><i style="height:${d.v != null ? Math.max(4, (d.v / max) * 100) : 0}%"></i><small>${d.l}</small></span>`).join('')}</div>`;
+}
+function pintarDiarias() {
+  const pasos = $('stepsBody'), sueno = $('sleepBody');
+  if (pasos) pasos.innerHTML = tarjetaDiaria('steps', 'pasos', (n) => Math.round(n).toLocaleString('es-ES'));
+  if (sueno) sueno.innerHTML = tarjetaDiaria('sleep_h', 'h', (n) => (Math.round(n * 10) / 10).toLocaleString('es-ES'));
+}
+// Apuntar el dato de un día
+const logMetricSheet = $('logMetricSheet');
+let lmCampo = 'steps';
+document.querySelectorAll('[data-log]').forEach((b) => b.addEventListener('click', () => {
+  lmCampo = b.dataset.log;
+  const pasos = lmCampo === 'steps';
+  $('lmTitle').textContent = pasos ? 'Pasos' : 'Sueño';
+  $('lmLabel').textContent = pasos ? 'Pasos' : 'Horas dormidas';
+  $('lmValue').step = pasos ? '1' : '0.25';
+  $('lmValue').placeholder = pasos ? '8500' : '7,5';
+  $('lmValue').value = '';
+  $('lmDate').value = isoDia(new Date());
+  $('lmStatus').textContent = diariasActivas ? '' : 'Todavía no se puede guardar: falta activar la base de datos.';
+  abrirHoja(logMetricSheet);
+}));
+logMetricSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(logMetricSheet)));
+$('lmSave').addEventListener('click', async () => {
+  const v = Number(String($('lmValue').value).replace(',', '.'));
+  if (!Number.isFinite(v) || v < 0) { $('lmStatus').textContent = 'Escribe un número.'; return; }
+  const fila = { date: $('lmDate').value || isoDia(new Date()), [lmCampo]: lmCampo === 'steps' ? Math.round(v) : v };
+  const btn = $('lmSave'); btn.disabled = true;
+  try {
+    const { error } = await sb.from('daily_metrics').upsert(fila, { onConflict: 'user_id,date' });
+    if (error) throw error;
+    await pullDailyMetrics();
+    cerrarHoja(logMetricSheet);
+  } catch (err) {
+    $('lmStatus').textContent = 'No se ha podido guardar: ' + String(err?.message || err);
+  } finally { btn.disabled = false; }
 });
-calSheet.querySelectorAll('[data-close]').forEach((b) =>
-  b.addEventListener('click', () => cerrarHoja(calSheet, () => {
-    const card = $('calSheetSlot').querySelector('[data-sec="calendario"]');
-    if (card && calPrestado) calPrestado.padre.insertBefore(card, calPrestado.siguiente);
-    calPrestado = null;
-  })));
+pintarMetricas();
+calSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(calSheet)));
 
 // ---------- Hoja de historial ----------
 async function openChatHistory() {
@@ -9137,6 +9312,7 @@ async function boot(loggedIn) {
   await pullExNotes();
   await pullMeals();
   await pullRecipes();
+  await pullDailyMetrics();
   await materializeRecurring();
   await flushStaleThreads();
   renderNutrition();
@@ -9227,6 +9403,35 @@ boot(false);
   .metric-xl, .metric-l, .metric, .metric-sm { font-family: var(--f-mono); font-weight: 800; letter-spacing: -.03em; }
   /* Botones y texto corrido: Archivo normal */
   .btn, .btn-primary, .btn-ghost, .seg-btn { font-family: var(--f-ui); }
+
+  /* ═══ Entreno (Adrián, 9-nov) ═══ */
+  [data-screen="trainer"] .scr-head .btn-pill { margin-left: auto; }
+  #planHeadline[data-off] { display: none !important; }
+  #trainerChip[hidden], #trainerAdd[hidden] { display: none !important; }
+  .prog-switch-head .seg-mini { margin: 0; }
+  #statsCards [hidden], #metricCards [hidden] { display: none !important; }
+  /* El selector ya dice qué progresión es: fuera el título repetido de la tarjeta */
+  #statsCards [data-sec] > .prog-head > .label { display: none; }
+  .sec-link { margin-left: auto; padding: 6px 2px; color: var(--text); font: 600 13px/1 var(--f-ui); background: none; border: 0; }
+  .prog-head .sec-link { margin-left: auto; }
+  #metricCards > .card + .card { margin-top: 14px; }
+  .mc-top { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; }
+  .mc-u { font: 700 12px/1 var(--f-mono); color: var(--dim); }
+  .mc-avg { margin-left: auto; font: 500 12px/1 var(--f-ui); color: var(--dim); }
+  .mc-avg b { font: 700 13px/1 var(--f-mono); color: var(--text); }
+  .mc-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 86px; margin-top: 14px; align-items: end; }
+  .mc-bar { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+  .mc-bar i { display: block; width: 100%; max-width: 22px; border-radius: 4px; background: var(--text); }
+  .mc-bar small { font: 700 10px/1 var(--f-mono); color: var(--dim); }
+  .mp-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .mp-row b { display: block; font: 500 15px/1.3 var(--f-ui); }
+  .mp-row small { display: block; margin-top: 3px; font-size: 12.5px; color: var(--dim); }
+  .mp-row input { width: 22px; height: 22px; accent-color: var(--hot-solid); flex-shrink: 0; }
+  .mp-hint { margin: 14px 0 0; font-size: 12.5px; color: var(--dim); }
+  .lm-body { display: flex; flex-direction: column; gap: 12px; }
+  .lm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--dim); }
+  .lm-row input { width: 170px; background: var(--s3); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font: 400 16px/1.2 var(--f-ui); }
+  #calSheetSlot .cal-card-head .label { visibility: hidden; }
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
