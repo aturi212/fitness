@@ -1209,18 +1209,11 @@
           <!-- Fecha y «+» retirados (Adrián, 9-nov): para añadir, se toca el día -->
           <span class="date-pill" id="todayPill" hidden></span>
           <button type="button" id="homeAdd" hidden></button>
-          <button type="button" class="btn-icon btn-icon--onheat" id="profAcct" aria-label="Ajustes">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.77.32H9a1.6 1.6 0 0 0 .97-1.47V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77V9a1.6 1.6 0 0 0 1.47.97H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.47.97z"/></svg>
-          </button>
         </div>
 
         <div class="home-hero">
           <h1 class="title home-title" id="homeTitle"></h1>
           <div class="home-stats" id="homeStats"></div>
-          <button type="button" class="btn btn--primary home-cta" id="homeCta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-            <span id="homeCtaText">EMPEZAR SESIÓN</span>
-          </button>
         </div>
       </div>
 
@@ -1263,6 +1256,18 @@
         </div>
       </div>
 
+      <!-- Entrenar (rojo) y Registrar comida, a todo el ancho -->
+      <div class="home-acts">
+        <button type="button" class="btn btn--primary home-cta" id="homeCta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <span id="homeCtaText">Entrenar</span>
+        </button>
+        <button type="button" class="btn btn--sec home-meal" id="homeMealBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Registrar comida</span>
+        </button>
+      </div>
+
       <!-- Tira de días (7 celdas) -->
       <div class="wstrip-card" id="wstripCard">
         <div class="sec-head wstrip-head">
@@ -1303,37 +1308,26 @@
         <!-- Semana del plan y «+» retirados (Adrián, 9-nov) -->
         <span class="status-chip" id="trainerChip" hidden></span>
         <button type="button" id="trainerAdd" hidden></button>
-        <button type="button" class="btn-pill" id="goalsBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
-          Objetivos
-        </button>
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
 
-      <div class="plan-headline" id="planHeadline" hidden data-off></div>
       <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
       <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
 
-      <!-- Los entrenos que has creado, en una ventana: aquí solo el botón -->
+      <!-- Mi plan (bloques y objetivos) y Mis rutinas, cada uno en su ventana -->
+      <button type="button" class="btn btn--sec tr-routines-btn" id="planBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+        <span>Mi plan</span>
+        <span class="data-sm" id="planBtnWeek"></span>
+      </button>
       <button type="button" class="btn btn--sec tr-routines-btn" id="routinesBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>
-        <span>MIS ENTRENAMIENTOS</span>
+        <span>Mis rutinas</span>
         <span class="data-sm" id="routinesCount"></span>
       </button>
 
 
-      <div id="progPane">
-        <div class="ticker prog-ticker">
-          <span class="tag">AHORA</span>
-          <span class="vals" id="progTicker"></span>
-        </div>
-        <div class="sec-head">
-          <span class="label">Plan macro</span>
-          <span class="rule"></span>
-          <span class="data-sm" id="planCount"></span>
-        </div>
-        <div id="planBlocks"></div>
-      </div>
 
       <!-- Progresión: la de los entrenos o la física, una cada vez -->
       <div class="sec-head prog-switch-head">
@@ -1352,10 +1346,12 @@
         <div class="prog-head">
           <span class="label">Progresión</span>
           <span class="pr-pill" id="progPr" style="display:none"></span>
+          <button type="button" class="ib" id="progInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
         </div>
         <div class="ex-slider" id="exSlider"></div>
         <svg class="line-chart" id="progChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readout" id="progReadout"></div>
+        <div class="prog-info" id="progInfo" hidden></div>
         <div class="sub" id="progSub"></div>
       </div>
 
@@ -1365,11 +1361,14 @@
         <div class="prog-head">
           <span class="label">Progresión física</span>
           <span class="pr-pill" id="bodyDelta" style="display:none"></span>
+          <button type="button" class="ib" id="bodyInfoBtn" aria-label="Más información"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+          <button type="button" class="ib" id="bodyAddBtn" aria-label="Añadir métricas a mano"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></button>
         </div>
         <!-- Peso / IMC / Grasa: pestañas centradas, se tocan (ya no se deslizan) -->
         <div class="metric-tabs" id="bodySlider"></div>
         <svg class="line-chart" id="bodyChart" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
         <div class="prog-readout" id="bodyReadout"></div>
+        <div class="prog-info" id="bodyInfo" hidden></div>
         <div class="sub" id="bodySub"></div>
         <button type="button" class="btn btn--sec metrics-btn" id="metricsAddBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1868,7 +1867,7 @@
     <div class="dock-back" data-close></div>
     <div class="dock-sheet" role="dialog" aria-label="Mis entrenamientos">
       <div class="dock-head">
-        <span class="label">Mis entrenamientos</span>
+        <span class="label">Mis rutinas</span>
         <span class="dock-hint"></span>
         <button type="button" class="btn-icon" data-close aria-label="Cerrar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -1912,15 +1911,26 @@
   </div>
 
   <!-- Ventana de Objetivos (Entreno): corto y largo plazo -->
-  <div class="coach-sheet pop-sheet" id="goalsSheet" aria-hidden="true">
+  <div class="coach-sheet pop-sheet mp-sheet" id="goalsSheet" aria-hidden="true">
     <div class="dock-back" data-close></div>
-    <div class="dock-sheet" role="dialog" aria-label="Objetivos">
+    <div class="dock-sheet" role="dialog" aria-label="Mi plan">
       <div class="dock-head">
-        <span class="label">Objetivos</span>
+        <span class="label">Mi plan</span>
         <span class="dock-hint"></span>
         <button type="button" class="btn-icon" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="pop-body">
+        <h3 class="mp-title">Plan de entrenamiento</h3>
+        <div class="plan-headline mp-head" id="planHeadline" hidden></div>
+      <div id="progPane">
+        <div class="ticker prog-ticker">
+          <span class="tag">AHORA</span>
+          <span class="vals" id="progTicker"></span>
+        </div>
+        <div class="mp-sub"><span class="label">Bloques</span><span class="data-sm" id="planCount"></span></div>
+        <div id="planBlocks"></div>
+      </div>
+        <h3 class="mp-title">Objetivos</h3>
       <div class="seg" id="goalsSeg" style="margin-bottom:16px">
         <button class="seg-btn active" data-goals="shortTerm">CORTO PLAZO</button>
         <button class="seg-btn" data-goals="longTerm">LARGO PLAZO</button>
@@ -3480,7 +3490,7 @@
     el.style.fontSize = Math.max(26, Math.min(maxPx, Math.floor(disponible * 0.98 / porPixel))) + 'px';
   }
 
-  const HOME_TITLE_PX = 64;   // tamaño fijo del titular; los nombres largos encogen
+  const HOME_TITLE_PX = 88;   // tamaño fijo del titular; los nombres largos encogen
 
   function homeTitleHtml(name) {
     const words = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -3531,7 +3541,7 @@
       statsEl.innerHTML =
         (pos > 0 ? `<span>SESIÓN ${String(pos).padStart(2,'0')}/${String(planned.length).padStart(2,'0')}</span><i></i>` : '') +
         `<span>${estMin} MIN</span><i></i><span>${r.exercises.length} EJ</span>`;
-      ctaTxt.textContent = doneToday ? 'REPETIR SESIÓN' : 'EMPEZAR SESIÓN';
+      ctaTxt.textContent = doneToday ? 'Repetir sesión' : 'Entrenar';
       ctaEl.style.display = '';
       ctaEl.dataset.rid = heroId;
       document.getElementById('miniTitle').innerHTML = homeTitleHtml(r.name);
@@ -3541,7 +3551,8 @@
       ajustarTitular(titleEl, HOME_TITLE_PX);
       const hechos = week.length;
       statsEl.innerHTML = '';
-      ctaEl.style.display = 'none';
+      ctaTxt.textContent = 'Entrenar';
+      ctaEl.style.display = '';
       delete ctaEl.dataset.rid;
       document.getElementById('miniTitle').textContent = '';
       delete document.getElementById('homeMini').dataset.rid;
@@ -3613,6 +3624,7 @@
   document.getElementById('homeCta').addEventListener('click', (e) => {
     const rid = e.currentTarget.dataset.rid;
     if (rid) startSession(rid);
+    else document.querySelector('#weekStrip .ws-cell.today')?.click();   // sin sesión: elegir una para hoy
   });
   // «+» de la cabecera: asignar entreno al día de hoy
   document.getElementById('homeAdd').addEventListener('click', () => {
@@ -4497,12 +4509,12 @@
     const line = 'M ' + pts.join(' L ');
     svg.innerHTML = `
       <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="currentColor" stop-opacity=".28"/>
-        <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#ECE8E1" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="#ECE8E1" stop-opacity="0"/>
       </linearGradient></defs>
       <path d="${line} L ${W} ${H} L 0 ${H} Z" fill="url(#${gid})"/>
-      <path d="${line}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="currentColor"/>`).join('')}`;
+      <path d="${line}" fill="none" stroke="#C8231E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      ${values.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="#C8231E"/>`).join('')}`;
   }
 
   let progExId = null, progIdsKey = '', progSeries = [];
@@ -4517,7 +4529,8 @@
       .sort((a, b) => getExercise(a).name.localeCompare(getExercise(b).name));
     if (!ids.length) {
       slider.innerHTML = ''; chart.innerHTML = ''; chart.style.display = 'none';
-      document.getElementById('progReadout').innerHTML = '';
+      document.getElementById('progReadout').innerHTML = '<span class="prog-empty">Aquí aparecerán los ejercicios con más de 4 sesiones registradas.</span>';
+      document.getElementById('progInfo').innerHTML = ''; document.getElementById('progInfo').hidden = true;
       pr.style.display = 'none'; progIdsKey = ''; progSeries = [];
       sub.textContent = 'Aquí aparecerán los ejercicios con más de 4 sesiones registradas';
       return;
@@ -4546,6 +4559,23 @@
     pr.textContent = `PR ${fmtKg(best.kg)} kg × ${best.reps}`;
     pr.style.display = '';
     setProgPoint(s.length - 1);
+    // Info (i): sesiones, cambio desde el principio, récord y lo que pide el plan
+    const meta = metaDelPlan(getExercise(progExId).name);
+    document.getElementById('progInfo').innerHTML =
+      `<p>${sub.textContent}</p><p>Récord: <b>${fmtKg(best.kg)} kg × ${best.reps}</b></p>` +
+      (meta ? `<p>En el plan: <b>${meta}</b></p>` : '');
+  }
+
+  // Lo que el plan espera de un ejercicio: el objetivo cuyo nombre lo contiene
+  function metaDelPlan(nombre) {
+    const goals = window.ROUTINES.goals || {};
+    const base = String(nombre || '').toLowerCase().split(/[\s(]+/).filter((w) => w.length > 3);
+    for (const [k, txt] of [['shortTerm', 'corto plazo'], ['longTerm', 'largo plazo']]) {
+      const g = goals[k];
+      const t = (g?.targets || []).find((x) => base.some((w) => String(x.metric || '').toLowerCase().includes(w)));
+      if (t) return `${t.target || t.metric} · ${txt}${g.deadline ? `, hasta el ${fmtD(g.deadline)}` : ''}`;
+    }
+    return '';
   }
 
   // Punto activo de la gráfica: lectura central fecha + peso
@@ -4556,8 +4586,9 @@
     document.getElementById('progReadout').innerHTML =
       `<b>${fmtKg(p.kg)} kg × ${p.reps}</b><span>${fmtD(p.date)}</span>`;
     document.getElementById('progChart').querySelectorAll('circle').forEach((c, i) => {
-      c.setAttribute('r', i === idx ? '4.5' : '3');
-      c.setAttribute('opacity', i === idx ? '1' : '.5');
+      c.setAttribute('r', i === idx ? '5.5' : '3');
+      c.setAttribute('fill', i === idx ? '#ECE8E1' : '#C8231E');
+      c.setAttribute('opacity', '1');
     });
   }
 
@@ -4683,8 +4714,9 @@
     // un hueco vacío enorme dentro de la tarjeta.
     if (!serie.length) {
       chart.innerHTML = ''; chart.style.display = 'none';
-      out.innerHTML = ''; delta.style.display = 'none';
-      sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el botón de abajo.`;
+      out.innerHTML = `<span class="prog-empty">Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el «+».</span>`; delta.style.display = 'none';
+      document.getElementById('bodyInfo').innerHTML = ''; document.getElementById('bodyInfo').hidden = true;
+      sub.textContent = `Sin registros de ${def.label.toLowerCase()} todavía. Añádelos con el «+».`;
       return;
     }
     const first = serie[0], last = serie[serie.length - 1];
@@ -4701,6 +4733,8 @@
     drawLine(chart, serie.map((p) => p.v), 'gBody');
     setBodyPoint(serie.length - 1);
     sub.textContent = `${serie.length} registros · desde ${fmtD(first.date)}`;
+    document.getElementById('bodyInfo').innerHTML =
+      `<p>${sub.textContent}</p><p>Cambio: <b>${delta.textContent}</b></p>`;
   }
   function setBodyPoint(idx) {
     if (!bodyPoints.length) return;
@@ -4710,8 +4744,9 @@
     document.getElementById('bodyReadout').innerHTML =
       `<b>${fmtKg(p.v)} ${def.unidad}</b><span>${fmtD(p.date)}</span>`;
     document.getElementById('bodyChart').querySelectorAll('circle').forEach((c, i) => {
-      c.setAttribute('r', i === idx ? '4.5' : '3');
-      c.setAttribute('opacity', i === idx ? '1' : '.5');
+      c.setAttribute('r', i === idx ? '5.5' : '3');
+      c.setAttribute('fill', i === idx ? '#ECE8E1' : '#C8231E');
+      c.setAttribute('opacity', '1');
     });
   }
   (() => {
@@ -4870,6 +4905,13 @@
   // Métricas: peso, IMC y % de grasa. El peso viaja a la nube (tabla body_weight);
   // IMC y grasa se guardan en la nota de ese día, que es donde caben hoy.
   document.getElementById('metricsAddBtn').addEventListener('click', toggleWeightForm);
+  document.getElementById('bodyAddBtn').addEventListener('click', toggleWeightForm);
+  [['progInfoBtn', 'progInfo'], ['bodyInfoBtn', 'bodyInfo']].forEach(([b, box]) =>
+    document.getElementById(b).addEventListener('click', (e) => {
+      const el = document.getElementById(box);
+      el.hidden = !el.hidden || !el.innerHTML.trim();
+      e.currentTarget.classList.toggle('on', !el.hidden);
+    }));
   document.getElementById('weightForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const num = (id) => {
@@ -7655,6 +7697,9 @@ async function nsSubmit(imageB64) {
 }
 
 $('mealAddBtn').addEventListener('click', openNutriSheet);
+// Las hojas de comida se abren también desde Home: al nivel de la página
+['nsBackdrop', 'nutriSheet', 'maSheet', 'editSheet'].forEach((id) => { const el = $(id); if (el) document.body.appendChild(el); });
+$('homeMealBtn').addEventListener('click', () => { nutriDay = nutriIso(); renderNutriDaily(); openNutriSheet(); });
 $('nsBackdrop').addEventListener('click', closeSheets);
 $('nsSend').addEventListener('click', () => nsSubmit(null));
 $('nsPhoto').addEventListener('click', () => $('nsFile').click());
@@ -8404,7 +8449,10 @@ function abrirCajon(el) {
 }
 drawerVeil.addEventListener('click', cerrarCajones);
 
-// Los ajustes se abren solo desde la rueda (Adrián, 9-nov): el logo ya no abre menú
+// Los ajustes se abren desde el logo, arriba a la derecha en cada pantalla (Adrián, 9-nov)
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.logo') && !e.target.closest('.drawer')) { panelAjustes(); abrirCajon(profDrawer); }
+});
 
 // ---------- Panel "Sin sincronizar" (cajón de la izquierda) ----------
 // Tres cosas en un sitio: el entreno que quedó a medias, la cola que no ha
@@ -9086,7 +9134,7 @@ $('homeCalBtn').addEventListener('click', () => abrirHoja(calSheet));
 // ============ ENTRENO (Adrián, 9-nov) ============
 // Objetivos en su ventana
 const goalsSheet = $('goalsSheet');
-$('goalsBtn').addEventListener('click', () => abrirHoja(goalsSheet));
+$('planBtn').addEventListener('click', () => abrirHoja(goalsSheet));
 goalsSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(goalsSheet)));
 
 // Progresión: la de los entrenos o la física, una cada vez (se recuerda)
@@ -9405,7 +9453,6 @@ boot(false);
 
   /* ═══ Entreno (Adrián, 9-nov) ═══ */
   [data-screen="trainer"] .scr-head .btn-pill { margin-left: auto; }
-  #planHeadline[data-off] { display: none !important; }
   #trainerChip[hidden], #trainerAdd[hidden] { display: none !important; }
   .prog-switch-head .seg-mini { margin: 0; }
   #statsCards [hidden], #metricCards [hidden] { display: none !important; }
@@ -9431,6 +9478,49 @@ boot(false);
   .lm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--dim); }
   .lm-row input { width: 170px; background: var(--s3); border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 11px 13px; font: 400 16px/1.2 var(--f-ui); }
   #calSheetSlot .cal-card-head .label { visibility: hidden; }
+
+  /* ═══ Ronda 5 (Adrián, 9-nov) ═══ */
+  /* Logo arriba a la derecha en todas las pantallas; abre los ajustes */
+  .home-head .logo, .scr-head .logo { order: 9; margin-left: auto; cursor: pointer; }
+  /* Home: el bloque de hoy sin aire de sobra arriba; Entrenar y Registrar comida bajo la racha */
+  .home-heat { height: auto; min-height: 0; }
+  .home-hero { margin-top: 56px; padding-bottom: 20px; }
+  .home-acts { display: grid; gap: 10px; margin: 12px 0 4px; }
+  .home-acts .btn { width: 100%; }
+  .home-acts .home-cta { height: 52px; background: var(--hot-solid); color: var(--hot-ink); box-shadow: none; }
+  .home-acts .home-cta:active { background: #A51C18; }
+  .home-acts .home-meal { background: transparent; border: 1px solid var(--line-2); color: var(--text); }
+  /* Entreno: Mi plan y Mis rutinas como filas */
+  #planBtn { margin-bottom: 8px; }
+  #planBtnWeek { margin-left: auto; }
+  /* Ventana Mi plan, más limpia: resumen, bloques y objetivos */
+  .mp-title { margin: 6px 0 12px; font: 900 22px/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; }
+  .mp-title + .plan-headline, .mp-head { margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; background: var(--s3);
+    border: 1px solid var(--line); font-size: 14px; line-height: 1.45; color: var(--dim); }
+  .mp-sheet #progPane .prog-ticker { display: none; }
+  .mp-sub { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; }
+  .mp-sub .data-sm { margin-left: auto; }
+  .mp-sheet #planBlocks { margin-bottom: 26px; }
+  .mp-sheet .seg { margin-bottom: 14px !important; }
+  /* Progresión: título más claro y selector con botones redondos */
+  .prog-switch-head .label { font: 900 22px/1 var(--f-display); letter-spacing: 0; text-transform: uppercase; color: var(--text); }
+  .prog-switch-head .rule { display: none; }
+  .prog-switch-head .seg-mini { margin-left: auto; }
+  .seg-mini .seg-btn, .seg .seg-btn { border-radius: 999px; }
+  /* Sin PR, cambio ni «11 sesiones…» a la vista: van en la info (i) */
+  #progPr, #bodyDelta, #progSub, #bodySub, #metricsAddBtn { display: none !important; }
+  .prog-head { gap: 6px; }
+  .prog-head .ib:first-of-type { margin-left: auto; }
+  .ib { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--dim);
+    border: 1px solid var(--line); background: transparent; }
+  .ib svg { width: 17px; height: 17px; }
+  .ib.on { color: var(--text); border-color: var(--line-3); }
+  .prog-info { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--s3); text-align: left; }
+  .prog-info p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
+  .prog-info p + p { margin-top: 4px; }
+  .prog-info b { color: var(--text); font-weight: 600; }
+  .prog-info[hidden] { display: none; }
+  .prog-empty { display: block; padding: 18px 8px 8px; font-size: 13.5px; line-height: 1.5; color: var(--dim); }
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
