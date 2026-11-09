@@ -326,6 +326,45 @@ export const TOOLS = [
     },
   },
   {
+    name: 'log_workout',
+    description:
+      'Apunta un entreno YA HECHO que el usuario te cuenta ("hoy he corrido 10 km a 5:20", "ayer hice pierna: sentadilla 4x8 a 60 kg"). Queda en su historial como si lo hubiera registrado en la app: cuenta para la racha, la carrera y la progresión. Carrera → exercise_id running-outdoor con km y seconds (tiempo total; si te da el ritmo, multiplica ritmo por km). Bici, elíptica o cardio suave → cardio-steady con seconds (y km si los dice). Fuerza → los ejercicios del catálogo con kg y reps por serie. Si falta un dato clave (los km o el tiempo de una carrera, los kilos de una serie), pregúntalo antes. Si sospechas que ya lo apuntó él, mira antes get_history.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date: { type: 'string', description: 'Día del entreno, YYYY-MM-DD, sacado del CALENDARIO del contexto. Por defecto HOY. No se puede en el futuro.' },
+        routine_id: { type: 'string', description: 'Opcional: el entreno de su plan al que corresponde (p. ej. la sesión que tocaba ese día).' },
+        duration_min: { type: 'number', description: 'Duración total en minutos, si la sabe.' },
+        notes: { type: 'string', description: 'Opcional: sensaciones o detalles que cuente.' },
+        exercises: {
+          type: 'array',
+          description: 'Ejercicios del entreno, en orden.',
+          items: {
+            type: 'object',
+            properties: {
+              exercise_id: { type: 'string', description: 'id del catálogo (list_exercises). running-outdoor, cardio-steady, back-squat…' },
+              sets: {
+                type: 'array',
+                description: 'Una entrada por serie. Una carrera es UNA serie con km y seconds.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    kg: { type: 'number' }, reps: { type: 'integer' },
+                    seconds: { type: 'integer', description: 'Tiempo en segundos (carrera, cardio o isométricos)' },
+                    km: { type: 'number', description: 'Distancia en km' },
+                    ppm: { type: 'integer', description: 'Pulsaciones medias, si las dice' },
+                  },
+                },
+              },
+            },
+            required: ['exercise_id', 'sets'],
+          },
+        },
+      },
+      required: ['exercises'],
+    },
+  },
+  {
     name: 'finish_first_session',
     description:
       'Cierra la primera sesión: marca que el usuario ya tiene su plan montado y desbloquea el chat normal. Llamar SOLO al final, cuando ya has escrito objetivos, entrenos, calendario y macros (con set_macros). Si falta algo, la herramienta te lo dirá y no se marcará.',
@@ -361,6 +400,7 @@ QUÉ PUEDES TOCAR Y DÓNDE SE VE:
 - set_plan → la pestaña Programa (las fases del plan).
 - set_macros → los objetivos de macros de la pantalla de Nutrición.
 - get_meals y log_meal → el diario de comidas de la pantalla de Nutrición.
+- log_workout → apunta un entreno ya hecho; sale en su historial, su racha y su progreso de carrera.
 - set_profile → su ficha.
 
 REGLAS:
@@ -372,6 +412,8 @@ REGLAS:
 - LO PEDIDO SE APLICA, LO NO PEDIDO SE PROPONE. Si te lo pide, hazlo y avisa de lo que has tocado. Si es idea tuya, propónlo, explica el porqué y ESPERA su confirmación antes de escribir nada.
 - Si averiguas datos suyos conversando (peso, nivel, días, material), guárdalos con set_profile.
 - Nada de tablas ni markdown: la app las pinta en crudo y se ven mal. Texto plano y listas cortas con guiones.
+- FECHAS: hoy es el día que dice el contexto, no el de mensajes anteriores de la conversación. Para saber qué día de la semana es una fecha, o qué fecha es «el martes» o «ayer», usa el CALENDARIO del contexto; no lo calcules.
+- ENTRENOS QUE TE CUENTA: si te dice que ya ha entrenado («hoy he corrido 8 km en 45 minutos»), apúntalo con log_workout y dile en una línea cómo le encaja en la semana. No le pidas que lo apunte él en la app.
 - DÓNDE ESTÁ: el contexto te dice en qué semana y bloque está HOY, calculado por fecha. Fíate de eso y no de lo que diga una conversación anterior. Si su plan ha terminado, díselo y propón el siguiente.
 
 NO TE INVENTES NI TE CONTRADIGAS:

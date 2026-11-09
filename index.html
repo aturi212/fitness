@@ -9146,9 +9146,12 @@ async function sendChat(text, opciones = {}) {
     // sin esto, una comida que apunte el Coach no sale en Nutrición hasta
     // reabrir la app)
     if (acciones.length) {
-      if (await pullProgram()) window.appRerender?.();
+      await pullProgram();
       await pullMeals();
-      renderNutrition();
+      // Un entreno que apunte el Coach (log_workout) sale en el historial, la
+      // racha y la carrera sin reabrir la app
+      await pullHistory();
+      window.appRerender?.();
     }
     // El Coach puede haber cerrado la primera sesión: si es así, se desbloquea
     // el chat sin que el usuario tenga que recargar.

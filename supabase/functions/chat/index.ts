@@ -60,6 +60,22 @@ const masDias = (iso: string, n: number) =>
   new Date(new Date(iso + 'T00:00:00Z').getTime() + n * 86400_000).toISOString().slice(0, 10);
 const lunesDe = (iso: string) => masDias(iso, diaSemana(iso) === 0 ? -6 : 1 - diaSemana(iso));
 const esFecha = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+// Los días de alrededor con su día de la semana ya resuelto: el modelo se
+// equivocaba al deducir «qué día es el jueves» o «hoy es miércoles 7».
+function calendarioCercano(hoy: string): string {
+  const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const base = new Date(hoy + 'T12:00:00Z');
+  const partes: string[] = [];
+  for (let k = -7; k <= 7; k++) {
+    const d = new Date(base.getTime() + k * 86400000);
+    const iso = d.toISOString().slice(0, 10);
+    const txt = `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} ${MESES[d.getUTCMonth()]} (${iso})`;
+    partes.push(k === 0 ? `HOY ${txt}` : k === -1 ? `ayer ${txt}` : k === 1 ? `mañana ${txt}` : txt);
+  }
+  return `CALENDARIO (úsalo para cualquier día de la semana o fecha; no lo calcules tú): ${partes.join(' · ')}.`;
+}
 const diasEntre = (a: string, b: string) =>
   Math.round((new Date(b + 'T00:00:00Z').getTime() - new Date(a + 'T00:00:00Z').getTime()) / 86400_000);
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -618,6 +634,55 @@ async function runTool(sb: any, name: string, input: any, userId: string, hoyIso
         const resumen = await resumenDelDia(sb, fecha, hoyIso);
         return JSON.stringify({ ok: true, apuntada: data, dia: resumen });
       }
+      case 'log_workout': {
+        const fecha = input.date ?? hoyIso;
+        if (!esFecha(fecha)) return JSON.stringify({ error: 'La fecha va en formato YYYY-MM-DD.' });
+        if (fecha > hoyIso) return JSON.stringify({ error: 'No se puede apuntar un entreno en el futuro. Usa hoy o un día pasado.' });
+        const ejercicios = Array.isArray(input.exercises) ? input.exercises : [];
+        if (!ejercicios.length) return JSON.stringify({ error: 'Falta al menos un ejercicio con sus series.' });
+        const ids = [...new Set(ejercicios.map((e: any) => String(e.exercise_id || '')))];
+        const { data: cat, error: eCat } = await sb.from('exercises').select('id, name, log_type').in('id', ids);
+        if (eCat) throw eCat;
+        const faltan = ids.filter((id) => !(cat ?? []).some((c: any) => c.id === id));
+        if (faltan.length) {
+          return JSON.stringify({ error: `Estos ejercicios no existen en el catálogo: ${faltan.join(', ')}. Búscalos con list_exercises (carrera: running-outdoor; bici, elíptica o cardio suave: cardio-steady).` });
+        }
+        if (input.routine_id) {
+          const { data: r } = await sb.from('routines').select('id').eq('id', input.routine_id).maybeSingle();
+          if (!r) return JSON.stringify({ error: `No existe el entreno ${input.routine_id}. Quita routine_id o usa uno de list_routines.` });
+        }
+        const num = (v: any) => (v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v));
+        const filas: any[] = [];
+        ejercicios.forEach((e: any, slot: number) => {
+          (Array.isArray(e.sets) ? e.sets : []).forEach((st: any, i: number) => {
+            const km = num(st.km);
+            filas.push({
+              exercise_id: String(e.exercise_id), slot_index: slot + 1, set_index: i + 1,
+              weight_kg: num(st.kg), reps: num(st.reps) != null ? Math.round(num(st.reps)!) : null,
+              seconds: num(st.seconds) != null ? Math.round(num(st.seconds)!) : null,
+              distance_m: km != null ? Math.round(km * 1000) : null,
+              avg_hr: num(st.ppm) != null ? Math.round(num(st.ppm)!) : null,
+            });
+          });
+        });
+        if (!filas.length) return JSON.stringify({ error: 'Cada ejercicio necesita al menos una serie con algún dato (kg y reps, o km y tiempo).' });
+        const segundos = filas.reduce((a, f) => a + (f.seconds || 0), 0);
+        const workout = {
+          id: crypto.randomUUID(),
+          date: fecha,
+          routine_id: input.routine_id || null,
+          duration_sec: num(input.duration_min) != null ? Math.round(num(input.duration_min)! * 60) : (segundos || null),
+          notes: input.notes ? String(input.notes).slice(0, 300) : null,
+        };
+        const { error: eW } = await sb.from('workouts').insert(workout);
+        if (eW) throw eW;
+        const { error: eS } = await sb.from('workout_sets').insert(filas.map((f) => ({ ...f, workout_id: workout.id })));
+        if (eS) {
+          await sb.from('workouts').delete().eq('id', workout.id);   // sin series no se deja el entreno a medias
+          throw eS;
+        }
+        return JSON.stringify({ ok: true, apuntado: { fecha, series: filas.length, ejercicios: ids } });
+      }
       case 'finish_first_session': {
         if (!input.force) {
           const [{ data: rs }, p] = await Promise.all([
@@ -740,6 +805,7 @@ const TOOL_STATUS: Record<string, string> = {
   set_macros: 'Guardando tus macros…',
   get_meals: 'Mirando lo que has comido…',
   log_meal: 'Apuntando la comida…',
+  log_workout: 'Apuntando el entreno…',
   set_goals: 'Escribiendo tus objetivos…',
   set_plan: 'Montando tu programa…',
   set_profile: 'Apuntando tus datos…',
@@ -753,6 +819,10 @@ const ACTION_LABELS: Record<string, (i: any) => string> = {
   add_exercise: (i) => `➕ Ejercicio añadido: ${i.name}`,
   set_macros: (i) => `🥗 Macros actualizados${i.training && i.rest ? ' (entreno y descanso)' : i.training ? ' (días de entreno)' : ' (días de descanso)'}`,
   log_meal: (i) => `🍽️ Comida apuntada: ${i.description}`,
+  log_workout: (i) => {
+    const kms = (i.exercises || []).flatMap((e: any) => e.sets || []).reduce((a: number, s: any) => a + (Number(s.km) || 0), 0);
+    return `🏃 Entreno apuntado${kms ? `: ${Math.round(kms * 10) / 10} km` : ''}${i.date ? ` (${i.date})` : ''}`;
+  },
   set_goals: () => `🎯 Objetivos guardados`,
   set_plan: (i) => `🗺️ Programa creado: ${i.name}`,
   set_profile: () => `👤 Ficha actualizada`,
@@ -907,6 +977,7 @@ Deno.serve(async (req) => {
       timeZone: 'Europe/Madrid', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     }).format(now);
     const hoyIso = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(now);
+    const hora = new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' }).format(now);
     const primeraSesion = !perfil?.first_session_done;
 
     // Bloque actual por fecha (y se re-guarda si current_block se quedó atrás)
@@ -921,7 +992,8 @@ Deno.serve(async (req) => {
 
     // Bloque VARIABLE del prompt: todo lo que cambia de un usuario a otro y de
     // un día a otro. Va detrás del bloque fijo para no invalidar su caché.
-    const contexto = `Hoy es ${madrid} (${hoyIso}).
+    const contexto = `Hoy es ${madrid} (${hoyIso}) y son las ${hora} en España.
+${calendarioCercano(hoyIso)}
 
 QUIÉN ES QUIEN TE HABLA:
 ${textoPerfil(perfil)}
