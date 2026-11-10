@@ -1192,6 +1192,32 @@
   .rv-foot .btn svg { width: 15px; height: 15px; }
   .rv-ex { align-items: center; }
 
+  /* Calentamiento: bloque aparte y más discreto que el trabajo. Sin acento,
+     cuerpo más pequeño y en gris; el blanco y el tamaño grande quedan para
+     los ejercicios de verdad, así se ve dónde acaba uno y empieza el otro. */
+  .rv-warmup { margin-bottom: 22px; padding: 2px 12px 4px; border: 1px dashed var(--line-2);
+    border-radius: 14px; background: transparent; }
+  .rv-warmup .sec-head { margin-top: 10px; }
+  .rv-ex.is-warmup { padding-top: 9px; padding-bottom: 9px; background: transparent; border-color: transparent; }
+  .rv-ex.is-warmup .idx { color: var(--ghost-2); }
+  .rv-ex.is-warmup .rt-name { color: var(--muted); font-size: 14px; font-weight: 500; }
+  .rv-ex.is-warmup .rt-meta { color: var(--ghost-2); }
+  .hs-ex-head { font: 600 10px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ghost); margin: 14px 2px 4px; }
+  .hs-ex-head:first-child { margin-top: 2px; }
+  .hs-ex.is-warmup span:first-child { color: var(--muted); }
+
+  .tk-block-tag { display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
+    font: 600 10px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
+  .tk-block-tag i { font-style: normal; margin-left: auto; letter-spacing: .14em; }
+  .tk-block-tag--warm { color: var(--muted); padding: 8px 12px; border: 1px dashed rgba(255,255,255,.28);
+    border-radius: 999px; }
+  .tk-block-tag--warm i { color: var(--ghost); }
+  .tk-block-tag--work { color: var(--hot-text); }
+  .tk-block-tag--work::after { content: ''; flex: 1; height: 1px; background: rgba(229,87,79,.45); }
+  .tk-panel.is-warmup .tk-exname { font-size: 30px; color: var(--muted); }
+  .tk-panel.is-warmup .tk-exname .out { -webkit-text-stroke-color: rgba(255,255,255,.55); }
+
   /* Trainer: bloques del plan macro */
   .block-item { flex-direction: column; cursor: pointer; }
   .block-item .b-head { display: flex; align-items: center; gap: 10px; width: 100%; }
@@ -2121,6 +2147,7 @@
     <div class="rv-body">
       <h1 class="title rv-title" id="rvTitle"></h1>
       <div class="home-stats" id="rvMeta"></div>
+      <div id="rvWarm"></div>
       <div class="sec-head"><span class="label">Ejercicios</span><span class="rule"></span></div>
       <div id="rvList"></div>
     </div>
@@ -3913,22 +3940,33 @@
   function openRoutineView(rid) {
     const r = window.ROUTINES.routines[rid];
     if (!r) return;
-    const sets = (r.exercises || []).reduce((a, e) => a + (e.sets || 0), 0);
+    const todos = r.exercises || [];
+    const nCal = nCalentamiento(todos);
+    const trabajo = todos.slice(nCal);
+    const sets = trabajo.reduce((a, e) => a + (e.sets || 0), 0);
     document.getElementById('rvTitle').innerHTML = homeTitleHtml(r.name);
     ajustarTitular(document.getElementById('rvTitle'), 46);
     document.getElementById('rvMeta').innerHTML =
-      `<span>${r.exercises.length} EJ</span><i></i><span>${sets} SERIES</span><i></i><span>${routineMins(r)} MIN</span>`;
-    document.getElementById('rvList').innerHTML = (r.exercises || []).map((ex, i) => {
+      `<span>${trabajo.length} EJ</span><i></i><span>${sets} SERIES</span><i></i><span>${routineMins(r)} MIN</span>`;
+    const fila = (ex, num, cal) => {
       const e = getExercise(ex.exerciseId);
-      return `<div class="row rv-ex">
-        <span class="idx">${String(i + 1).padStart(2, '0')}</span>
+      return `<div class="row rv-ex${cal ? ' is-warmup' : ''}">
+        <span class="idx">${cal ? 'C' + num : String(num).padStart(2, '0')}</span>
         <div class="rt-info">
           <div class="rt-name">${e.name}</div>
           <div class="rt-meta">${ex.sets} × ${repsCorto(ex.repsTarget)}${ex.restSec ? ` · DESC ${ex.restSec}"` : ''}</div>
         </div>
-        <span class="metric-sm" style="color:var(--ghost)">${getPrev(ex.exerciseId)}</span>
+        ${cal ? '' : `<span class="metric-sm" style="color:var(--ghost)">${getPrev(ex.exerciseId)}</span>`}
       </div>`;
-    }).join('');
+    };
+    // El calentamiento va en su propio bloque, encima y más discreto; el
+    // rótulo «Ejercicios» de la plantilla pasa a encabezar solo el trabajo
+    const calHtml = nCal ? `<div class="rv-warmup">
+        <div class="sec-head"><span class="label">Calentamiento</span><span class="rule"></span><span class="data-sm">${String(nCal).padStart(2, '0')}</span></div>
+        ${todos.slice(0, nCal).map((ex, i) => fila(ex, i + 1, true)).join('')}
+      </div>` : '';
+    document.getElementById('rvWarm').innerHTML = calHtml;
+    document.getElementById('rvList').innerHTML = trabajo.map((ex, i) => fila(ex, i + 1, false)).join('');
     document.getElementById('rvStart').dataset.rid = rid;
     document.getElementById('routineView').classList.add('open');
   }
@@ -3998,8 +4036,14 @@
       const r = window.ROUTINES.routines[hsCtx.rid];
       if (!r) return;
       openHs(r.name,
-        (r.exercises || []).map((ex) =>
-          `<div class="hs-ex"><span>${getExercise(ex.exerciseId).name}</span><span style="color:var(--muted)">${ex.sets}×${repsCorto(ex.repsTarget)}</span></div>`).join('') +
+        (() => {
+          const todos = r.exercises || [];
+          const nCal = nCalentamiento(todos);
+          const linea = (ex, cal) => `<div class="hs-ex${cal ? ' is-warmup' : ''}"><span>${getExercise(ex.exerciseId).name}</span><span style="color:var(--muted)">${ex.sets}×${repsCorto(ex.repsTarget)}</span></div>`;
+          if (!nCal) return todos.map((ex) => linea(ex, false)).join('');
+          return `<div class="hs-ex-head">Calentamiento</div>${todos.slice(0, nCal).map((ex) => linea(ex, true)).join('')}`
+            + `<div class="hs-ex-head">Ejercicios</div>${todos.slice(nCal).map((ex) => linea(ex, false)).join('')}`;
+        })() +
         `<button type="button" class="hs-opt" data-act="start" style="margin-top:12px;justify-content:center;background:var(--accent);color:var(--white-ink);font-weight:700">▶&nbsp; Empezar ahora</button>`);
     } else if (act === 'start') {
       const rid = hsCtx.rid;
@@ -4065,6 +4109,36 @@
     const trab = /trab(?:ajo)?\.?\s*:?\s*([^·|,]+)/i.exec(t);
     if (trab) return trab[1].trim();
     return t.replace(/^cal(?:entamiento)?\.?\s*:?\s*[^·|,]+[·|,]\s*/i, '').trim();
+  }
+
+  // ---- Calentamiento: bloque aparte, antes del trabajo ----
+  // No hay campo en la BD que lo marque, así que se deduce: un ejercicio es de
+  // calentamiento si su nota o su objetivo lo dicen («Calentamiento…»,
+  // «activación», «movilidad», «cal 5 min»), o si el propio ejercicio del
+  // catálogo es de movilidad/calentamiento. Solo cuenta el tramo INICIAL del
+  // entreno: en cuanto aparece el primer ejercicio de trabajo se acaba; así
+  // una «vuelta a la calma» o un finisher al final nunca se cuelan.
+  const RX_CAL_NOTA = /^\s*(?:\d+[.)]\s*)?(?:calentamiento|calentar|calienta|activaci[oó]n|movilidad|warm[\s-]?up|entrada en calor|pre[\s-]?activaci[oó]n)\b/i;
+  const RX_CAL_TXT = /\b(?:calentamiento|warm[\s-]?up|para calentar|de calentamiento|como calentamiento)\b/i;
+  const RX_CAL_EX = /calentamiento|movilidad|mobility|warm[\s-]?up|activaci[oó]n/i;
+  function esCalentamiento(item) {
+    if (!item) return false;
+    if (item.warmup === true) return true;           // si algún día llega el campo
+    const nota = String(item.notes || '');
+    const obj = String(item.repsTarget || '').trim();
+    if (RX_CAL_NOTA.test(nota) || RX_CAL_TXT.test(nota)) return true;
+    // «cal 10-12 · trab 6-10» es un ejercicio de trabajo con series de
+    // aproximación, no calentamiento: solo cuenta si no hay parte de trabajo
+    if (/^cal(?:entamiento)?\b/i.test(obj) && !/trab/i.test(obj)) return true;
+    const ex = getExercise(item.exerciseId);
+    return RX_CAL_EX.test(`${item.exerciseId} ${ex.name || ''} ${ex.pattern || ''} ${ex.group || ''}`);
+  }
+  // Cuántos ejercicios del principio son calentamiento (nunca todos: un entreno
+  // que fuese entero «calentamiento» se trata como trabajo normal)
+  function nCalentamiento(items) {
+    let n = 0;
+    while (n < (items || []).length && esCalentamiento(items[n])) n++;
+    return n >= (items || []).length ? 0 : n;
   }
 
   function renderTrainer() {
@@ -5274,11 +5348,15 @@
   }
   function buildPanels() {
     const panels = [];
+    // El calentamiento se calcula una vez al montar la sesión: cambiar un
+    // ejercicio a mitad no debe mover la frontera entre bloques
+    if (session.nCal == null) session.nCal = nCalentamiento(session.exercises);
     session.exercises.forEach((item, i) => {
       const key = supersetKey(item);
+      const cal = i < session.nCal;
       const ultimo = panels[panels.length - 1];
-      if (key && ultimo && ultimo.ss === key) ultimo.slots.push(i);
-      else panels.push({ ss: key, slots: [i] });
+      if (key && ultimo && ultimo.ss === key && ultimo.cal === cal) ultimo.slots.push(i);
+      else panels.push({ ss: key, slots: [i], cal });
     });
     return panels;
   }
@@ -5399,8 +5477,11 @@
   function renderTracker() {
     const panels = buildPanels();
     session.panels = panels;
-    trackerBody.innerHTML = panels.map((p) => `
-      <section class="tk-panel" data-panel="${p.slots[0]}">
+    const nCalP = panels.filter((p) => p.cal).length;
+    trackerBody.innerHTML = panels.map((p, pi) => `
+      <section class="tk-panel${p.cal ? ' is-warmup' : ''}" data-panel="${p.slots[0]}">
+        ${p.cal ? `<div class="tk-block-tag tk-block-tag--warm"><span>Calentamiento</span><i>${pi + 1} / ${nCalP}</i></div>` : ''}
+        ${!p.cal && nCalP && pi === nCalP ? `<div class="tk-block-tag tk-block-tag--work"><span>Empieza el trabajo</span></div>` : ''}
         ${p.slots.length > 1 ? `<div class="tk-ss-head">${
           p.slots.length === 2 ? 'Superserie' : (p.slots.length === 3 ? 'Triserie' : 'Circuito')
         } · sin descanso</div>` : ''}
@@ -5454,7 +5535,10 @@
   function updateTrackerPos(slot) {
     if (!session || slot == null) return;
     const total = session.exercises.length;
-    document.getElementById('trackerPos').textContent = `EJ ${slot + 1} DE ${total}`;
+    const nCal = session.nCal || 0;
+    document.getElementById('trackerPos').textContent = slot < nCal
+      ? `CAL ${slot + 1} DE ${nCal}`
+      : `EJ ${slot - nCal + 1} DE ${total - nCal}`;
     document.getElementById('tkProgress').style.width = `${((slot + 1) / total) * 100}%`;
   }
 
