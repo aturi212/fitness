@@ -858,6 +858,19 @@
   .tracker table.sets td.done button { width: 36px; height: 36px; border-radius: 50%;
     background: var(--s3); border: 1px solid var(--line-2); color: var(--ghost-2); }
   .tracker table.sets td.done button svg { width: 17px; height: 17px; stroke-width: 3.2; }
+  /* Check hecho: rojo de marca, macizo y sin atenuar. La regla de arriba
+     (misma especificidad, más abajo) lo dejaba en gris oscuro y la opacidad
+     de la fila completada lo apagaba aún más: a pleno sol no se veía. */
+  .tracker table.sets td.done button.checked,
+  .tracker .cardio-done button.checked {
+    background: #C8231E; border: 2px solid #C8231E; color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(200,35,30,.28);
+  }
+  .tracker table.sets td.done button.checked svg,
+  .tracker .cardio-done button.checked svg { stroke: #FFFFFF; stroke-width: 3.6; }
+  table.sets tr.completed { opacity: 1; }
+  table.sets tr.completed td:not(.done) { opacity: .68; }
+  .tracker tr.completed td.set-n { color: #E5574F; opacity: 1; }
 
   /* Nota persistente del ejercicio */
   .ex-note-box { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; padding: 11px 13px;
