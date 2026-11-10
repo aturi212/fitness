@@ -1216,6 +1216,19 @@
   .tk-block-tag--work { color: var(--hot-text); }
   .tk-block-tag--work::after { content: ''; flex: 1; height: 1px; background: rgba(229,87,79,.45); }
   .tk-panel.is-warmup .tk-exname { font-size: 30px; color: var(--muted); }
+
+  /* Series de calentamiento dentro del ejercicio: discretas, con su objetivo */
+  .tracker table.sets tr.is-warm td.set-n { font: 600 10px/1 var(--f-mono); letter-spacing: .14em; color: var(--ghost); }
+  .tracker table.sets tr.is-warm td.warm-target { font: 500 10.5px/1.25 var(--f-mono); color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em; white-space: normal; }
+  .tracker table.sets tr.is-warm input { height: 36px; background: transparent; border: 1px dashed var(--line-2);
+    color: var(--muted); font-size: 13px; }
+  .tracker table.sets tr.is-warm td.done button { width: 30px; height: 30px; margin: 0 3px; border-style: dashed; }
+  .tracker table.sets tr.is-warm td.done button svg { width: 14px; height: 14px; }
+  .tracker table.sets tr.tk-sep td { padding: 10px 4px 4px; }
+  .tracker table.sets tr.tk-sep span { display: flex; align-items: center; gap: 10px;
+    font: 600 10px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--hot-text); }
+  .tracker table.sets tr.tk-sep span::after { content: ''; flex: 1; height: 1px; background: rgba(229,87,79,.4); }
   .tk-panel.is-warmup .tk-exname .out { -webkit-text-stroke-color: rgba(255,255,255,.55); }
 
   /* Trainer: bloques del plan macro */
@@ -4118,15 +4131,18 @@
   // catálogo es de movilidad/calentamiento. Solo cuenta el tramo INICIAL del
   // entreno: en cuanto aparece el primer ejercicio de trabajo se acaba; así
   // una «vuelta a la calma» o un finisher al final nunca se cuelan.
-  const RX_CAL_NOTA = /^\s*(?:\d+[.)]\s*)?(?:calentamiento|calentar|calienta|activaci[oó]n|movilidad|warm[\s-]?up|entrada en calor|pre[\s-]?activaci[oó]n)\b/i;
-  const RX_CAL_TXT = /\b(?:calentamiento|warm[\s-]?up|para calentar|de calentamiento|como calentamiento)\b/i;
+  const RX_CAL_NOTA = /^\s*(?:\d+[.)]\s*)?(?:calentamiento|activaci[oó]n|movilidad|warm[\s-]?up|entrada en calor|pre[\s-]?activaci[oó]n)\b/i;
+  const RX_SERIES_CAL = /\b(?:set|serie)\s*0\b|\bseries?\s*1\s*(?:[-–y]\s*\d)?\s*(?:\(\s*cal|:\s*cal)|\b(?:calienta|calentar|calentamiento)\s+con\b|aproximaci[oó]n|\bseries?\s+(?:de\s+calentamiento\s+)?ligeras?\b/i;
   const RX_CAL_EX = /calentamiento|movilidad|mobility|warm[\s-]?up|activaci[oó]n/i;
   function esCalentamiento(item) {
     if (!item) return false;
     if (item.warmup === true) return true;           // si algún día llega el campo
     const nota = String(item.notes || '');
     const obj = String(item.repsTarget || '').trim();
-    if (RX_CAL_NOTA.test(nota) || RX_CAL_TXT.test(nota)) return true;
+    // Calentamiento EN SERIES («cal 12 · trab 6-10», «Set 0…», «Calienta con
+    // 73 kg…», «Serie 1 (cal)…»): el ejercicio es de trabajo, no se aparta
+    if (RX_CT.test(obj) || RX_SERIES_CAL.test(nota)) return false;
+    if (RX_CAL_NOTA.test(nota)) return true;
     // «cal 10-12 · trab 6-10» es un ejercicio de trabajo con series de
     // aproximación, no calentamiento: solo cuenta si no hay parte de trabajo
     if (/^cal(?:entamiento)?\b/i.test(obj) && !/trab/i.test(obj)) return true;
@@ -4139,6 +4155,52 @@
     let n = 0;
     while (n < (items || []).length && esCalentamiento(items[n])) n++;
     return n >= (items || []).length ? 0 : n;
+  }
+
+  // ---- Series de calentamiento DENTRO de un ejercicio ----
+  // Así escribe el Coach el calentamiento en las rutinas de verdad: no como
+  // ejercicio aparte, sino como primeras series del propio ejercicio.
+  //   reps_target «cal 12 · trab 6-10» / «cal 10-12 · trab 6-8»
+  //   notes «Set 0 con barra vacía», «Calienta con 73 kg ×12-15»,
+  //         «Serie 1 (cal): barra × 15. Series 2-3: …», «Sin calentamiento propio»
+  // Devuelve { n, incluidas, objetivo, trabajo }:
+  //   n          cuántas filas de calentamiento pintar (0 = ninguna)
+  //   incluidas  true si salen de las `sets` de la rutina («Serie 1 (cal)»);
+  //              si no, se añaden delante y las de trabajo quedan intactas.
+  //              En la duda se añaden: una fila de más no quita trabajo.
+  //   objetivo   texto de la fila CAL («12 · barra vacía»)
+  //   trabajo    objetivo de las de trabajo («6-10»), o null
+  const RX_CT = /^\s*cal(?:entamiento)?\.?\s*:?\s*([^·|,;]+?)\s*[·|,;]\s*trab(?:ajo)?\.?\s*:?\s*(.+)$/i;
+  function seriesCalentamiento(item) {
+    const nada = { n: 0, incluidas: false, objetivo: '', trabajo: null };
+    if (!item || esCalentamiento(item)) return nada;   // el ejercicio entero ya es calentamiento
+    const obj = String(item.repsTarget || '').trim();
+    const nota = String(item.notes || '');
+    if (/sin\s+calentamiento/i.test(nota)) return nada;
+    const ct = RX_CT.exec(obj);
+    // Qué dice la nota y con qué carga
+    const incl = /\bseries?\s*1\s*(?:[-–y]\s*(\d))?\s*(?:\(\s*cal[^)]*\)|:\s*cal)/i.exec(nota);
+    const extra = /\b(?:set|serie)\s*0\b\s*(?:\(cal[^)]*\))?\s*:?\s*(?:con\s+)?([^.;]*)/i.exec(nota)
+      || /\b(?:calienta|calentar|calentamiento)\s+con\s+([^.;]*)/i.exec(nota);
+    if (!ct && !incl && !extra && !RX_SERIES_CAL.test(nota)) return nada;
+    const carga = (() => {
+      if (extra) return extra[1].trim();
+      if (incl) {
+        const m = /\(\s*cal[^)]*\)\s*:?\s*([^.;]*)|:\s*cal[^:]*:\s*([^.;]*)/i.exec(nota.slice(incl.index));
+        return ((m && (m[1] || m[2])) || '').trim();
+      }
+      return '';
+    })();
+    const reps = ct ? ct[1].trim() : '';
+    // Si la carga ya trae las reps («barra × 15») no se repiten
+    const objetivo = (/[×x]\s*\d/i.test(carga) ? carga : [reps, carga].filter(Boolean).join(' · ')).slice(0, 40);
+    const trabajo = ct ? ct[2].trim() : null;
+    if (incl && !extra) {
+      const n = incl[1] ? Math.max(1, parseInt(incl[1], 10)) : 1;
+      // Si las series no dan para calentar y trabajar, se añaden delante
+      if ((item.sets || 0) > n) return { n, incluidas: true, objetivo, trabajo };
+    }
+    return { n: 1, incluidas: false, objetivo, trabajo };
   }
 
   function renderTrainer() {
@@ -5463,13 +5525,30 @@
           <tr><th style="width:34px">SER</th><th style="text-align:left">ANTERIOR</th>${columnas}<th style="width:44px" aria-label="Hecha"></th></tr>
         </thead>
         <tbody>
-          ${Array.from({ length: item.sets }, (_, s) => `
+          ${(() => {
+            // Calentamiento: filas CAL arriba, discretas y con su objetivo; no
+            // se guardan (ni suman volumen ni pisan el «anterior»). Después,
+            // la raya del trabajo con su propio objetivo.
+            const cal = seriesCalentamiento(item);
+            const nTrab = cal.incluidas ? item.sets - cal.n : item.sets;
+            const filasCal = Array.from({ length: cal.n }, (_, c) => `
+            <tr class="is-warm">
+              <td class="set-n">CAL</td>
+              <td class="prev-val warm-target" colspan="1">${cal.objetivo || 'Calentar'}</td>
+              ${campos}
+              <td class="done">${check(Math.min(item.restSec || 0, 60))}</td>
+            </tr>`).join('');
+            const raya = cal.n ? `
+            <tr class="tk-sep"><td colspan="${tipo === 'tiempo' ? 4 : 5}"><span>Trabajo${cal.trabajo ? ' · ' + cal.trabajo : ''}</span></td></tr>` : '';
+            const filasTrab = Array.from({ length: Math.max(0, nTrab) }, (_, s) => `
             <tr data-set="${s}">
               <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
               <td class="prev-val">${resumenAnterior(tipo, getLastSet(item.exerciseId, s))}</td>
               ${campos}
               <td class="done">${check(item.restSec)}</td>
-            </tr>`).join('')}
+            </tr>`).join('');
+            return filasCal + raya + filasTrab;
+          })()}
         </tbody>
       </table>`;
   }
@@ -5767,6 +5846,7 @@
       slot: parseInt(card.dataset.slot, 10),
       vals: [...card.querySelectorAll('input[data-field]')].map((i) => i.value),
       checks: [...card.querySelectorAll('td.done button, .cardio-done button')].map((b) => b.classList.contains('checked')),
+      warm: [...card.querySelectorAll('td.done button, .cardio-done button')].map((b) => !!b.closest('tr.is-warm')),
       note: card.querySelector('.notes-input')?.value ?? null,
     }));
     return {
@@ -5880,7 +5960,8 @@
       });
       return slot;
     })();
-    const hechas = (L.cards || []).reduce((a, c) => a + (c.checks || []).filter(Boolean).length, 0);
+    // Las de calentamiento no cuentan como series hechas
+    const hechas = (L.cards || []).reduce((a, c) => a + (c.checks || []).filter((x, i) => x && !c.warm?.[i]).length, 0);
     const seg = d.durationSec || 0;
     const reloj = `${String(Math.floor(seg / 60)).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`;
     const hace = Math.max(1, Math.round((Date.now() - Date.parse(d.savedAt)) / 60000));
@@ -5964,7 +6045,7 @@
           });
         }
       } else {
-        card.querySelectorAll('tbody tr').forEach(tr => {
+        card.querySelectorAll('tbody tr:not(.is-warm):not(.tk-sep)').forEach(tr => {
           const kg = leer(tr, 'kg'), reps = leer(tr, 'reps', true), seg = leer(tr, 'seg', true);
           const done = tr.querySelector('.done button').classList.contains('checked');
           if (done || kg != null || reps != null || seg != null) {
@@ -6264,7 +6345,7 @@
   // superserie, las de todos los ejercicios del grupo)
   function panelCompleto(panel) {
     if (!panel) return false;
-    const casillas = panel.querySelectorAll('td.done button, .cardio-done button');
+    const casillas = panel.querySelectorAll('tr:not(.is-warm) > td.done button, .cardio-done button');
     return casillas.length > 0 &&
       Array.prototype.every.call(casillas, (b) => b.classList.contains('checked'));
   }
