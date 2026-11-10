@@ -1694,7 +1694,22 @@
 
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
-        <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done"></textarea>
+        <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done" autocomplete="off"></textarea>
+        <!-- Lo que ya has apuntado antes: al tocarlo se usan sus macros, sin IA -->
+        <div class="ns-suggest" id="nsSuggest" hidden></div>
+        <!-- Un alimento con sus valores conocidos (etiqueta o despensa): solo falta la cantidad -->
+        <div class="ns-pick" id="nsPick" hidden>
+          <div class="ns-pick-top">
+            <span class="ns-pick-tag" id="nsPickTag"></span>
+            <button type="button" class="ns-pick-x" id="nsPickX" aria-label="Descartar">×</button>
+          </div>
+          <div class="ns-pick-name" id="nsPickName"></div>
+          <div class="ns-pick-row">
+            <label class="ns-pick-qty"><input type="number" id="nsPickQty" inputmode="decimal" min="0" step="any" placeholder="—"><span id="nsPickUnit">g</span></label>
+            <button type="button" class="ns-send" id="nsPickAdd">Añadir</button>
+          </div>
+          <div class="ns-pick-calc" id="nsPickCalc"></div>
+        </div>
 
         <div class="ns-actions">
           <button type="button" class="ns-photo" id="nsMic" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg></button>
@@ -1842,6 +1857,29 @@
         .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
         .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
         .ns-status.err { color: #ff7a8a; }
+        /* Despensa: sugerencias al escribir y alimento con valores conocidos */
+        .ns-suggest { margin: 8px 0 2px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg-elev-2, #151514); }
+        .ns-suggest[hidden], .ns-pick[hidden] { display: none; }
+        .ns-sg { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 11px 13px; background: none; border: 0;
+          border-top: 1px solid var(--line); color: var(--text); text-align: left; font-size: 14.5px; }
+        .ns-sg:first-child { border-top: 0; }
+        .ns-sg:active { background: var(--s3, #1d1d1c); }
+        .ns-sg-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ns-sg-n b { font-weight: 700; }
+        .ns-sg-k { flex-shrink: 0; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .ns-sg-t { flex-shrink: 0; font-size: 9.5px; font-weight: 700; letter-spacing: .05em; color: var(--accent); }
+        .ns-pick { margin: 10px 0 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line-2, var(--line)); background: var(--bg-elev-2, #151514); }
+        .ns-pick-top { display: flex; align-items: center; justify-content: space-between; }
+        .ns-pick-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--accent); }
+        .ns-pick-x { background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; padding: 0 2px; }
+        .ns-pick-name { font-size: 15px; font-weight: 700; margin: 4px 0 10px; }
+        .ns-pick-row { display: flex; gap: 10px; }
+        .ns-pick-qty { flex: 0 0 150px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
+        .ns-pick-qty input { width: 100%; min-width: 0; background: none; border: 0; color: var(--text); font-size: 17px; padding: 10px 0; font-variant-numeric: tabular-nums; }
+        .ns-pick-qty input:focus { outline: none; }
+        .ns-pick-qty span { color: var(--muted); font-size: 13px; }
+        .ns-pick-calc { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .ns-pick-calc b { color: var(--text); font-weight: 600; }
       </style>
     </section>
 
@@ -7447,8 +7485,16 @@ function openNutriSheet() {
   renderTypeChips('nsTypes', nsType, (t) => { nsType = t; renderNsRecipes(); });
   renderNsRecipes();
   nsStatus('');
+  const pend = loadNQ().length;
+  if (pend) nsStatus(`${pend === 1 ? '1 comida espera' : `${pend} comidas esperan`} a que vuelva la red.`);
+  nsPicks = nsPicks.filter((p) => !p.pantry); saveNsPicks();
+  renderPick();
+  renderSuggest();
   openSheet('nutriSheet');
-  setTimeout(() => $('nsText').focus(), 250);
+  if (pickActual()) setTimeout(() => $('nsPickQty').focus(), 250);
+  else setTimeout(() => $('nsText').focus(), 250);
+  pullPantry();
+  flushNutriQueue();
 }
 const closeNutriSheet = closeSheets;
 
@@ -7516,29 +7562,307 @@ $('limMore').addEventListener('click', async () => {
   $('limSub').textContent = 'Muy pronto podrás conseguir más créditos';
 });
 
-async function analyzeAndAdd({ text, imageB64 }) {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { closeNutriSheet(); showLogin(); throw new Error('Necesitas iniciar sesión'); }
-  const body = { mode: 'analyze' };
+// ---------- Errores y red ----------
+const esErrorDeRed = (e) => !navigator.onLine || e?.name === 'FunctionsFetchError'
+  || /failed to (send|fetch)|networkerror|load failed|network request failed|fetch failed/i.test(String(e?.message || e || ''));
+const errorNormal = (e) => {
+  const t = String(e?.message || e || '');
+  if (/no he reconocido|falta text/i.test(t)) return t;
+  return 'No he podido analizarlo ahora. Prueba otra vez en un momento.';
+};
+
+// Llama a la IA. Con v:2 la función devuelve las etiquetas por 100 g (label) y
+// la cantidad que dijo; las cuentas se hacen aquí (despensa) o en la función.
+async function nutriAnalyze({ text, imageB64 }) {
+  const body = { mode: 'analyze', v: 2 };
   if (imageB64) { body.image = { data: imageB64, media_type: 'image/jpeg' }; if (text) body.text = text; }
   else body.text = text;
-  const { data, error } = await sb.functions.invoke('nutrition', { body });
+  let data, error;
+  try { ({ data, error } = await sb.functions.invoke('nutrition', { body })); }
+  catch (e) { error = e; }
   if (data?.limit) { const e = new Error(''); e.limit = data.limit; throw e; }
-  if (error || data?.error) throw new Error(data?.error || error?.message || 'Error de conexión');
+  if (error && esErrorDeRed(error)) { const e = new Error('Sin conexión'); e.offline = true; throw e; }
+  if (error || data?.error) throw new Error(errorNormal(data?.error || error));
   const items = data?.items || [];
   if (!items.length) throw new Error('No he reconocido comida ahí. Prueba a describirlo de otra forma.');
-  const rows = items.map((it) => ({
-    date: nutriDay,
-    description: it.description,
-    meal_type: nsType,
-    protein_g: it.protein_g, carbs_g: it.carbs_g, fat_g: it.fat_g, fiber_g: it.fiber_g, kcal: it.kcal,
-    source: imageB64 ? 'photo' : 'text',
-  }));
-  const { data: inserted, error: e2 } = await sb.from('meals').insert(rows).select();
-  if (e2) throw e2;
-  saveMeals(loadMeals().concat(inserted || []));
-  return items.length;
+  return items;
 }
+
+async function insertMealRows(rows) {
+  const { data, error } = await sb.from('meals').insert(rows).select();
+  if (error) { if (esErrorDeRed(error)) { const e = new Error('Sin conexión'); e.offline = true; throw e; } throw error; }
+  saveMeals(loadMeals().concat(data || []));
+  pantryLearn(data || rows);
+  return data || [];
+}
+
+// Lo que no es etiqueta se apunta ya; las etiquetas pasan por el panel, que
+// enseña la cuenta (y pide los gramos si no los dijo).
+async function analyzeAndAdd({ text, imageB64, date = nutriDay, mealType = nsType }) {
+  const items = await nutriAnalyze({ text, imageB64 });
+  const plain = items.filter((it) => !it.label);
+  const picks = items.filter((it) => it.label).map((it) => pickFromLabel(it, date, mealType));
+  if (plain.length) {
+    await insertMealRows(plain.map((it) => ({
+      date, description: it.description, meal_type: mealType,
+      protein_g: it.protein_g, carbs_g: it.carbs_g, fat_g: it.fat_g, fiber_g: it.fiber_g, kcal: it.kcal,
+      source: imageB64 ? 'photo' : 'text',
+    })));
+  }
+  return { added: plain.length, picks };
+}
+
+// ============ DESPENSA ============
+// Cada alimento apuntado con sus valores por 100 g (o por ración si no se sabe
+// el peso). Sale de TODO el historial de `meals` (la descripción lleva los
+// gramos: «Pechuga (200 g)») y de las etiquetas, que se guardan exactas aquí.
+// Al tocar una sugerencia se apunta con esos valores: sin IA y sin gastar.
+const PANTRY_KEY = 'fitness_pantry_v1';
+const loadPantry = () => { try { return JSON.parse(localStorage.getItem(PANTRY_KEY)) || { items: {}, pulled: 0 }; } catch { return { items: {}, pulled: 0 }; } };
+const savePantry = (p) => { try { localStorage.setItem(PANTRY_KEY, JSON.stringify(p)); } catch { /* lleno: se rehace del historial */ } };
+const normFood = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const RX_QTY = /(\d+(?:[.,]\d+)?)\s*(g|gr|grs|gramos|ml|mililitros)\b/i;
+// «Pechuga de pollo (200 g)» → { name: 'Pechuga de pollo', grams: 200 }
+function parseFoodDesc(desc) {
+  const d = String(desc || '');
+  const m = d.match(RX_QTY);
+  const name = d.replace(/\s*\([^)]*\)/g, ' ')
+    .replace(/^\s*\d+(?:[.,]\d+)?\s*(?:g|gr|grs|gramos|ml|mililitros)\b\s*(?:de\s+)?/i, '')
+    .replace(/\s+/g, ' ').trim();
+  return { name: name ? name[0].toUpperCase() + name.slice(1) : '', grams: m ? Number(m[1].replace(',', '.')) : null };
+}
+// Una comida apuntada → entrada de despensa
+function pantryEntryFromMeal(m) {
+  if (!m || m.recipe_id || !m.description) return null;
+  const { name, grams } = parseFoodDesc(m.description);
+  const norm = normFood(name);
+  if (!norm || norm.length < 2) return null;
+  const vals = {}; MACRO_KEYS.forEach((k) => { vals[k] = Number(m[k]) || 0; });
+  if (!vals.kcal && !vals.protein_g && !vals.carbs_g && !vals.fat_g) return null;
+  const e = { name, norm, source: m.source === 'label' ? 'label' : 'meal', last: m.created_at || new Date().toISOString(), uses: 1 };
+  if (grams && grams > 0) { e.per100 = {}; MACRO_KEYS.forEach((k) => { e.per100[k] = vals[k] * 100 / grams; }); e.grams = grams; }
+  else { e.unit = vals; e.qty = 1; }
+  return e;
+}
+// Junta una entrada: la de etiqueta manda sobre la estimada; si no, la más reciente
+function pantryPut(items, e, exact) {
+  const prev = items[e.norm];
+  if (!prev) { items[e.norm] = e; return; }
+  const uses = (prev.uses || 0) + (e.uses || 1);
+  const last = (prev.last || '') > (e.last || '') ? prev.last : e.last;
+  const ganaNueva = exact || !(prev.source === 'label' && e.source !== 'label');
+  items[e.norm] = ganaNueva ? { ...e, uses, last } : { ...prev, uses, last };
+}
+// Aprende de lo que se acaba de apuntar
+function pantryLearn(rows, exact) {
+  const p = loadPantry();
+  (rows || []).forEach((m) => { const e = pantryEntryFromMeal(m); if (e) pantryPut(p.items, e, exact && m.source === 'label'); });
+  savePantry(p);
+}
+// Rehace la despensa con todo el historial (las etiquetas exactas se conservan)
+async function pullPantry(force) {
+  const p = loadPantry();
+  if (!force && Date.now() - (p.pulled || 0) < 6 * 3600e3) return;
+  try {
+    const { data, error } = await sb.from('meals')
+      .select('description,kcal,protein_g,carbs_g,fat_g,fiber_g,source,created_at,recipe_id')
+      .order('created_at', { ascending: true }).limit(5000);
+    if (error || !Array.isArray(data)) return;
+    const items = {};
+    // Más lo que hay en este móvil (sin sesión, o recién apuntado)
+    const vistos = new Set(data.map((m) => m.created_at + '|' + m.description));
+    const locales = loadMeals().filter((m) => !vistos.has(m.created_at + '|' + m.description));
+    data.concat(locales).sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')))
+      .forEach((m) => { const e = pantryEntryFromMeal(m); if (e) pantryPut(items, e); });
+    // Lo exacto de etiqueta que ya teníamos aquí sustituye a lo deducido de la descripción redondeada
+    Object.values(p.items || {}).forEach((e) => {
+      if (!(e.source === 'label' && e.exact)) return;
+      items[e.norm] = items[e.norm] ? { ...items[e.norm], per100: e.per100, unit: e.unit, exact: true, source: 'label' } : e;
+    });
+    savePantry({ items, pulled: Date.now() });
+  } catch { /* sin red: vale lo guardado */ }
+}
+// Búsqueda tipo Spotlight: cada palabra escrita es el principio de una del nombre
+function pantrySearch(q, max = 5) {
+  const toks = normFood(q).split(' ').filter((t) => t && !/^\d/.test(t) && !['de', 'del', 'la', 'el', 'con', 'g', 'gr', 'ml', 'gramos'].includes(t));
+  if (!toks.length || toks.join('').length < 2) return [];
+  const list = Object.values(loadPantry().items || {});
+  return list.filter((e) => { const ws = e.norm.split(' '); return toks.every((t) => ws.some((w) => w.startsWith(t))); })
+    .sort((a, b) => (b.norm.startsWith(toks[0]) - a.norm.startsWith(toks[0]))
+      || ((b.source === 'label') - (a.source === 'label'))
+      || ((b.uses || 0) - (a.uses || 0)) || String(b.last || '').localeCompare(String(a.last || '')))
+    .slice(0, max);
+}
+
+// ---------- Panel: un alimento con sus valores, solo falta la cantidad ----------
+const fmtN = (n) => String(r1(n)).replace('.', ',');
+const macroLinea = (v) => `${Math.round(v.kcal || 0)} kcal · ${fmtN(v.protein_g)}P · ${fmtN(v.carbs_g)}C · ${fmtN(v.fat_g)}G`;
+const NS_PICKS_KEY = 'fitness_nutri_picks_v1';
+let nsPicks = (() => { try { return JSON.parse(localStorage.getItem(NS_PICKS_KEY)) || []; } catch { return []; } })();
+const saveNsPicks = () => { try { localStorage.setItem(NS_PICKS_KEY, JSON.stringify(nsPicks)); } catch { /* */ } };
+function pickFromLabel(it, date, mealType) {
+  const l = it.label || {};
+  const porRacion = !l.per100 && l.per_serving;
+  return {
+    id: `${Date.now()}-${Math.random()}`,
+    name: l.name || parseFoodDesc(it.description).name, label: true, exact: true, date, mealType,
+    per100: l.per100 || null, unit: porRacion ? l.per_serving : null,
+    qty: porRacion ? (it.servings || null) : (it.grams || null),
+  };
+}
+function pickFromPantry(e, qtyTexto) {
+  return {
+    id: `${Date.now()}-${Math.random()}`,
+    name: e.name, label: e.source === 'label', exact: !!e.exact, per100: e.per100 || null, unit: e.unit || null,
+    qty: e.per100 ? (qtyTexto || r1(e.grams) || null) : (e.qty || 1), date: null, mealType: null, pantry: true,
+  };
+}
+const pickActual = () => nsPicks[0] || null;
+const pickTotal = (pk, q) => { const base = pk.per100 || pk.unit; const f = pk.per100 ? q / 100 : q; const t = {}; MACRO_KEYS.forEach((k) => { t[k] = (Number(base[k]) || 0) * f; }); return t; };
+function renderPick() {
+  const pk = pickActual();
+  $('nsPick').hidden = !pk;
+  if (!pk) return;
+  $('nsSuggest').hidden = true;
+  $('nsPickTag').textContent = pk.label ? 'ETIQUETA' : 'DE TU DESPENSA';
+  $('nsPickName').textContent = pk.name;
+  $('nsPickUnit').textContent = pk.per100 ? 'g' : (Number(pk.qty) === 1 ? 'ración' : 'raciones');
+  $('nsPickQty').step = pk.per100 ? '1' : '0.5';
+  // La cantidad se rellena al cambiar de alimento, no mientras se escribe
+  if ($('nsPickQty').dataset.pid !== String(pk.id)) { $('nsPickQty').value = pk.qty ?? ''; $('nsPickQty').dataset.pid = String(pk.id); }
+  renderPickCalc();
+}
+function renderPickCalc() {
+  const pk = pickActual();
+  if (!pk) return;
+  const q = Number(String($('nsPickQty').value).replace(',', '.'));
+  const base = pk.per100 ? `Por 100 g: ${macroLinea(pk.per100)}` : `Por ración: ${macroLinea(pk.unit)}`;
+  $('nsPickAdd').disabled = !(q > 0);
+  if (!(q > 0)) { $('nsPickCalc').innerHTML = `${base}<br>¿${pk.per100 ? 'Cuántos gramos' : 'Cuántas raciones'} te has comido?`; return; }
+  const qTxt = pk.per100 ? `${fmtN(q)} g` : `${fmtN(q)} ${q === 1 ? 'ración' : 'raciones'}`;
+  $('nsPickCalc').innerHTML = `${base} → <b>${qTxt} = ${macroLinea(pickTotal(pk, q))}</b>`;
+}
+function pushPicks(list) {
+  if (!list?.length) return;
+  nsPicks = list.concat(nsPicks.filter((p) => !p.pantry));
+  saveNsPicks();
+  renderPick();
+  if (!(Number(pickActual()?.qty) > 0)) setTimeout(() => $('nsPickQty').focus(), 50);
+}
+function dropPick() { nsPicks.shift(); saveNsPicks(); renderPick(); }
+async function addPick() {
+  const pk = pickActual();
+  const q = Number(String($('nsPickQty').value).replace(',', '.'));
+  if (!pk || !(q > 0)) { $('nsPickQty').focus(); return; }
+  const t = pickTotal(pk, q);
+  const qTxt = pk.per100 ? `${fmtN(q)} g` : `${fmtN(q)} ${q === 1 ? 'ración' : 'raciones'}`;
+  const row = {
+    date: pk.date || nutriDay, meal_type: pk.mealType || nsType, description: `${pk.name} (${qTxt})`,
+    kcal: Math.round(t.kcal), protein_g: r1(t.protein_g), carbs_g: r1(t.carbs_g), fat_g: r1(t.fat_g), fiber_g: r1(t.fiber_g),
+    source: pk.label ? 'label' : 'pantry',
+  };
+  $('nsPickAdd').disabled = true;
+  try {
+    await insertMealRows([row]);
+    // La etiqueta se guarda exacta (por 100 g sin redondear) para la próxima vez
+    if (pk.label) {
+      const p = loadPantry(); const norm = normFood(pk.name);
+      pantryPut(p.items, { name: pk.name, norm, source: 'label', exact: true, per100: pk.per100, unit: pk.unit,
+        grams: pk.per100 ? q : null, qty: pk.per100 ? null : q, last: new Date().toISOString(), uses: 0 }, true);
+      savePantry(p);
+    }
+    nsStatus(`Apuntado: ${row.description}`);
+  } catch (err) {
+    if (err?.offline) { nutriQueuePush({ kind: 'rows', rows: [row] }); nsStatus('Sin conexión: lo apunto en cuanto vuelva la red.'); }
+    else { nsStatus('No se ha podido guardar. Prueba otra vez.', true); $('nsPickAdd').disabled = false; return; }
+  }
+  if (navigator.vibrate) navigator.vibrate(30);
+  dropPick();
+  renderNutrition();
+  if (!pickActual()) setTimeout(() => { if (!pickActual()) { closeNutriSheet(); nsStatus(''); } }, 900);
+}
+$('nsPickQty').addEventListener('input', renderPickCalc);
+$('nsPickQty').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addPick(); } });
+$('nsPickAdd').addEventListener('click', addPick);
+$('nsPickX').addEventListener('click', () => { dropPick(); nsStatus(''); });
+
+// ---------- Sugerencias al escribir ----------
+// Solo cuando lo escrito es un alimento (no una comida entera con comas o «y»)
+function gramsFromText(t) { const m = String(t || '').match(RX_QTY); return m ? Number(m[1].replace(',', '.')) : null; }
+function renderSuggest() {
+  const box = $('nsSuggest');
+  const t = $('nsText').value;
+  const simple = t.length <= 40 && !/[,;\n]| y | con /i.test(t);
+  const res = (simple && !pickActual()) ? pantrySearch(t) : [];
+  box.hidden = !res.length;
+  if (!res.length) { box.innerHTML = ''; return; }
+  const toks = normFood(t).split(' ').filter((x) => x && !/^\d/.test(x));
+  const marca = (name) => escHtml(name).split(' ').map((w) => {
+    const n = normFood(w); const tk = toks.find((x) => n.startsWith(x));
+    return tk ? `<b>${escHtml(w.slice(0, tk.length))}</b>${escHtml(w.slice(tk.length))}` : w;
+  }).join(' ');
+  box.innerHTML = res.map((e, i) => `<button type="button" class="ns-sg" data-sg="${i}">
+      <span class="ns-sg-n">${marca(e.name)}</span>
+      ${e.source === 'label' ? '<span class="ns-sg-t">ETIQUETA</span>' : ''}
+      <span class="ns-sg-k">${e.per100 ? `${Math.round(e.per100.kcal)} kcal/100 g` : `${Math.round(e.unit.kcal)} kcal/ración`}</span>
+    </button>`).join('');
+  box.querySelectorAll('[data-sg]').forEach((b) => b.addEventListener('click', () => {
+    const e = res[Number(b.dataset.sg)];
+    const g = gramsFromText($('nsText').value);
+    $('nsText').value = '';
+    box.hidden = true;
+    nsStatus('');
+    pushPicks([pickFromPantry(e, g)]);
+    $('nsPickQty').focus();
+    $('nsPickQty').select?.();
+  }));
+}
+$('nsText').addEventListener('input', renderSuggest);
+
+// ---------- Cola sin red ----------
+// Lo escrito (y la foto) se guarda y se analiza al volver la red: nada se
+// pierde ni te manda a la pantalla de acceso.
+const NQ_KEY = 'fitness_nutri_queue_v1';
+const loadNQ = () => { try { return JSON.parse(localStorage.getItem(NQ_KEY)) || []; } catch { return []; } };
+const saveNQ = (q) => { try { localStorage.setItem(NQ_KEY, JSON.stringify(q)); return true; } catch { return false; } };
+function nutriQueuePush(entry) {
+  const q = loadNQ();
+  q.push({ date: nutriDay, mealType: nsType, at: Date.now(), ...entry });
+  if (!saveNQ(q)) {  // sin sitio (fotos): se guarda sin la foto si hay texto
+    if (entry.imageB64 && entry.text) { q[q.length - 1].imageB64 = null; if (saveNQ(q)) return true; }
+    return false;
+  }
+  return true;
+}
+let nqFlushing = false;
+async function flushNutriQueue() {
+  if (nqFlushing || !navigator.onLine || !loadNQ().length) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  nqFlushing = true;
+  let cambios = false; const picks = [];
+  try {
+    while (loadNQ().length) {
+      const [it] = loadNQ();
+      try {
+        if (it.kind === 'rows') { await insertMealRows(it.rows); }
+        else {
+          const r = await analyzeAndAdd({ text: it.text, imageB64: it.imageB64, date: it.date, mealType: it.mealType });
+          picks.push(...r.picks);
+        }
+        cambios = true;
+      } catch (err) {
+        if (err?.offline || err?.limit) break;   // se reintenta más tarde
+        console.warn('Cola de comidas: descartada', err);
+      }
+      saveNQ(loadNQ().slice(1));
+    }
+  } finally { nqFlushing = false; }
+  if (picks.length) pushPicks(picks);
+  if (cambios) renderNutrition();
+}
+window.addEventListener('online', () => { flushNutriQueue(); });
 
 // ============ RECETAS ============
 // Una receta guarda sus ingredientes (con los macros de cada uno) y los
@@ -7835,21 +8159,50 @@ async function saveBlockAsRecipe(tipo) {
   alert(`Receta «${name.trim()}» guardada. La tienes en Recetas y al registrar comida.`);
 }
 
+// «30 g», «me he comido 30 g», «unos 30 gramos»: solo la cantidad, sin alimento
+function soloCantidad(t) {
+  const x = normFood(String(t || '').replace(RX_QTY, ' '))
+    .replace(/\b(me|he|comido|comi|tomado|tome|bebido|unos|unas|un|una|sobre|aprox|aproximadamente|de|eso|esto|solo|nada|mas|gramos?|g|gr|ml)\b/g, ' ').trim();
+  const g = gramsFromText(t) ?? (/^\s*\d+(?:[.,]\d+)?\s*$/.test(t) ? Number(String(t).replace(',', '.')) : null);
+  return !x && g ? g : null;
+}
+
 async function nsSubmit(imageB64) {
   const text = $('nsText').value.trim();
   if (!imageB64 && !text) { nsStatus('Escribe (o dicta) lo que has comido, o haz una foto.', true); return; }
+  // Los gramos que faltaban, en un mensaje aparte: se juntan con la etiqueta
+  const g = !imageB64 ? soloCantidad(text) : null;
+  if (g && pickActual()) { $('nsPickQty').value = g; $('nsText').value = ''; renderPickCalc(); await addPick(); return; }
+  // Solo la cantidad y sin nada a lo que aplicarla: se guarda para la foto
+  if (g) { nsStatus('¿De qué? Haz la foto de la etiqueta (o escribe el alimento) y lo junto con esos gramos.'); return; }
   nsBusy(true);
   nsStatus(imageB64 ? 'Analizando la foto…' : 'Analizando…');
   try {
-    const n = await analyzeAndAdd({ text, imageB64 });
-    if (navigator.vibrate) navigator.vibrate(30);
+    if (!navigator.onLine) { const e = new Error('Sin conexión'); e.offline = true; throw e; }
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      // Sin red la sesión puede no refrescarse: eso no es «salir», se guarda
+      if (!navigator.onLine) { const e = new Error('Sin conexión'); e.offline = true; throw e; }
+      closeNutriSheet(); showLogin(); return;
+    }
+    const { added, picks } = await analyzeAndAdd({ text, imageB64 });
+    if (navigator.vibrate && added) navigator.vibrate(30);
     $('nsText').value = '';
+    renderSuggest();
+    renderNutrition();
+    if (picks.length) { nsStatus(''); pushPicks(picks); return; }
     nsStatus('');
     closeNutriSheet();
-    renderNutrition();
-    void n;
   } catch (err) {
     if (err?.limit) { nsStatus(''); showAiLimit(err.limit); return; }
+    if (err?.offline) {
+      if (nutriQueuePush({ kind: 'analyze', text, imageB64 })) {
+        $('nsText').value = '';
+        renderSuggest();
+        nsStatus('Sin conexión: lo he guardado y lo analizo en cuanto vuelva la red.');
+      } else nsStatus('Sin conexión y sin sitio para guardar la foto. Prueba con texto o cuando vuelva la red.', true);
+      return;
+    }
     nsStatus(String(err?.message || err), true);
   } finally { nsBusy(false); }
 }
@@ -9530,6 +9883,8 @@ async function boot(loggedIn) {
   await pullExNotes();
   await pullMeals();
   await pullRecipes();
+  flushNutriQueue();
+  pullPantry();
   await pullDailyMetrics();
   await materializeRecurring();
   await flushStaleThreads();

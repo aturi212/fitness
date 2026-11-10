@@ -5,6 +5,8 @@
 //  - { mode:'analyze', text }                        → analiza una descripción de comida
 //  - { mode:'analyze', image:{ data, media_type } }  → analiza una FOTO de comida (visión)
 //      ↳ devuelve { items:[{ description, protein_g, carbs_g, fat_g, fiber_g, kcal }] }
+//      ↳ con v:2, los items de una ETIQUETA traen además { label:{ name, per100,
+//        per_serving, serving_g }, grams } o, si no dijo cuánto, needs_grams:true
 //  - { mode:'recalc', text, previous:{ description, protein_g, … } }
 //      ↳ la descripción de una comida YA apuntada se ha corregido (p. ej. se
 //        añade «tomate» que la foto no vio): devuelve { item } con el total nuevo
@@ -53,6 +55,23 @@ const REGISTER_TOOL = {
             fat_g: { type: 'number' },
             fiber_g: { type: 'number' },
             kcal: { type: 'number' },
+            label: {
+              type: 'object',
+              description: 'SOLO si hay una tabla nutricional (en la foto o porque el usuario dicta sus valores). Copia los números EXACTOS de la tabla, sin estimar ni redondear. Si no hay tabla, no pongas este campo.',
+              properties: {
+                name: { type: 'string', description: 'Nombre del producto, sin cantidad. Ej: "Chocolate negro Nestlé"' },
+                basis: { type: 'string', enum: ['per_100', 'per_serving'], description: 'per_100 si la tabla da los valores por 100 g o 100 ml (usa esa columna siempre que exista); per_serving solo si únicamente los da por ración' },
+                serving_g: { type: ['number', 'null'], description: 'Gramos (o ml) de una ración o unidad, si la etiqueta lo dice. Si no, null' },
+                kcal: { type: 'number' },
+                protein_g: { type: 'number' },
+                carbs_g: { type: 'number' },
+                fat_g: { type: 'number' },
+                fiber_g: { type: 'number', description: '0 si la tabla no la trae' },
+              },
+              required: ['name', 'basis', 'kcal', 'protein_g', 'carbs_g', 'fat_g'],
+            },
+            grams: { type: ['number', 'null'], description: 'Solo con label: gramos (o ml) que DICE el usuario que se ha comido. Si dice unidades o raciones y la etiqueta da su peso, multiplícalo. Si no lo dice, null: NO lo supongas.' },
+            servings: { type: ['number', 'null'], description: 'Solo con label y basis per_serving sin serving_g: cuántas raciones o unidades dice que se ha comido. Si no lo dice, null.' },
           },
           required: ['description', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g', 'kcal'],
         },
@@ -70,9 +89,63 @@ REGLAS:
 - Registra SIEMPRE el resultado llamando a la herramienta register_meals. Nada de texto suelto.
 - Separa en items los alimentos claramente distintos (ej: "pollo con arroz y una manzana" → 3 items o 2 si van juntos en el plato; usa criterio de plato).
 - Si no se indica cantidad, estima una ración normal para un adulto${pesoKg ? ` de ${pesoKg} kg` : ''} y REFLEJA la cantidad estimada en la descripción entre paréntesis.
-- En fotos: identifica el plato/producto y estima la ración por el tamaño visible. Si hay etiqueta nutricional visible, úsala.
+- En fotos de comida: identifica el plato/producto y estima la ración por el tamaño visible.
 - Valores en gramos (protein_g, carbs_g, fat_g, fiber_g) y kcal totales del item. Sé realista, no redondees todo a cero.
-- Si la entrada no parece comida, devuelve items: [].`;
+- Si la entrada no parece comida, devuelve items: [].
+
+ETIQUETAS NUTRICIONALES (foto de la tabla de un envase, o valores que te dicta):
+- Rellena «label» copiando los números tal cual de la tabla. Si hay columna por 100 g / 100 ml, usa esa (basis per_100). No estimes nada a ojo: la etiqueta manda.
+- La cantidad la dice el usuario («me he comido 30 g», «2 galletas», «medio paquete de 200 g»). Ponla en «grams» (o en «servings» si solo hay valores por ración sin peso). Si no la dice, déjala en null: la app se la preguntará. No inventes la ración ni uses la de la etiqueta por tu cuenta.
+- Las cuentas las hace la app con label y grams: los macros del item puedes dejarlos en 0.
+- Un item por producto.`;
+
+// ---------- Etiquetas: la cuenta la hace el código, no el modelo ----------
+// El modelo copia la tabla (por 100 g o por ración) y la cantidad que dice el
+// usuario; aquí se escala. Con v>=2 (la app nueva) se devuelve además la
+// etiqueta por 100 g y, si falta la cantidad, needs_grams: la app la pregunta
+// y hace la cuenta ella, sin volver a llamar a la IA. A las versiones viejas
+// de la app, sin cantidad, se les apunta una ración (o 100 g) y lo dice.
+const pos = (v: unknown) => Math.max(0, Number(v) || 0);
+const r1 = (v: number) => Math.round(v * 10) / 10;
+const MAC = ['kcal', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g'] as const;
+const escala = (vals: Record<string, number>, f: number) => Object.fromEntries(MAC.map((k) => [k, vals[k] * f]));
+function conEtiqueta(it: any, v2: boolean) {
+  const l = it?.label;
+  if (!l || typeof l !== 'object' || !(pos(l.kcal) || pos(l.protein_g) || pos(l.carbs_g) || pos(l.fat_g))) return null;
+  const name = String(l.name || it.description || 'Producto').replace(/\s*\(.*?\)\s*/g, ' ').trim().slice(0, 100);
+  const serving = pos(l.serving_g) || null;
+  const vals: Record<string, number> = Object.fromEntries(MAC.map((k) => [k, pos(l[k])]));
+  let per100: Record<string, number> | null = null;
+  let perServing: Record<string, number> | null = null;
+  if (l.basis === 'per_serving') {
+    perServing = vals;
+    if (serving) per100 = escala(vals, 100 / serving);
+  } else per100 = vals;
+  let grams = pos(it.grams) || null;
+  const servings = pos(it.servings) || null;
+  if (!grams && servings && serving) grams = servings * serving;
+
+  let total: Record<string, number> | null = null;
+  let qty = '';
+  if (per100 && grams) { total = escala(per100, grams / 100); qty = `${r1(grams)} g`; }
+  else if (perServing && servings) { total = escala(perServing, servings); qty = `${servings} ${servings === 1 ? 'ración' : 'raciones'}`; }
+
+  const redondea = (o: Record<string, number> | null) => o && Object.fromEntries(MAC.map((k) => [k, r1(o[k])]));
+  const label = { name, per100: redondea(per100), per_serving: redondea(perServing), serving_g: serving };
+  if (!total) {
+    if (v2) return { description: name, kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, label, needs_grams: true };
+    // App vieja: una ración si se sabe; si no, 100 g. Queda escrito en la descripción.
+    const g = serving || 100;
+    total = per100 ? escala(per100, g / 100) : vals;
+    qty = per100 ? `${g} g, cantidad supuesta` : '1 ración, supuesta';
+  }
+  return {
+    description: `${name} (${qty})`.slice(0, 120),
+    kcal: Math.round(total.kcal),
+    protein_g: r1(total.protein_g), carbs_g: r1(total.carbs_g), fat_g: r1(total.fat_g), fiber_g: r1(total.fiber_g),
+    ...(v2 ? { label, grams: grams ? r1(grams) : null, servings: grams ? null : servings } : {}),
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -188,8 +261,8 @@ Deno.serve(async (req) => {
       });
       const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
       const items = (toolUse?.input?.items ?? [])
-        .filter((it: any) => it && it.description)
-        .map((it: any) => ({
+        .filter((it: any) => it && (it.description || it.label?.name))
+        .map((it: any) => conEtiqueta(it, body.v >= 2) ?? ({
           description: String(it.description).slice(0, 120),
           protein_g: Math.max(0, Number(it.protein_g) || 0),
           carbs_g: Math.max(0, Number(it.carbs_g) || 0),
@@ -217,7 +290,7 @@ Deno.serve(async (req) => {
         messages: [{ role: 'user', content: `Descripción corregida: ${text}${referencia}` }],
       });
       const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
-      const items = (toolUse?.input?.items ?? []).filter((it: any) => it);
+      const items = (toolUse?.input?.items ?? []).filter((it: any) => it).map((it: any) => conEtiqueta(it, false) ?? it);
       if (!items.length) return json({ error: 'No he reconocido comida en esa descripción.' });
       // Si aun así parte el plato, se suman: en la BD es una sola fila.
       const suma = (k: string) => Math.round(items.reduce((a: number, it: any) => a + n(it[k]), 0) * 10) / 10;
