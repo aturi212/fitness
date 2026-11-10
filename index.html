@@ -1769,6 +1769,7 @@
           <button type="button" class="ns-send" id="nsSend">Analizar y añadir</button>
         </div>
         <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
+        <div class="ns-quota" id="nsQuota" hidden></div>
         <div class="ns-status" id="nsStatus"></div>
         <!-- Debajo: de qué es (desayuno, comida…) y tus recetas de ese tipo -->
         <div class="ns-types" id="nsTypes"></div>
@@ -1909,6 +1910,9 @@
         .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
         .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
         .ns-status.err { color: #ff7a8a; }
+        .ns-quota { margin-top: 9px; font: 500 10px/1.3 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ghost); }
+        .ns-quota b { color: var(--text); font-weight: 700; }
+        .ns-quota.last b, .ns-quota.zero b { color: var(--hot-text); }
         /* Despensa: sugerencias al escribir y alimento con valores conocidos */
         .ns-suggest { margin: 8px 0 2px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg-elev-2, #151514); }
         .ns-suggest[hidden], .ns-pick[hidden] { display: none; }
@@ -3206,6 +3210,7 @@
     <h2 class="lim-title" id="limTitle">Has llegado al límite de hoy</h2>
     <p class="lim-sub" id="limSub">Se renueva mañana a las 00:00</p>
     <button type="button" class="btn-primary" id="limOk">ENTENDIDO</button>
+    <button type="button" class="btn-ghost" id="limManual" hidden>Apuntarlo a mano</button>
     <button type="button" class="btn-ghost" id="limMore">Quiero más</button>
   </div>
 </div>
@@ -7674,8 +7679,10 @@ function openNutriSheet() {
   openSheet('nutriSheet');
   if (pickActual()) setTimeout(() => $('nsPickQty').focus(), 250);
   else setTimeout(() => $('nsText').focus(), 250);
+  renderCupo();
   pullPantry();
   flushNutriQueue();
+  pedirCupo();
 }
 const closeNutriSheet = closeSheets;
 
@@ -7700,7 +7707,7 @@ function fileToBase64Jpeg(file, maxSide = 1100) {
 // ---------- Tope de uso de la IA ----------
 // Las funciones avisan con { reason: 'day' | 'minute', feature }. El día se
 // cuenta en hora de Madrid, así que se renueva a las 00:00.
-let limFeature = null;
+let limFeature = null, limComida = false;
 function showAiLimit(tope) {
   const m = $('limModal');
   limFeature = tope?.feature || null;
@@ -7711,6 +7718,20 @@ function showAiLimit(tope) {
   $('limMore').hidden = porMinuto;
   $('limMore').disabled = false;
   $('limMore').textContent = 'Quiero más';
+  $('limOk').textContent = 'ENTENDIDO';
+  $('limManual').hidden = true;
+  // Comidas con IA (foto o texto): nunca se bloquea el registro. Tres salidas:
+  // despensa o a mano (gratis), pasar a Básico, o esperar a mañana.
+  limComida = !porMinuto && (limFeature === 'photo' || limFeature === 'text');
+  if (limComida) {
+    const n = tope?.max || 3;
+    $('limEyebrow').textContent = 'COMIDAS CON IA';
+    $('limTitle').textContent = `Ya has usado tus ${n} comidas con IA de hoy`;
+    $('limSub').textContent = `Apuntar sigue siendo gratis: búscalo en tu despensa o apúntalo a mano. Mañana vuelves a tener ${n}.`;
+    $('limOk').textContent = 'BUSCAR EN MI DESPENSA';
+    $('limManual').hidden = false;
+    $('limMore').textContent = (tope?.plan === 'basic') ? 'Quiero más' : 'Pasar a Básico · 8 al día';
+  }
   m.classList.add('open');
   m.setAttribute('aria-hidden', 'false');
   void m.offsetWidth;
@@ -7725,7 +7746,31 @@ function closeAiLimit() {
   setTimeout(() => m.classList.remove('open'), 240);
 }
 window.showAiLimit = showAiLimit;
-$('limOk').addEventListener('click', closeAiLimit);
+$('limOk').addEventListener('click', () => {
+  closeAiLimit();
+  // Despensa: el texto se queda escrito y salen las sugerencias
+  if (limComida && $('nutriSheet').classList.contains('open')) {
+    renderSuggest();
+    setTimeout(() => $('nsText').focus(), 260);
+  }
+});
+// A mano: se apunta con lo escrito y macros a 0, y se abre el editor para
+// poner los números. No llama a la IA ni gasta.
+$('limManual').addEventListener('click', async () => {
+  const desc = ($('nsText').value || '').trim() || 'Comida';
+  closeAiLimit();
+  try {
+    const [fila] = await insertMealRows([{
+      date: nutriDay, description: desc.slice(0, 120), meal_type: nsType,
+      protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0, source: 'manual',
+    }]);
+    $('nsText').value = '';
+    renderNutrition();
+    if (fila) { maMealId = fila.id; $('maEdit').click(); }
+  } catch (err) {
+    nsStatus(err?.offline ? 'Sin conexión: escríbelo cuando vuelva la red.' : String(err?.message || err), true);
+  }
+});
 $('limBack').addEventListener('click', closeAiLimit);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAiLimit(); });
 $('limMore').addEventListener('click', async () => {
@@ -7752,6 +7797,46 @@ const errorNormal = (e) => {
   return 'No he podido analizarlo ahora. Prueba otra vez en un momento.';
 };
 
+// ---------- Cupo de comidas con IA (Gratis 3 · Básico 8) ----------
+// Lo cuenta el servidor (foto y texto, un solo contador). Aquí solo se
+// recuerda lo último que dijo, para pintar «Te quedan N». null = sin cupo
+// (cuenta exenta o función vieja): no se pinta nada.
+const QUOTA_KEY = 'fitness_nutri_quota_v1';
+const hoyLocal = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+function setCupo(q) {
+  try {
+    if (q === undefined) return;
+    localStorage.setItem(QUOTA_KEY, JSON.stringify(q ? { ...q, day: hoyLocal() } : null));
+  } catch {}
+  renderCupo();
+}
+function getCupo() {
+  let q = null;
+  try { q = JSON.parse(localStorage.getItem(QUOTA_KEY)); } catch {}
+  if (!q || !q.limit || q.plan === 'premium') return null;      // Premium: el tope no se anuncia
+  if (q.day !== hoyLocal()) return { ...q, used: 0, left: q.limit };   // día nuevo: vuelven a estar todas
+  return q;
+}
+function renderCupo() {
+  const el = $('nsQuota');
+  if (!el) return;
+  const q = getCupo();
+  el.hidden = !q;
+  if (!q) return;
+  el.classList.toggle('last', q.left === 1);
+  el.classList.toggle('zero', q.left === 0);
+  el.innerHTML = q.left > 0
+    ? `Te ${q.left === 1 ? 'queda' : 'quedan'} <b>${q.left}</b> ${q.left === 1 ? 'comida' : 'comidas'} con IA hoy · la despensa no gasta`
+    : `<b>Hoy no quedan comidas con IA</b> · despensa y a mano siguen gratis`;
+}
+async function pedirCupo() {
+  if (!navigator.onLine) return;
+  try {
+    const { data } = await sb.functions.invoke('nutrition', { body: { mode: 'quota' } });
+    if (data && 'quota' in data) setCupo(data.quota);   // función vieja: «mode inválido», se ignora
+  } catch {}
+}
+
 // Llama a la IA. Con v:2 la función devuelve las etiquetas por 100 g (label) y
 // la cantidad que dijo; las cuentas se hacen aquí (despensa) o en la función.
 async function nutriAnalyze({ text, imageB64 }) {
@@ -7761,7 +7846,11 @@ async function nutriAnalyze({ text, imageB64 }) {
   let data, error;
   try { ({ data, error } = await sb.functions.invoke('nutrition', { body })); }
   catch (e) { error = e; }
-  if (data?.limit) { const e = new Error(''); e.limit = data.limit; throw e; }
+  if (data?.limit) {
+    if (data.limit.reason === 'day' && data.limit.max) setCupo({ plan: data.limit.plan || 'free', limit: data.limit.max, used: data.limit.max, left: 0 });
+    const e = new Error(''); e.limit = data.limit; throw e;
+  }
+  if (data && 'quota' in data) setCupo(data.quota);
   if (error && esErrorDeRed(error)) { const e = new Error('Sin conexión'); e.offline = true; throw e; }
   if (error || data?.error) throw new Error(errorNormal(data?.error || error));
   const items = data?.items || [];
@@ -8034,6 +8123,18 @@ async function flushNutriQueue() {
         }
         cambios = true;
       } catch (err) {
+        // Sin cupo de IA hoy: lo escrito se apunta igual, a mano y con macros
+        // a 0 para completar (nunca se bloquea el registro). Una foto sin
+        // texto no se puede apuntar así: espera a mañana.
+        if (err?.limit && err.limit.reason === 'day' && it.kind !== 'rows' && it.text && !it.imageB64) {
+          try {
+            await insertMealRows([{ date: it.date || nutriDay, description: String(it.text).slice(0, 120),
+              meal_type: it.mealType || 'other', protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, kcal: 0, source: 'manual' }]);
+            cambios = true;
+            saveNQ(loadNQ().slice(1));
+            continue;
+          } catch { break; }
+        }
         if (err?.offline || err?.limit) break;   // se reintenta más tarde
         console.warn('Cola de comidas: descartada', err);
       }
@@ -8390,6 +8491,12 @@ async function nsSubmit(imageB64) {
     renderNutrition();
     if (picks.length) { nsStatus(''); pushPicks(picks); return; }
     nsStatus('');
+    const q = getCupo();
+    if (q && q.left === 0) {
+      // Era la última: se avisa en la hoja en vez de cerrarla sin más
+      nsStatus(`Apuntado. Era tu última comida con IA de hoy: mañana vuelves a tener ${q.limit}. Lo que ya está en tu despensa sigue gratis.`);
+      return;
+    }
     closeNutriSheet();
   } catch (err) {
     if (err?.limit) { nsStatus(''); showAiLimit(err.limit); return; }

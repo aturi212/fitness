@@ -22,7 +22,7 @@
 // (las versiones viejas enseñan `error` tal cual).
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { checkLimits, logUsage, type Kind } from '../_shared/ai_usage.ts';
+import { checkLimits, logUsage, mealQuota, type Kind } from '../_shared/ai_usage.ts';
 
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // MODELO PROPIO, separado del Coach (que usa CHAT_MODEL). Contar macros de un
@@ -166,13 +166,16 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
 
+    // Cupo de comidas con IA de hoy, sin llamar a la IA (para el contador)
+    if (body.mode === 'quota') return json({ quota: await mealQuota(user.id) });
+
     // Topes ANTES de llamar a la API
     const kind: Kind | null = body.mode === 'analyze' ? (body.image?.data ? 'photo' : 'text')
       : body.mode === 'recalc' ? 'text'
       : body.mode === 'chat' ? 'nutritionist' : null;
     if (kind) {
       const tope = await checkLimits(user.id, kind);
-      if (tope) return json({ error: tope.msg, limit: { reason: tope.reason, feature: tope.feature } });
+      if (tope) return json({ error: tope.msg, limit: { reason: tope.reason, feature: tope.feature, max: tope.limit ?? null, plan: tope.plan ?? null } });
     }
 
     // Ficha del usuario: el prompt no lleva datos de nadie escritos a fuego
@@ -270,7 +273,7 @@ Deno.serve(async (req) => {
           fiber_g: Math.max(0, Number(it.fiber_g) || 0),
           kcal: Math.max(0, Number(it.kcal) || 0),
         }));
-      return json({ items });
+      return json({ items, quota: await mealQuota(user.id) });
     }
 
     if (body.mode === 'recalc') {
@@ -295,6 +298,7 @@ Deno.serve(async (req) => {
       // Si aun así parte el plato, se suman: en la BD es una sola fila.
       const suma = (k: string) => Math.round(items.reduce((a: number, it: any) => a + n(it[k]), 0) * 10) / 10;
       return json({
+        quota: await mealQuota(user.id),
         item: {
           description: text.slice(0, 120),
           protein_g: suma('protein_g'), carbs_g: suma('carbs_g'), fat_g: suma('fat_g'),

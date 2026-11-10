@@ -9,10 +9,15 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 export const LIMITS = {
   perMinute: 15,       // peticiones de IA por usuario y minuto
   coachPerDay: 40,     // mensajes al Coach por usuario y día
-  photoPerDay: 30,     // fotos de comida por usuario y día
   nutritionistPerDay: 20, // mensajes al nutricionista por usuario y día
   globalPerDay: 500,   // llamadas a la API por día entre TODOS (cortafuegos)
 };
+// Comidas con IA al día según el plan: UN solo contador para foto y texto
+// (y los reanálisis al editar, que van como 'text'). Premium no se anuncia
+// como tope: es el cortafuegos técnico. Decisión de Adrián, 10-nov-2026
+// (onix-hq/negocio/OXIA_tope_plan_gratis.md). La despensa, las etiquetas,
+// lo apuntado a mano y las periódicas no llaman a la IA y no cuentan.
+export const MEALS_PER_DAY: Record<string, number> = { free: 3, basic: 8, premium: 40 };
 // Sin topes (Adrián). Sus llamadas se registran y cuentan en el global igual.
 export const EXEMPT_USERS = new Set(['a032afc2-2aea-45ce-af23-1318af374ebd']);
 
@@ -24,13 +29,53 @@ export const RATE_MSG = 'Vas muy rápido: espera un minuto y seguimos 💪';
 export type Fn = 'chat' | 'nutrition';
 export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist' | 'coach_search';
 // day = tope del día (del usuario o el global); minute = demasiadas seguidas
-export type Tope = { reason: 'day' | 'minute'; feature: Kind; msg: string };
+export type Tope = { reason: 'day' | 'minute'; feature: Kind; msg: string; limit?: number; plan?: string };
+// Cupo de comidas con IA de hoy (null = sin cupo: exento o no se pudo contar)
+export type Cupo = { plan: string; limit: number; used: number; left: number };
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   { auth: { persistSession: false } },
 );
+
+// Medianoche de hoy en Madrid, en ISO (el día de los topes es el de Madrid)
+function inicioDiaMadrid(): string {
+  const ahora = new Date();
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  }).formatToParts(ahora).map((x) => [x.type, x.value]));
+  const comoUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  const desfase = comoUtc - Math.floor(ahora.getTime() / 1000) * 1000;
+  return new Date(Date.UTC(+p.year, +p.month - 1, +p.day) - desfase).toISOString();
+}
+
+// Plan del usuario. Mientras no exista profiles.plan (migración
+// 20261110_plan_usuario.sql), o venga vacío, todos son Gratis.
+async function planDe(userId: string): Promise<string> {
+  const { data, error } = await admin.from('profiles').select('plan').eq('user_id', userId).maybeSingle();
+  if (error || !data) return 'free';
+  return data.plan && MEALS_PER_DAY[data.plan] != null ? data.plan : 'free';
+}
+
+export async function mealQuota(userId: string): Promise<Cupo | null> {
+  if (EXEMPT_USERS.has(userId)) return null;
+  try {
+    const [plan, cuenta] = await Promise.all([
+      planDe(userId),
+      admin.from('ai_usage').select('id', { count: 'exact', head: true })
+        .eq('user_id', userId).in('kind', ['photo', 'text']).gte('created_at', inicioDiaMadrid()),
+    ]);
+    if (cuenta.error) { console.error('mealQuota', cuenta.error.message); return null; }
+    const limit = MEALS_PER_DAY[plan];
+    const used = cuenta.count ?? 0;
+    return { plan, limit, used, left: Math.max(0, limit - used) };
+  } catch (e) {
+    console.error('mealQuota', (e as Error).message);
+    return null;
+  }
+}
 
 // null = puede seguir; si no, el tope que ha saltado.
 // Si falla el conteo no se bloquea a nadie: mejor gastar de más que romper la app.
@@ -46,7 +91,10 @@ export async function checkLimits(userId: string, kind: Kind): Promise<Tope | nu
   if (c.global >= LIMITS.globalPerDay) return dia;
   if (c.minute >= LIMITS.perMinute) return { reason: 'minute', feature: kind, msg: RATE_MSG };
   if (kind === 'coach' && c.coach >= LIMITS.coachPerDay) return dia;
-  if (kind === 'photo' && c.photo >= LIMITS.photoPerDay) return dia;
+  if (kind === 'photo' || kind === 'text') {
+    const q = await mealQuota(userId);
+    if (q && q.used >= q.limit) return { ...dia, limit: q.limit, plan: q.plan };
+  }
   if (kind === 'nutritionist' && c.nutritionist >= LIMITS.nutritionistPerDay) return dia;
   return null;
 }
