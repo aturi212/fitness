@@ -4227,6 +4227,20 @@
     Object.entries(window.ROUTINES.routines)
       .filter(([id, r]) => id !== 'rest' && r.exercises && r.exercises.length)
       .forEach(([id, r]) => grupos[routinePlace(id, r)].push([id, r]));
+    // Ordenados por uso: más hechos en los últimos 60 días arriba; a igualdad,
+    // el más reciente. Los que nunca se han hecho mantienen su orden.
+    const desde = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
+    const uso = {};
+    getAllWorkouts().forEach((w) => {
+      if (!w.routineId) return;
+      const u = (uso[w.routineId] ||= { n: 0, last: '' });
+      if (w.date >= desde) u.n++;
+      if (w.date > u.last) u.last = w.date;
+    });
+    const porUso = ([a], [b]) => ((uso[b]?.n || 0) - (uso[a]?.n || 0))
+      || String(uso[b]?.last || '').localeCompare(String(uso[a]?.last || ''));
+    grupos.gym.sort(porUso);
+    grupos.home.sort(porUso);
 
     const bloque = (titulo, items) => {
       if (!items.length) return '';
