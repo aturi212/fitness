@@ -1910,6 +1910,12 @@
         .ns-send:disabled, .ns-photo:disabled { opacity: .5; }
         .ns-status { font-size: 12.5px; margin-top: 10px; min-height: 16px; color: var(--muted); }
         .ns-status.err { color: #ff7a8a; }
+        .ns-chips-h { font: 600 9.5px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ghost); margin: 4px 2px 7px; }
+        .ns-chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; }
+        .ns-chips::-webkit-scrollbar { display: none; }
+        .ns-chip { flex: none; max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          height: 34px; padding: 0 13px; border-radius: 999px; background: var(--s3); border: 1px solid var(--line-2);
+          color: var(--text); font: 500 13px/1 var(--f-ui); }
         .ns-quota { margin-top: 9px; font: 500 10px/1.3 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ghost); }
         .ns-quota b { color: var(--text); font-weight: 700; }
         .ns-quota.last b, .ns-quota.zero b { color: var(--hot-text); }
@@ -8084,9 +8090,39 @@ $('nsPickX').addEventListener('click', () => { dropPick(); nsStatus(''); });
 // ---------- Sugerencias al escribir ----------
 // Solo cuando lo escrito es un alimento (no una comida entera con comas o «y»)
 function gramsFromText(t) { const m = String(t || '').match(RX_QTY); return m ? Number(m[1].replace(',', '.')) : null; }
+// R8 · Con el campo vacío: recientes y frecuentes de la despensa, en chips.
+// Un toque y solo falta la cantidad (sin IA, no gasta cupo).
+function pantryRecientes() {
+  const list = Object.values(loadPantry().items || {});
+  if (!list.length) return { rec: [], fre: [] };
+  const rec = [...list].sort((a, b) => String(b.last || '').localeCompare(String(a.last || ''))).slice(0, 5);
+  const ya = new Set(rec.map((e) => e.norm));
+  const fre = list.filter((e) => (e.uses || 0) >= 2 && !ya.has(e.norm))
+    .sort((a, b) => (b.uses || 0) - (a.uses || 0)).slice(0, 5);
+  return { rec, fre };
+}
+function renderRecientes(box) {
+  const { rec, fre } = pantryRecientes();
+  const todos = [...rec, ...fre];
+  box.hidden = !todos.length;
+  if (!todos.length) { box.innerHTML = ''; return; }
+  const chips = (arr, off) => arr.map((e, i) => `<button type="button" class="ns-chip" data-rc="${off + i}">${escHtml(e.name)}</button>`).join('');
+  box.innerHTML = `<div class="ns-chips-h">Recientes</div><div class="ns-chips">${chips(rec, 0)}</div>`
+    + (fre.length ? `<div class="ns-chips-h">Frecuentes</div><div class="ns-chips">${chips(fre, rec.length)}</div>` : '');
+  box.querySelectorAll('[data-rc]').forEach((b) => b.addEventListener('click', () => {
+    const e = todos[Number(b.dataset.rc)];
+    box.hidden = true;
+    nsStatus('');
+    pushPicks([pickFromPantry(e, null)]);
+    $('nsPickQty').focus();
+    $('nsPickQty').select?.();
+  }));
+}
+
 function renderSuggest() {
   const box = $('nsSuggest');
   const t = $('nsText').value;
+  if (!t.trim() && !pickActual()) { renderRecientes(box); return; }
   const simple = t.length <= 40 && !/[,;\n]| y | con /i.test(t);
   const res = (simple && !pickActual()) ? pantrySearch(t) : [];
   box.hidden = !res.length;
