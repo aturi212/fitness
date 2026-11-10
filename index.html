@@ -10636,6 +10636,24 @@ boot(false);
   .ex-guia { margin-top: 18px; }
   .ex-guia .guia-video { margin: 4px 14px 6px; }
 
+  /* Reparto del alto (11-nov, captura de Adrián en GYM A): sobraba un hueco
+     grande entre «Técnica» y el descanso. Con mesura: título algo mayor,
+     filas de series algo más altas y más aire entre secciones. Vale igual
+     con 3 que con 5 series y con nombres de una o dos líneas. */
+  .tk-exname { font-size: 54px; }
+  .tk-exname.len-m { font-size: 42px; }
+  .tk-exname.len-l { font-size: 34px; }
+  /* El nombre va en dos tonos (contorno + macizo) a propósito, pero con la
+     letra estrecha y el tracking negativo el espacio entre palabras se comía:
+     «DOMINADASSUPINAS», «PRESSBANCACON». Más espacio entre TODAS las palabras. */
+  .tk-exname { word-spacing: .16em; }
+  .tk-namerow { margin-bottom: 24px; }
+  .tracker table.sets td { padding: 7px 4px; }
+  .tracker table.sets input { height: 48px; }
+  .tracker table.sets td.done button { width: 40px; height: 40px; }
+  .ex-notes { margin-top: 28px; }
+  .ex-guia { margin-top: 22px; }
+
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .n-title-row .scr-title { margin-right: auto; }
