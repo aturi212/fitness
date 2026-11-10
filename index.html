@@ -7128,6 +7128,7 @@ async function materializeRecurring() {
           date: d, description: r.description, meal_type: r.meal_type || 'other',
           protein_g: r.protein_g, carbs_g: r.carbs_g, fat_g: r.fat_g, fiber_g: r.fiber_g,
           kcal: r.kcal, source: 'recurring', recurring_id: r.id,
+          ...(r.recipe_id ? { recipe_id: r.recipe_id, recipe_servings: r.recipe_servings } : {}),
         });
       }
     }
@@ -7257,16 +7258,18 @@ function renderNutriDaily() {
   const ICO_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
   const ICO_NEXT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"/><path d="M10.5 7l4.5 5-4.5 5"/><path d="M19.5 5v14"/></svg>`;
   const mealRow = (m) => {
-    if (m.recipe_id) return recipeMealRow(m, ICO_DEL);
     const esPeriodica = !!activeRecurringOf(m);
-    return `
-    <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">
+    // Lo mismo para alimentos y recetas: periódico y mañana a la derecha del gesto
+    const ladoIzq = `
       <div class="sw-side sw-side--left">
         <button type="button" class="sw-act sw-recur${esPeriodica ? ' on' : ''}" data-act="recur"
           aria-label="${esPeriodica ? 'Quitar periódico' : 'Hacer periódico'}">${ICO_RECUR}</button>
         <button type="button" class="sw-act sw-next" data-act="next"
           aria-label="Apuntar también el día siguiente">${ICO_NEXT}</button>
-      </div>
+      </div>`;
+    if (m.recipe_id) return recipeMealRow(m, ICO_DEL, ladoIzq, esPeriodica, ICO_RECUR);
+    return `
+    <div class="meal-item${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">${ladoIzq}
       <div class="sw-side sw-side--right">
         <button type="button" class="sw-act sw-del" data-act="del" aria-label="Eliminar">${ICO_DEL}</button>
       </div>
@@ -7888,18 +7891,19 @@ async function pullRecipes() {
 }
 
 // Fila de una comida que viene de una receta
-function recipeMealRow(m, icoDel) {
+function recipeMealRow(m, icoDel, ladoIzq = '', esPeriodica = false, icoRecur = '') {
   const rec = loadRecipes().find((r) => r.id === m.recipe_id);
   const factor = rec ? (Number(m.recipe_servings) || 1) / (Number(rec.servings) || 1) : 1;
   const ings = rec ? (rec.ingredients || []) : [];
   return `
-    <div class="meal-item is-recipe" data-meal="${m.id}">
+    <div class="meal-item is-recipe${esPeriodica ? ' is-recur' : ''}" data-meal="${m.id}">${ladoIzq}
       <div class="sw-side sw-side--right">
         <button type="button" class="sw-act sw-del" data-act="del" aria-label="Eliminar">${icoDel}</button>
       </div>
       <div class="meal-face">
         <div class="meal-top">
           <span class="meal-name">${escHtml(m.description)}</span>
+          ${esPeriodica ? `<span class="meal-recur" aria-label="Periódico">${icoRecur}</span>` : ''}
           ${ings.length ? `<button type="button" class="meal-ing-btn" data-ings aria-label="Ver ingredientes">${ings.length} ingr.</button>` : ''}
           <span class="meal-kcal">${Math.round(m.kcal || 0)}</span>
         </div>
@@ -8389,6 +8393,8 @@ async function copiarAlDiaSiguiente(meal) {
     protein_g: meal.protein_g, carbs_g: meal.carbs_g,
     fat_g: meal.fat_g, fiber_g: meal.fiber_g, kcal: meal.kcal,
     source: (meal.source && meal.source !== 'recurring') ? meal.source : 'text',
+    // Una receta sigue siendo receta (con sus ingredientes) el día siguiente
+    ...(meal.recipe_id ? { recipe_id: meal.recipe_id, recipe_servings: meal.recipe_servings } : {}),
   }).select().single();
   if (error) { nutriToast('No se pudo apuntar: ' + error.message); return; }
   saveMeals(loadMeals().concat(data));
@@ -8409,11 +8415,18 @@ async function toggleRecurring(meal) {
       saveRecurring(loadRecurring().map((r) => (r.id === active.id ? { ...r, end_date: today } : r)));
     } else {
       // Activar: desde el día de ese alimento, todos los días
-      const { data, error } = await sb.from('recurring_meals').insert({
+      const fila = {
         description: meal.description, meal_type: meal.meal_type || 'other',
         protein_g: meal.protein_g, carbs_g: meal.carbs_g, fat_g: meal.fat_g, fiber_g: meal.fiber_g,
         kcal: meal.kcal, start_date: meal.date,
-      }).select().single();
+      };
+      if (meal.recipe_id) { fila.recipe_id = meal.recipe_id; fila.recipe_servings = meal.recipe_servings; }
+      let { data, error } = await sb.from('recurring_meals').insert(fila).select().single();
+      // Sin la migración de recetas periódicas: se repite igual (nombre y macros), sin el enlace
+      if (error && /recipe_/i.test(error.message || '')) {
+        const { recipe_id, recipe_servings, ...sinReceta } = fila; void recipe_id; void recipe_servings;
+        ({ data, error } = await sb.from('recurring_meals').insert(sinReceta).select().single());
+      }
       if (error) throw error;
       saveRecurring(loadRecurring().concat(data));
       // Vincula la fila origen para que la materialización no la duplique
