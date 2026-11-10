@@ -7881,6 +7881,8 @@ const sumMacros = (items) => {
   return t;
 };
 const escHtml = (x) => String(x ?? '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+// Momentos de una receta: varios a la vez (categories); las viejas solo tienen category
+const catsDe = (r) => (Array.isArray(r?.categories) && r.categories.length ? r.categories : (r?.category ? [r.category] : []));
 const racionTxt = (n) => (n === 0.5 ? '½ ración' : n === 1 ? '1 ración' : `${String(n).replace('.', ',')} raciones`);
 
 async function pullRecipes() {
@@ -7935,7 +7937,7 @@ function renderNsRecipes() {
   if (!box) return;
   // Las del tipo elegido (las que aún no tienen tipo salen en todos)
   const todas = loadRecipes();
-  const list = todas.filter((r) => !r.category || r.category === nsType);
+  const list = todas.filter((r) => { const c = catsDe(r); return !c.length || c.includes(nsType); });
   box.hidden = !todas.length;
   const tipo = (MEAL_TYPES.find((t) => t.k === nsType)?.label || '').toLowerCase();
   if (!list.length) { box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div><div class="ns-rc-none">No tienes recetas de ${tipo}. Créalas en «Recetas».</div>`; return; }
@@ -7972,7 +7974,7 @@ const recipesSheet = $('recipesSheet');
 let rcEditando = null;   // receta que se edita (null = nueva)
 let rcItems = [];        // ingredientes calculados o cargados
 
-let rcCat = 'other';     // tipo de la receta que se edita
+let rcCats = ['other'];  // momentos de la receta que se edita (uno o varios)
 let rcAbierto = -1;      // ingrediente abierto para editar
 
 // Lista agrupada por tipo: Desayuno, Comida, Cena y Otros; cada uno se despliega
@@ -7990,7 +7992,7 @@ function rcMostrarLista() {
   };
   $('rcList').innerHTML = (list.length
     ? MEAL_TYPES.map((t) => {
-        const deTipo = list.filter((r) => (r.category || 'other') === t.k);
+        const deTipo = list.filter((r) => { const c = catsDe(r); return (c.length ? c : ['other']).includes(t.k); });
         return `<details class="rc-group" ${deTipo.length ? '' : 'data-empty'}>
           <summary class="rc-gh"><span>${t.label}</span><span class="rc-gn">${deTipo.length || '—'}</span></summary>
           ${deTipo.length ? deTipo.map(fila).join('') : '<div class="rc-gempty">Aún no hay recetas de este tipo.</div>'}
@@ -8004,7 +8006,15 @@ function rcMostrarLista() {
 }
 
 function rcPintarCats() {
-  renderTypeChips('rcCats', rcCat, (t) => { rcCat = t; });
+  // Se marcan y desmarcan varios; siempre queda al menos uno
+  $('rcCats').innerHTML = MEAL_TYPES.map((t) =>
+    `<button type="button" class="ns-type ${rcCats.includes(t.k) ? 'active' : ''}" data-t="${t.k}" aria-pressed="${rcCats.includes(t.k)}">${t.label}</button>`).join('');
+  $('rcCats').querySelectorAll('.ns-type').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.t;
+    if (rcCats.includes(k)) { if (rcCats.length > 1) rcCats = rcCats.filter((x) => x !== k); }
+    else rcCats = MEAL_TYPES.map((t) => t.k).filter((x) => x === k || rcCats.includes(x));
+    rcPintarCats();
+  }));
 }
 
 // Al abrir una receta se edita lo que ya tiene; lo de crear (raciones y la IA)
@@ -8013,7 +8023,7 @@ function rcAbrirEditor(rec) {
   rcEditando = rec;
   rcAbierto = -1;
   rcItems = rec ? (rec.ingredients || []).map((x) => ({ ...x })) : [];
-  rcCat = rec?.category || (rec ? 'other' : nsType || 'other');
+  rcCats = rec ? (catsDe(rec).length ? [...catsDe(rec)] : ['other']) : [nsType || 'other'];
   $('rcList').hidden = true; $('rcEdit').hidden = false; $('rcBack').hidden = false;
   $('rcHeadTitle').textContent = rec ? 'Editar receta' : 'Nueva receta';
   $('rcName').value = rec?.name || '';
@@ -8117,15 +8127,20 @@ $('rcCalc').addEventListener('click', async () => {
 $('rcSave').addEventListener('click', async () => {
   const name = $('rcName').value.trim();
   if (!name) { $('rcStatus').textContent = 'Ponle un nombre a la receta.'; $('rcName').focus(); return; }
-  const fila = { name, category: rcCat, servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
+  const fila = { name, categories: rcCats, category: rcCats[0], servings: Number($('rcServings').value) || 1, ingredients: rcItems, ...sumMacros(rcItems),
     updated_at: new Date().toISOString() };
   const btn = $('rcSave');
   btn.disabled = true;
   try {
     const guardar = (f) => (rcEditando ? sb.from('recipes').update(f).eq('id', rcEditando.id) : sb.from('recipes').insert(f));
     let { error } = await guardar(fila);
+    // Sin la migración de varios momentos: se guarda solo el primero
+    if (error && /categories/i.test(error.message || '')) {
+      const { categories, ...sinVarios } = fila; void categories;
+      ({ error } = await guardar(sinVarios));
+    }
     if (error && /category/i.test(error.message || '')) {
-      const { category, ...sinTipo } = fila; void category;
+      const { category, categories, ...sinTipo } = fila; void category; void categories;
       ({ error } = await guardar(sinTipo));
     }
     if (error) throw error;
@@ -8155,8 +8170,9 @@ async function saveBlockAsRecipe(tipo) {
   const name = prompt('Nombre de la receta', MEAL_TYPES.find((t) => t.k === tipo)?.label || 'Receta');
   if (!name || !name.trim()) return;
   const ingredients = items.map((m) => { const x = { description: m.description }; MACRO_KEYS.forEach((k) => { x[k] = r1(m[k]); }); return x; });
-  const nueva = { name: name.trim(), category: tipo, servings: 1, ingredients, ...sumMacros(ingredients) };
+  const nueva = { name: name.trim(), categories: [tipo], category: tipo, servings: 1, ingredients, ...sumMacros(ingredients) };
   let { error } = await sb.from('recipes').insert(nueva);
+  if (error && /categories/i.test(error.message || '')) { delete nueva.categories; ({ error } = await sb.from('recipes').insert(nueva)); }
   if (error && /category/i.test(error.message || '')) { delete nueva.category; ({ error } = await sb.from('recipes').insert(nueva)); }
   if (error) { alert('No se ha podido guardar la receta: ' + error.message); return; }
   await pullRecipes();
