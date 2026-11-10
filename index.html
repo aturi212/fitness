@@ -7255,8 +7255,32 @@ function defaultMealType() {
 // Los macros pueden venir en DOS juegos: { training: {...}, rest: {...} }.
 // Si vienen planos (formato antiguo, un solo juego) valen para los dos tipos
 // de día, así nada se rompe hasta que el entrenador los separe.
+// R3 · Objetivo desde el alta: sin macros del plan (antes de la primera
+// sesión con el Coach) se estiman con sus datos del alta, así el diario
+// tiene objetivo desde el primer minuto. Mifflin-St Jeor × actividad por
+// días de entreno, ajuste por objetivo; proteína y grasa por kilo, hidratos
+// el resto, fibra 14 g/1.000 kcal. El Coach lo afina al poner los suyos.
+function estimarObjetivos(p) {
+  const w = Number(p?.weight_kg), h = Number(p?.height_cm);
+  let edad = null;
+  if (p?.birth_date) { const n = new Date(p.birth_date); if (!isNaN(n)) edad = (Date.now() - n) / 31557600000; }
+  else if (p?.birth_year) edad = new Date().getFullYear() - Number(p.birth_year);
+  if (!(w > 30 && w < 300) || !(h > 120 && h < 230) || !(edad > 12 && edad < 100)) return null;
+  const bmr = 10 * w + 6.25 * h - 5 * edad + (p.sex === 'mujer' ? -161 : 5);
+  const dias = Math.min(6, Math.max(0, Number(p.training_days) || 0));
+  const metas = Array.isArray(p.goals) && p.goals.length ? p.goals : (p.goal ? [p.goal] : []);
+  const tiene = (g) => metas.includes(g);
+  const ajuste = tiene('perder-grasa') ? 0.82 : tiene('ganar-musculo') ? 1.1 : tiene('recomposicion') ? 0.92 : 1;
+  const kcal = Math.round(bmr * (1.2 + 0.075 * dias) * ajuste / 10) * 10;
+  const protein_g = Math.round(w * (tiene('perder-grasa') || tiene('ganar-musculo') || tiene('recomposicion') ? 2 : 1.6));
+  const fat_g = Math.round(w * 0.9);
+  const carbs_g = Math.max(0, Math.round((kcal - protein_g * 4 - fat_g * 9) / 4));
+  return { kcal, protein_g, carbs_g, fat_g, fiber_g: Math.round(kcal / 1000 * 14) };
+}
+
 const nutriTargets = (iso) => {
-  const guardado = (window.ROUTINES?.goals || {}).nutrition || {};
+  let guardado = (window.ROUTINES?.goals || {}).nutrition || {};
+  if (!Object.keys(guardado).length) guardado = estimarObjetivos(window.__profile) || {};
   const porTipo = guardado.training || guardado.rest;
   let base = guardado;
   if (porTipo) {
