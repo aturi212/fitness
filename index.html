@@ -591,6 +591,9 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
   .sheet.open { transform: translateY(0); }
+  /* Cerrada = invisible, no solo fuera de pantalla: en iOS, tras cerrar el
+     teclado, el viewport puede quedarse corto y asomaba la hoja de abajo. */
+  .sheet:not(.open) { visibility: hidden; transition: transform var(--t-slow) var(--ease), visibility 0s linear var(--t-slow); }
   .sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 4px; margin: 10px auto; }
   .sheet-head { padding: 6px 20px 12px; border-bottom: 1px solid var(--line); }
   .sheet-head h3 { margin: 0; font-size: 17px; }
@@ -6965,6 +6968,18 @@
 </script>
 
 <script type="module">
+// iOS (PWA): al cerrar el teclado a veces el viewport no recupera su altura
+// y lo fijo abajo (barra, hojas) se queda a media pantalla. Un empujón de
+// scroll al perder el foco lo recoloca.
+document.addEventListener('focusout', (e) => {
+  if (!e.target?.matches?.('input, textarea, select')) return;
+  setTimeout(() => {
+    if (document.activeElement?.matches?.('input, textarea, select, [contenteditable]')) return;
+    const y = window.scrollY;
+    window.scrollTo(0, y + 1);
+    window.scrollTo(0, y);
+  }, 80);
+});
 // ============ Módulo cloud v2 (Supabase) ============
 // Login una vez por dispositivo · bajada de programa en realtime ·
 // subida de entrenos con outbox offline. La publishable key es pública
