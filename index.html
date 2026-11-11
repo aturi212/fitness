@@ -8230,6 +8230,8 @@ $('nsPickX').addEventListener('click', () => { dropPick(); nsStatus(''); });
 // ---------- Sugerencias al escribir ----------
 // Solo cuando lo escrito es un alimento (no una comida entera con comas o «y»)
 function gramsFromText(t) { const m = String(t || '').match(RX_QTY); return m ? Number(m[1].replace(',', '.')) : null; }
+// Apagado por ahora (Adrián, 11-nov-2026). Ponerlo a true para volver a mostrarlos.
+const MOSTRAR_RECIENTES = false;
 // R8 · Con el campo vacío: recientes y frecuentes de la despensa, en chips.
 // Un toque y solo falta la cantidad (sin IA, no gasta cupo).
 function pantryRecientes() {
@@ -8264,7 +8266,8 @@ function renderSuggest() {
   const t = $('nsText').value;
   if (!t.trim() && !pickActual()) {
     if (nsReview) { box.hidden = true; box.innerHTML = ''; return; }   // primero, revisar lo analizado
-    renderRecientes(box); return;
+    if (MOSTRAR_RECIENTES) renderRecientes(box); else { box.hidden = true; box.innerHTML = ''; }
+    return;
   }
   const simple = t.length <= 40 && !/[,;\n]| y | con /i.test(t);
   const res = (simple && !pickActual()) ? pantrySearch(t) : [];
