@@ -1232,7 +1232,10 @@
   .tk-block-tag--work::after { content: ''; flex: 1; height: 1px; background: rgba(229,87,79,.45); }
   .tk-panel.is-warmup .tk-exname { font-size: 30px; color: var(--muted); }
 
-  /* Serie de calentamiento: igual que las demás, numerada 00 (12-nov) */
+  /* Serie de calentamiento: igual que las demás, numerada 00, y separada del
+     trabajo por una raya fina (12-nov) */
+  .tracker table.sets tr.warm-last td { padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .tracker table.sets tr.warm-last + tr td { padding-top: 14px; }
   .tracker table.sets tr.tk-sep td { padding: 10px 4px 4px; }
   .tracker table.sets tr.tk-sep span { display: flex; align-items: center; gap: 10px;
     font: 600 10px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--hot-text); }
@@ -4252,6 +4255,7 @@
   //   objetivo   texto de la fila CAL («12 · barra vacía»)
   //   trabajo    objetivo de las de trabajo («6-10»), o null
   const RX_CT = /^\s*cal(?:entamiento)?\.?\s*:?\s*([^·|,;]+?)\s*[·|,;]\s*trab(?:ajo)?\.?\s*:?\s*(.+)$/i;
+  const RX_EJ_CALIENTA = /press\s+(?:de\s+)?banca|bench[\s-]?press|dominadas?\s+asistidas?|assisted[\s-]?pull|polea|jal[oó]n|pulldown|remo\s+(?:en\s+)?m[aá]quina|machine[\s-]?row|seated[\s-]?row/i;
   function seriesCalentamiento(item) {
     const nada = { n: 0, incluidas: false, objetivo: '', trabajo: null };
     if (!item || esCalentamiento(item)) return nada;   // el ejercicio entero ya es calentamiento
@@ -4263,7 +4267,14 @@
     const incl = /\bseries?\s*1\s*(?:[-–y]\s*(\d))?\s*(?:\(\s*cal[^)]*\)|:\s*cal)/i.exec(nota);
     const extra = /\b(?:set|serie)\s*0\b\s*(?:\(cal[^)]*\))?\s*:?\s*(?:con\s+)?([^.;]*)/i.exec(nota)
       || /\b(?:calienta|calentar|calentamiento)\s+con\s+([^.;]*)/i.exec(nota);
-    if (!ct && !incl && !extra && !RX_SERIES_CAL.test(nota)) return nada;
+    if (!ct && !incl && !extra && !RX_SERIES_CAL.test(nota)) {
+      // Ejercicios en los que Adrián calienta siempre (12-nov): press banca,
+      // dominadas asistidas, polea/jalón y remo en máquina. Con 5 series o más,
+      // la primera es el calentamiento aunque la rutina no lo diga.
+      const nombre = `${getExercise(item.exerciseId).name || ''} ${item.exerciseId || ''}`;
+      if (RX_EJ_CALIENTA.test(nombre) && (item.sets || 0) >= 5) return { n: 1, incluidas: true, objetivo: '', trabajo: null };
+      return nada;
+    }
     const carga = (() => {
       if (extra) return extra[1].trim();
       if (incl) {
@@ -4276,13 +4287,13 @@
     // Si la carga ya trae las reps («barra × 15») no se repiten
     const objetivo = (/[×x]\s*\d/i.test(carga) ? carga : [reps, carga].filter(Boolean).join(' · ')).slice(0, 40);
     const trabajo = ct ? ct[2].trim() : null;
-    // Las series de la rutina YA cuentan el calentamiento: «5 series» con
+    // Las series de la rutina YA cuentan el calentamiento, diga lo que diga la
+    // nota («Set 0», «Calienta con…», «Serie 1 (cal)»): «5 series» con
     // calentamiento = 1 de calentamiento + 4 de trabajo (Adrián, 12-nov; así
-    // las escribía el Coach). Solo «Set 0» es una serie de más, delante.
-    // Si las series no dan para calentar y trabajar, también se añade delante.
+    // las escribía el Coach). Solo si las series no dan para calentar y
+    // trabajar se añade la fila delante.
     const n = incl && incl[1] ? Math.max(1, parseInt(incl[1], 10)) : 1;
-    const set0 = /\b(?:set|serie)\s*0\b/i.test(nota);
-    if (!set0 && (item.sets || 0) > n) return { n, incluidas: true, objetivo, trabajo };
+    if ((item.sets || 0) > n) return { n, incluidas: true, objetivo, trabajo };
     return { n: 1, incluidas: false, objetivo, trabajo };
   }
 
@@ -5628,12 +5639,17 @@
             // la raya del trabajo con su propio objetivo.
             const cal = seriesCalentamiento(item);
             const nTrab = cal.incluidas ? item.sets - cal.n : item.sets;
+            // «Anterior»: hasta la v52 se guardaba el calentamiento como serie 1
+            // (5 series = cal + 4). Si la última sesión trae más series que las
+            // de trabajo, las primeras eran calentamiento y se saltan.
+            const ult = getLastSession(item.exerciseId);
+            const desfase = (cal.n && ult && (ult.sets || []).length > nTrab) ? cal.n : 0;
             // Calentamiento como una fila más (12-nov): «00», peso y reps,
             // sin objetivo ni raya. Sigue sin guardarse (clase is-warm).
             const filasCal = Array.from({ length: cal.n }, (_, c) => `
-            <tr class="is-warm">
+            <tr class="is-warm${c === cal.n - 1 ? ' warm-last' : ''}">
               <td class="set-n">${'0'.repeat(2)}</td>
-              <td class="prev-val"></td>
+              <td class="prev-val">${desfase ? resumenAnterior(tipo, getLastSet(item.exerciseId, c)) : ''}</td>
               ${campos}
               <td class="done">${check(Math.min(item.restSec || 0, 60))}</td>
             </tr>`).join('');
@@ -5641,7 +5657,7 @@
             const filasTrab = Array.from({ length: Math.max(0, nTrab) }, (_, s) => `
             <tr data-set="${s}">
               <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
-              <td class="prev-val">${resumenAnterior(tipo, getLastSet(item.exerciseId, s))}</td>
+              <td class="prev-val">${resumenAnterior(tipo, getLastSet(item.exerciseId, s + desfase))}</td>
               ${campos}
               <td class="done">${check(item.restSec)}</td>
             </tr>`).join('');
