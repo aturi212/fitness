@@ -1383,6 +1383,7 @@
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
+      <i class="tr-fill" aria-hidden="true"></i>
 
       <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
       <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
@@ -1399,6 +1400,7 @@
           <button type="button" class="seg-btn" data-prog="fisica">Físico</button>
         </div>
       </div>
+      <i class="tr-fill" aria-hidden="true"></i>
       <div id="statsCards">
 
 
@@ -1454,6 +1456,7 @@
       </div><!-- /#statsCards -->
 
       <!-- Mi plan y Mis rutinas: dos tarjetas, cada una abre su ventana -->
+      <i class="tr-fill" aria-hidden="true"></i>
       <div class="tr-tiles">
         <button type="button" class="tr-tile" id="planBtn">
           <svg class="tt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
@@ -1470,11 +1473,13 @@
       </div>
 
       <!-- Calendario (ventana) y Métricas (se despliegan aquí debajo) · Adrián, 12-nov -->
+      <i class="tr-fill" aria-hidden="true"></i>
       <button type="button" class="tr-row" id="trCalBtn">
         <svg class="tr-row-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         <span class="tr-row-n">Calendario</span>
         <svg class="tr-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
+      <i class="tr-fill" aria-hidden="true"></i>
       <div class="tr-met-row">
         <button type="button" class="tr-row" id="metricsToggle" aria-expanded="false" aria-controls="metricCards">
           <svg class="tr-row-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -10708,6 +10713,15 @@ boot(false);
   .tr-met-edit { margin-top: 16px; padding: 0 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--s1);
     color: var(--text); font: 600 14px/1 var(--f-ui); }
   #metricCards { margin-top: 16px; }
+  /* v57: Entreno llena la pantalla con Métricas cerrado. La sección es una
+     columna de alto mínimo = pantalla menos la barra, y el aire que sobra se
+     reparte en los huecos marcados (.tr-fill), hasta 24 px más cada uno. Si
+     no sobra (Métricas abierto), los huecos se quedan en su mínimo. */
+  [data-screen="trainer"].active { display: flex; flex-direction: column; box-sizing: border-box;
+    min-height: calc(100dvh - var(--nav-h) - var(--nav-pb) - 28px); }
+  [data-screen="trainer"].active > * { flex-shrink: 0; }
+  .tr-fill { display: block; flex: 1 1 0; max-height: 24px; }
+  #progChart { height: 132px; }
   #metricsToggle[aria-expanded="false"] + .tr-met-edit { display: none; }
   #metricCards.is-collapsed { display: none; }
   .tt-ico { width: 22px; height: 22px; margin-bottom: 10px; color: var(--hot-text); }
