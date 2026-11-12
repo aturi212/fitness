@@ -1232,14 +1232,7 @@
   .tk-block-tag--work::after { content: ''; flex: 1; height: 1px; background: rgba(229,87,79,.45); }
   .tk-panel.is-warmup .tk-exname { font-size: 30px; color: var(--muted); }
 
-  /* Series de calentamiento dentro del ejercicio: discretas, con su objetivo */
-  .tracker table.sets tr.is-warm td.set-n { font: 600 10px/1 var(--f-mono); letter-spacing: .14em; color: var(--ghost); }
-  .tracker table.sets tr.is-warm td.warm-target { font: 500 10.5px/1.25 var(--f-mono); color: var(--muted);
-    text-transform: uppercase; letter-spacing: .04em; white-space: normal; }
-  .tracker table.sets tr.is-warm input { height: 36px; background: transparent; border: 1px dashed var(--line-2);
-    color: var(--muted); font-size: 13px; }
-  .tracker table.sets tr.is-warm td.done button { width: 30px; height: 30px; margin: 0 3px; border-style: dashed; }
-  .tracker table.sets tr.is-warm td.done button svg { width: 14px; height: 14px; }
+  /* Serie de calentamiento: igual que las demás, numerada 00 (12-nov) */
   .tracker table.sets tr.tk-sep td { padding: 10px 4px 4px; }
   .tracker table.sets tr.tk-sep span { display: flex; align-items: center; gap: 10px;
     font: 600 10px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--hot-text); }
@@ -4283,11 +4276,13 @@
     // Si la carga ya trae las reps («barra × 15») no se repiten
     const objetivo = (/[×x]\s*\d/i.test(carga) ? carga : [reps, carga].filter(Boolean).join(' · ')).slice(0, 40);
     const trabajo = ct ? ct[2].trim() : null;
-    if (incl && !extra) {
-      const n = incl[1] ? Math.max(1, parseInt(incl[1], 10)) : 1;
-      // Si las series no dan para calentar y trabajar, se añaden delante
-      if ((item.sets || 0) > n) return { n, incluidas: true, objetivo, trabajo };
-    }
+    // Las series de la rutina YA cuentan el calentamiento: «5 series» con
+    // calentamiento = 1 de calentamiento + 4 de trabajo (Adrián, 12-nov; así
+    // las escribía el Coach). Solo «Set 0» es una serie de más, delante.
+    // Si las series no dan para calentar y trabajar, también se añade delante.
+    const n = incl && incl[1] ? Math.max(1, parseInt(incl[1], 10)) : 1;
+    const set0 = /\b(?:set|serie)\s*0\b/i.test(nota);
+    if (!set0 && (item.sets || 0) > n) return { n, incluidas: true, objetivo, trabajo };
     return { n: 1, incluidas: false, objetivo, trabajo };
   }
 
@@ -5633,15 +5628,16 @@
             // la raya del trabajo con su propio objetivo.
             const cal = seriesCalentamiento(item);
             const nTrab = cal.incluidas ? item.sets - cal.n : item.sets;
+            // Calentamiento como una fila más (12-nov): «00», peso y reps,
+            // sin objetivo ni raya. Sigue sin guardarse (clase is-warm).
             const filasCal = Array.from({ length: cal.n }, (_, c) => `
             <tr class="is-warm">
-              <td class="set-n">CAL</td>
-              <td class="prev-val warm-target" colspan="1">${cal.objetivo || 'Calentar'}</td>
+              <td class="set-n">${'0'.repeat(2)}</td>
+              <td class="prev-val"></td>
               ${campos}
               <td class="done">${check(Math.min(item.restSec || 0, 60))}</td>
             </tr>`).join('');
-            const raya = cal.n ? `
-            <tr class="tk-sep"><td colspan="${tipo === 'tiempo' ? 4 : 5}"><span>Trabajo${cal.trabajo ? ' · ' + cal.trabajo : ''}</span></td></tr>` : '';
+            const raya = '';
             const filasTrab = Array.from({ length: Math.max(0, nTrab) }, (_, s) => `
             <tr data-set="${s}">
               <td class="set-n">${String(s + 1).padStart(2, '0')}</td>
@@ -10826,7 +10822,7 @@ boot(false);
      letra estrecha y el tracking negativo el espacio entre palabras se comía:
      «DOMINADASSUPINAS», «PRESSBANCACON». Más espacio entre TODAS las palabras. */
   .tk-exname { word-spacing: .16em; }
-  .tk-namerow { margin-bottom: 24px; }
+  .tk-namerow { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.14); }
   .tracker table.sets td { padding: 7px 4px; }
   .tracker table.sets input { height: 48px; }
   .tracker table.sets td.done button { width: 40px; height: 40px; }
