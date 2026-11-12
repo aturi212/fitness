@@ -1,29 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
-  <!-- ONIX · icono de la PWA (12-nov-2026): el logo de la app, las dos barras
-       inclinadas, en hueso sobre negro con el resplandor rojo de marca (#C8231E).
+  <!-- ONIX · icono de la PWA (12-nov-2026, opción B «Ritmo»): el logo de la app,
+       una barra hueso y otra roja de marca (#C8231E) que brilla, sobre negro.
        Cuadrado y SIN transparencia: iOS aplica su propia máscara squircle.
        Dentro de un SVG las referencias van con url(#id), nunca %23. -->
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
-      <stop offset="0" stop-color="#161616"/>
-      <stop offset="0.5" stop-color="#0A0A0A"/>
-      <stop offset="1" stop-color="#121212"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.02" r="0.78">
-      <stop offset="0" stop-color="#C8231E" stop-opacity="0.55"/>
-      <stop offset="0.5" stop-color="#C8231E" stop-opacity="0.12"/>
-      <stop offset="1" stop-color="#C8231E" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
-    </filter>
-  </defs>
-  <rect width="100" height="100" fill="url(#bg)"/>
-  <rect width="100" height="100" fill="url(#glow)"/>
-  <rect width="100" height="100" filter="url(#grain)" opacity="0.12" style="mix-blend-mode:overlay"/>
-  <!-- Las dos barras del logo (.logo i: 11×14, separadas 4, skewX(-16°)) -->
-  <g fill="#ECE8E1">
-    <path d="M20 64 L28 36 L50 36 L42 64 Z"/>
-    <path d="M50 64 L58 36 L80 36 L72 64 Z"/>
-  </g>
+<radialGradient id="bg" cx="0.3" cy="0.2" r="1"><stop offset="0" stop-color="#1A1A1A"/><stop offset="1" stop-color="#070707"/></radialGradient>
+<linearGradient id="bone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6F3EE"/><stop offset="1" stop-color="#D8D3CB"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5332B"/><stop offset="1" stop-color="#A91813"/></linearGradient>
+<filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter></defs>
+<rect width="100" height="100" fill="url(#bg)"/>
+<path d="M50 65.4 L58.8 34.6 L83 34.6 L74.2 65.4 Z" fill="#C8231E" opacity=".55" filter="url(#gl)"/>
+<rect width="100" height="100" filter="url(#grain)" opacity=".10" style="mix-blend-mode:overlay"/>
+<g stroke-linejoin="round" stroke-width="1.4"><path d="M17 65.4 L25.8 34.6 L50 34.6 L41.2 65.4 Z" fill="url(#bone)" stroke="url(#bone)"/><path d="M50 65.4 L58.8 34.6 L83 34.6 L74.2 65.4 Z" fill="url(#red)" stroke="url(#red)"/></g>
 </svg>
