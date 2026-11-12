@@ -1381,7 +1381,6 @@
       </div>
 
       <h1 class="title scr-title" id="trainerTitle"></h1>
-      <i class="tr-fill" aria-hidden="true"></i>
 
       <!-- Retirados de la vista (Adrián, 9-nov); el código los sigue rellenando -->
       <div hidden><span id="recentCount"></span><div id="recentList"></div></div>
@@ -1398,7 +1397,6 @@
           <button type="button" class="seg-btn" data-prog="fisica">Físico</button>
         </div>
       </div>
-      <i class="tr-fill" aria-hidden="true"></i>
       <div id="statsCards">
 
 
@@ -10726,7 +10724,10 @@ boot(false);
   [data-screen="trainer"].active { display: flex; flex-direction: column; box-sizing: border-box;
     min-height: calc(100dvh - var(--nav-h) - var(--nav-pb) - 28px); }
   [data-screen="trainer"].active > * { flex-shrink: 0; }
-  .tr-fill { display: block; flex: 1 1 0; max-height: 24px; }
+  .tr-fill { display: block; flex: 1 1 0; max-height: 28px; }
+  /* v59: arriba más compacto (título → Progresión → gráfica) */
+  [data-screen="trainer"] #trainerTitle { margin-bottom: 8px; }
+  [data-screen="trainer"] .prog-switch-head { margin-top: 0; margin-bottom: 10px; }
   #progChart { height: 132px; }
   #metricsToggle[aria-expanded="false"] + .tr-met-edit { display: none; }
   #metricCards.is-collapsed { display: none; }
@@ -10955,8 +10956,8 @@ boot(false);
   #homeTitle.one-line { white-space: nowrap; }
   #homeTitle.one-line span { display: inline; }
   /* Dos líneas finas enmarcan Racha / Esta semana (v57: más suaves) */
-  .home-sep { border: 0; height: 1px; background: rgba(255,255,255,.26); margin: 2px 0 22px; }
-  .home-sep--b { margin: 40px 0 14px; }
+  .home-sep { border: 0; height: 1px; background: rgba(255,255,255,.26); margin: 2px 0 2px; }
+  .home-sep--b { margin: 22px 0 14px; }
   .home-sep--b + .home-acts { margin-top: 26px; }
   .home-head #profAcct { margin-left: auto; }
   /* Ajustes: arriba tú, con tu foto, tu nombre y tu peso */
