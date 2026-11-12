@@ -4255,7 +4255,6 @@
   //   objetivo   texto de la fila CAL («12 · barra vacía»)
   //   trabajo    objetivo de las de trabajo («6-10»), o null
   const RX_CT = /^\s*cal(?:entamiento)?\.?\s*:?\s*([^·|,;]+?)\s*[·|,;]\s*trab(?:ajo)?\.?\s*:?\s*(.+)$/i;
-  const RX_EJ_CALIENTA = /press\s+(?:de\s+)?banca|bench[\s-]?press|dominadas?\s+asistidas?|assisted[\s-]?pull|polea|jal[oó]n|pulldown|remo\s+(?:en\s+)?m[aá]quina|machine[\s-]?row|seated[\s-]?row/i;
   function seriesCalentamiento(item) {
     const nada = { n: 0, incluidas: false, objetivo: '', trabajo: null };
     if (!item || esCalentamiento(item)) return nada;   // el ejercicio entero ya es calentamiento
@@ -4267,14 +4266,9 @@
     const incl = /\bseries?\s*1\s*(?:[-–y]\s*(\d))?\s*(?:\(\s*cal[^)]*\)|:\s*cal)/i.exec(nota);
     const extra = /\b(?:set|serie)\s*0\b\s*(?:\(cal[^)]*\))?\s*:?\s*(?:con\s+)?([^.;]*)/i.exec(nota)
       || /\b(?:calienta|calentar|calentamiento)\s+con\s+([^.;]*)/i.exec(nota);
-    if (!ct && !incl && !extra && !RX_SERIES_CAL.test(nota)) {
-      // Ejercicios en los que Adrián calienta siempre (12-nov): press banca,
-      // dominadas asistidas, polea/jalón y remo en máquina. Con 5 series o más,
-      // la primera es el calentamiento aunque la rutina no lo diga.
-      const nombre = `${getExercise(item.exerciseId).name || ''} ${item.exerciseId || ''}`;
-      if (RX_EJ_CALIENTA.test(nombre) && (item.sets || 0) >= 5) return { n: 1, incluidas: true, objetivo: '', trabajo: null };
-      return nada;
-    }
+    // Solo si la rutina lo marca (Adrián, 12-nov): sin marca, sin fila de
+    // calentamiento. Nada de excepciones por ejercicio ni por nº de series.
+    if (!ct && !incl && !extra && !RX_SERIES_CAL.test(nota)) return nada;
     const carga = (() => {
       if (extra) return extra[1].trim();
       if (incl) {

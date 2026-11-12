@@ -97,8 +97,8 @@ export const TOOLS = [
             type: 'object',
             properties: {
               exercise_id: { type: 'string' },
-              sets: { type: 'integer', description: 'Series TOTALES, contando la de calentamiento si la hay: 1 de calentamiento + 4 de trabajo = 5. La app pinta la primera como serie 00 de calentamiento' },
-              reps_target: { type: 'string', description: 'p.ej. "8-10", "40-60s", "max". Si el ejercicio lleva serie de calentamiento, SIEMPRE con este formato: "cal 12 · trab 6-10" (reps de calentamiento · reps de trabajo); la carga del calentamiento va en notes ("Calienta con barra vacía" / "Calienta con 40 kg"). Sin calentamiento: solo las reps de trabajo' },
+              sets: { type: 'integer', description: 'Series TOTALES. Si el ejercicio lleva calentamiento (marcado en reps_target con "cal … · trab …"), la de calentamiento cuenta aquí: 1 de calentamiento + 4 de trabajo = 5. Sin esa marca, todas son de trabajo' },
+              reps_target: { type: 'string', description: 'p.ej. "8-10", "40-60s", "max". Calentamiento: decídelo tú por ejercicio. Si crees que hace falta calentar, escríbelo SIEMPRE así: "cal 12 · trab 6-10" (reps de calentamiento · reps de trabajo), y la carga del calentamiento en notes ("Calienta con barra vacía" / "Calienta con 40 kg"). Si no hace falta, pon solo las reps de trabajo. La app solo pinta la serie 00 de calentamiento si ve "cal … · trab …": nunca cuentes una serie como calentamiento sin marcarla así' },
               rest_sec: { type: 'integer' },
               notes: { type: 'string', description: 'Nota técnica breve para el usuario' },
               superset_group: { type: 'integer', description: 'Mismo número = mismo superserie/circuito' },
