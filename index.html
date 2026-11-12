@@ -303,15 +303,9 @@
     align-items: center; padding: 0 6px var(--nav-pb);
     max-width: calc(var(--maxw) - var(--gutter) * 2); margin: 0 auto;
   }
-  /* App instalada (iPhone): la barra se ancla a la pantalla entera (100lvh),
-     no al alto del viewport, que iOS a veces calcula corto al cargar o tras
-     cerrar el teclado y la dejaba flotando a media altura. */
-  @media (display-mode: standalone) {
-    @supports (height: 100lvh) {
-      nav.bottom { bottom: auto; top: calc(100lvh - var(--nav-h) - var(--nav-pb)); }
-      .syncbar { bottom: auto !important; top: calc(100lvh - var(--nav-h) - var(--nav-pb) - 10px); transform: translateY(-100%); }
-    }
-  }
+  /* v58: anclaje simple, bottom:0 y el safe-area por dentro (padding). Nada
+     de 100lvh: en el iPhone real lo que tapaba la barra eran las hojas
+     cerradas (.hsheet) asomando por abajo; ahora van ocultas del todo. */
   nav.bottom button {
     height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px;
     background: none; border: 0; border-radius: var(--r-5); color: var(--ghost);
@@ -475,6 +469,9 @@
     padding-top: env(safe-area-inset-top);
   }
   .tracker.open { transform: translateY(0); }
+  /* v58: cerrado = invisible (con el viewport corto de iOS asomaba por abajo
+     como una franja negra que tapaba la barra) */
+  .tracker:not(.open) { visibility: hidden; transition: transform var(--t-slow) var(--ease), visibility 0s linear var(--t-slow); }
   .tracker-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 18px; border-bottom: 1px solid var(--line);
@@ -1197,6 +1194,7 @@
     display: flex; flex-direction: column; transform: translateY(100%);
     transition: transform var(--t-slow) var(--ease); }
   .routine-view.open { transform: none; }
+  .routine-view:not(.open) { visibility: hidden; transition: transform var(--t-slow) var(--ease), visibility 0s linear var(--t-slow); }
   .rv-head { display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     padding: calc(env(safe-area-inset-top) + 12px) var(--gutter) 12px; border-bottom: 1px solid var(--line); }
   .rv-body { flex: 1; overflow-y: auto; padding: 20px var(--gutter) 24px; }
@@ -2398,6 +2396,9 @@
     .hs-backdrop.open { display: block; }
     .hsheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); z-index: 91; transform: translateY(105%); transition: transform var(--t-slow) var(--ease); max-height: 84dvh; overflow: auto; }
     .hsheet.open { transform: none; }
+    /* Cerrada = invisible, no solo fuera de pantalla: con el viewport corto
+       de iOS asomaba por abajo como una franja negra encima de la barra. */
+    .hsheet:not(.open) { visibility: hidden; transition: transform var(--t-slow) var(--ease), visibility 0s linear var(--t-slow); }
     .hs-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .hs-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
     .hs-opt { display: flex; width: 100%; align-items: center; gap: 8px; background: var(--bg-elev-2, #151514); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 8px; color: var(--text); text-align: left; }
@@ -7025,6 +7026,11 @@
 // iOS (PWA): al cerrar el teclado a veces el viewport no recupera su altura
 // y lo fijo abajo (barra, hojas) se queda a media pantalla. Un empujón de
 // scroll al perder el foco lo recoloca.
+// Y lo mismo al abrir o volver a la app instalada: iOS a veces arranca con el
+// viewport corto hasta el primer scroll.
+const empujarViewport = () => { const y = window.scrollY; window.scrollTo(0, y + 1); window.scrollTo(0, y); };
+window.addEventListener('pageshow', () => setTimeout(empujarViewport, 60));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(empujarViewport, 60); });
 document.addEventListener('focusout', (e) => {
   if (!e.target?.matches?.('input, textarea, select')) return;
   setTimeout(() => {

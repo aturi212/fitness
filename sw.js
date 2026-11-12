@@ -1,4 +1,4 @@
-const CACHE = 'onix-v57';
+const CACHE = 'onix-v58';
 const SHELL = [
   './',
   './index.html',
@@ -40,7 +40,11 @@ self.addEventListener('fetch', e => {
 
   if (isNavigation || isHTML || isData) {
     e.respondWith(
-      fetch(req).then(res => {
+      // no-cache: revalida con el servidor y no tira de la caché HTTP del
+      // navegador (GitHub Pages da 10 min), que dejaba el index viejo tras publicar
+      fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+        // Safari no deja responder una navegación con una respuesta redirigida
+        .then(res => (res.redirected ? fetch(req) : res)).then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
         return res;
