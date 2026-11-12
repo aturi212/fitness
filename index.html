@@ -92,8 +92,13 @@
     /* §5.7 dice 24px de separación y 14px a los lados; Adrián la quiere pegada
        abajo y algo más ancha, que el hueco negro cantaba en el 15 Pro Max.
        El safe-area del iPhone ya deja aire suficiente bajo la barra. */
-    --nav-gap: 4px;
     --nav-side: 8px;
+    /* v56 (Adrián, 12-nov): la barra llega hasta el borde de abajo («sinfín»).
+       Debajo de los botones solo queda el aire del home indicator, algo menos
+       que el safe-area entero para que baje un poco. --nav-gap es lo que hay
+       entre el borde inferior del safe-area y la barra: negativo = baja. */
+    --nav-pb: max(10px, calc(env(safe-area-inset-bottom) - 12px));
+    --nav-gap: calc(var(--nav-pb) - env(safe-area-inset-bottom));
     --tap: 44px;
 
     /* ─── Puente con el CSS heredado (se migra pantalla a pantalla) ───
@@ -287,16 +292,25 @@
 
   /* §5.7 · Píldora flotante. Sin botón Home elevado: rompía la rejilla. */
   nav.bottom {
-    position: fixed; left: var(--nav-side); right: var(--nav-side); z-index: 50;
-    bottom: calc(var(--nav-gap) + env(safe-area-inset-bottom));
-    height: var(--nav-h); border-radius: var(--r-7);
-    background: rgba(12,12,13,.9);
+    position: fixed; left: 0; right: 0; z-index: 50;
+    bottom: 0;
+    height: calc(var(--nav-h) + var(--nav-pb)); border-radius: var(--r-7) var(--r-7) 0 0;
+    background: rgba(12,12,13,.94);
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border: 1px solid var(--line-2); box-shadow: var(--sh-float);
+    border: 1px solid var(--line-2); border-bottom: 0; box-shadow: var(--sh-float);
     display: grid; grid-template-columns: repeat(3, 1fr);
-    align-items: center; padding: 0 6px;
-    max-width: calc(var(--maxw) - var(--nav-side) * 2); margin: 0 auto;
+    align-items: center; padding: 0 calc(var(--nav-side) + 6px) var(--nav-pb);
+    max-width: var(--maxw); margin: 0 auto;
+  }
+  /* App instalada (iPhone): la barra se ancla a la pantalla entera (100lvh),
+     no al alto del viewport, que iOS a veces calcula corto al cargar o tras
+     cerrar el teclado y la dejaba flotando a media altura. */
+  @media (display-mode: standalone) {
+    @supports (height: 100lvh) {
+      nav.bottom { bottom: auto; top: calc(100lvh - var(--nav-h) - var(--nav-pb)); }
+      .syncbar { bottom: auto !important; top: calc(100lvh - var(--nav-h) - var(--nav-pb) - 10px); transform: translateY(-100%); }
+    }
   }
   nav.bottom button {
     height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -1321,7 +1335,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
           <span id="homeCtaText">Entrenar</span>
         </button>
-        <button type="button" class="btn btn--sec home-meal" id="homeMealBtn">
+        <button type="button" class="btn btn--primary home-meal" id="homeMealBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           <span>Registrar comida</span>
         </button>
@@ -1683,13 +1697,17 @@
 
       <div class="n-title-row">
         <h1 class="title scr-title"><span class="out">TU</span> <span>DIETA</span></h1>
+        <button type="button" class="btn-pill" id="nutriWeekBtn" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3M7.5 14h2M11 14h2M14.5 14h2"/></svg>
+          Semana
+        </button>
         <button type="button" class="btn-pill" id="recipesBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10.5a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h10.5"/><path d="M9 8.5h5M9 11.5h3.5"/></svg>
           Recetas
         </button>
       </div>
 
-      <div class="seg" id="nutriTabs">
+      <div class="seg" id="nutriTabs" hidden>
         <button type="button" class="seg-btn active" data-ntab="daily">DIARIO</button>
         <button type="button" class="seg-btn" data-ntab="weekly">SEMANAL</button>
       </div>
@@ -9134,6 +9152,15 @@ $('edSave').addEventListener('click', async () => {
   closeSheets();
   renderNutrition();
 });
+// v56: sin Diario/Semanal. El día se ve directamente; «Semana» (junto a
+// Recetas) cambia a la vista semanal y, pulsado otra vez, vuelve al día.
+function verSemana(si) {
+  $('nutriDaily').style.display = si ? 'none' : '';
+  $('nutriWeekly').style.display = si ? '' : 'none';
+  $('nutriWeekBtn').classList.toggle('active', si);
+  $('nutriWeekBtn').setAttribute('aria-pressed', String(si));
+}
+$('nutriWeekBtn').addEventListener('click', () => verSemana($('nutriWeekly').style.display === 'none'));
 document.querySelectorAll('#nutriTabs .seg-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#nutriTabs .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
@@ -10532,13 +10559,13 @@ boot(false);
   [data-screen="home"] .prof-head .btn-icon { margin-left: auto; }
   .home-tiles .tile { height: 116px; }
   #tileStreak .metric-xl { font-size: 76px; }
-  .home-check { margin-top: 14px; }
+  .home-check { margin-top: 26px; }
   .home-cal-btn, .tr-routines-btn { width: 100%; margin-top: 14px; }
   .tr-routines-btn { margin: 0 0 6px; justify-content: flex-start; gap: 10px; }
   .tr-routines-btn #routinesCount { margin-left: auto; }
 
   /* Entreno: una sola vista, por secciones */
-  [data-screen="trainer"] #statsCards { margin-bottom: 6px; }
+  [data-screen="trainer"] #statsCards { margin-bottom: 0; }
   [data-screen="trainer"] #progPane .prog-ticker { margin-top: 8px; }
 
   /* Botón del Coach: esquina inferior derecha, encima de la barra */
@@ -10631,7 +10658,7 @@ boot(false);
   .home-acts .btn { width: 100%; }
   .home-acts .home-cta { height: 52px; background: var(--hot-solid); color: var(--hot-ink); box-shadow: none; }
   .home-acts .home-cta:active { background: #A51C18; }
-  .home-acts .home-meal { background: transparent; border: 1px solid var(--line-2); color: var(--text); }
+  /* Registrar comida en blanco, como el de Nutri (v56) */
   /* Entreno: Mi plan y Mis rutinas como filas */
   /* Ventana Mi plan, más limpia: resumen, bloques y objetivos */
   .mp-title { margin: 6px 0 12px; font: 900 22px/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; }
@@ -10663,7 +10690,7 @@ boot(false);
   .prog-empty { display: block; padding: 18px 8px 8px; font-size: 13.5px; line-height: 1.5; color: var(--dim); }
 
   /* ═══ Ronda 6: Entreno ═══ */
-  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 6px; }
+  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0; }
   .tr-tile { position: relative; display: grid; gap: 4px; align-content: start; min-height: 104px; padding: 16px;
     border-radius: 16px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
   .tr-tile:active { transform: scale(.98); }
@@ -10678,7 +10705,8 @@ boot(false);
   .tr-met-row .tr-row { flex: 1; }
   .tr-met-edit { margin-top: 10px; padding: 0 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--s1);
     color: var(--text); font: 600 14px/1 var(--f-ui); }
-  #metricCards { margin-top: 12px; }
+  #metricCards { margin-top: 10px; }
+  #metricsToggle[aria-expanded="false"] + .tr-met-edit { display: none; }
   #metricCards.is-collapsed { display: none; }
   .tt-ico { width: 22px; height: 22px; margin-bottom: 10px; color: var(--hot-text); }
   .tt-n { font: 600 16px/1.2 var(--f-ui); }
@@ -10789,6 +10817,11 @@ boot(false);
     border-radius: 999px; border: 1px solid var(--line-2); background: var(--s2); color: var(--text);
     font: 600 13.5px/1 var(--f-ui); }
   .btn-pill svg { width: 16px; height: 16px; }
+  .btn-pill.active { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  .n-title-row { gap: 8px; }
+  #nutriTabs[hidden] { display: none !important; }
+  /* iPhone estrecho: los dos botones sin icono para que quepan junto al título */
+  @media (max-width: 400px) { .n-title-row .btn-pill { padding: 0 12px; } .n-title-row .btn-pill svg { display: none; } }
   .rc-sheet .dock-sheet { height: 88dvh; }
   .rc-sheet .dock-head .btn-icon:first-child { margin-left: 0; }
   .rc-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 0; text-align: left;
