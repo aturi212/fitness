@@ -292,7 +292,7 @@
 
   /* §5.7 · Píldora flotante. Sin botón Home elevado: rompía la rejilla. */
   nav.bottom {
-    position: fixed; left: 0; right: 0; z-index: 50;
+    position: fixed; left: var(--gutter); right: var(--gutter); z-index: 50;
     bottom: 0;
     height: calc(var(--nav-h) + var(--nav-pb)); border-radius: var(--r-7) var(--r-7) 0 0;
     background: rgba(12,12,13,.94);
@@ -300,8 +300,8 @@
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--line-2); border-bottom: 0; box-shadow: var(--sh-float);
     display: grid; grid-template-columns: repeat(3, 1fr);
-    align-items: center; padding: 0 calc(var(--nav-side) + 6px) var(--nav-pb);
-    max-width: var(--maxw); margin: 0 auto;
+    align-items: center; padding: 0 6px var(--nav-pb);
+    max-width: calc(var(--maxw) - var(--gutter) * 2); margin: 0 auto;
   }
   /* App instalada (iPhone): la barra se ancla a la pantalla entera (100lvh),
      no al alto del viewport, que iOS a veces calcula corto al cargar o tras
@@ -1330,6 +1330,7 @@
       </div>
 
       <!-- Entrenar (rojo) y Registrar comida, a todo el ancho -->
+      <hr class="home-sep home-sep--b" />
       <div class="home-acts">
         <button type="button" class="btn btn--primary home-cta" id="homeCta">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
@@ -2293,6 +2294,7 @@
     .logo { display: inline-flex; gap: 4px; width: 26px; height: 14px; flex-shrink: 0; }
     .logo i { flex: 1; background: var(--metal-bar, linear-gradient(0deg,#F2F4F6,#9CA1A6 55%,#5C6167));
               border-radius: 1px; transform: skewX(-16deg); }
+    .logo i + i { background: var(--hot); }   /* v57: como el icono «Ritmo» */
     .date-pill { margin-left: auto; height: 30px; display: inline-flex; align-items: center; padding: 0 13px;
                  border-radius: 999px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.22);
                  font: 500 9.5px/1 var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: #ECE8E1; }
@@ -10690,11 +10692,11 @@ boot(false);
   .prog-empty { display: block; padding: 18px 8px 8px; font-size: 13.5px; line-height: 1.5; color: var(--dim); }
 
   /* ═══ Ronda 6: Entreno ═══ */
-  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0; }
-  .tr-tile { position: relative; display: grid; gap: 4px; align-content: start; min-height: 104px; padding: 16px;
+  .tr-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 0; }
+  .tr-tile { position: relative; display: grid; gap: 4px; align-content: start; min-height: 124px; padding: 18px;
     border-radius: 16px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
   .tr-tile:active { transform: scale(.98); }
-  .tr-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin-top: 10px; padding: 0 16px;
+  .tr-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; margin-top: 16px; padding: 0 18px;
     border-radius: 16px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
   .tr-row:active { transform: scale(.985); }
   .tr-row-ico { width: 20px; height: 20px; flex-shrink: 0; color: var(--hot-text); }
@@ -10703,9 +10705,9 @@ boot(false);
   .tr-row[aria-expanded="true"] .tr-row-down { transform: rotate(180deg); }
   .tr-met-row { display: flex; gap: 10px; align-items: stretch; }
   .tr-met-row .tr-row { flex: 1; }
-  .tr-met-edit { margin-top: 10px; padding: 0 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--s1);
+  .tr-met-edit { margin-top: 16px; padding: 0 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--s1);
     color: var(--text); font: 600 14px/1 var(--f-ui); }
-  #metricCards { margin-top: 10px; }
+  #metricCards { margin-top: 16px; }
   #metricsToggle[aria-expanded="false"] + .tr-met-edit { display: none; }
   #metricCards.is-collapsed { display: none; }
   .tt-ico { width: 22px; height: 22px; margin-bottom: 10px; color: var(--hot-text); }
@@ -10812,7 +10814,7 @@ boot(false);
 
   /* ═══ Recetas ═══ */
   .n-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .n-title-row .scr-title { margin-right: auto; }
+  .n-title-row .scr-title { margin: 16px auto 4px 0; }
   .btn-pill { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; flex-shrink: 0;
     border-radius: 999px; border: 1px solid var(--line-2); background: var(--s2); color: var(--text);
     font: 600 13.5px/1 var(--f-ui); }
@@ -10932,7 +10934,10 @@ boot(false);
   /* Home: el nombre de la rutina en UNA línea («GYM B»), sin partir */
   #homeTitle.one-line { white-space: nowrap; }
   #homeTitle.one-line span { display: inline; }
-  .home-sep { border: 0; height: 1px; background: rgba(255,255,255,.85); margin: 2px 0 22px; }
+  /* Dos líneas finas enmarcan Racha / Esta semana (v57: más suaves) */
+  .home-sep { border: 0; height: 1px; background: rgba(255,255,255,.26); margin: 2px 0 22px; }
+  .home-sep--b { margin: 40px 0 14px; }
+  .home-sep--b + .home-acts { margin-top: 26px; }
   .home-head #profAcct { margin-left: auto; }
   /* Ajustes: arriba tú, con tu foto, tu nombre y tu peso */
   .pd-who { margin: 6px 0 18px; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
