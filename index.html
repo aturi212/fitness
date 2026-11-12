@@ -1753,6 +1753,8 @@
 
       <div class="hsheet nutri-sheet" id="nutriSheet">
         <div class="ns-title">Registrar comida</div>
+        <!-- Arriba: de qué es (desayuno, comida…) · Adrián, 12-nov -->
+        <div class="ns-types" id="nsTypes"></div>
         <textarea id="nsText" rows="3" placeholder="Ej: 200 g de pechuga a la plancha con arroz y una manzana" enterkeyhint="done" autocomplete="off"></textarea>
         <!-- Lo que ya has apuntado antes: al tocarlo se usan sus macros, sin IA -->
         <div class="ns-suggest" id="nsSuggest" hidden></div>
@@ -1771,6 +1773,8 @@
           </div>
           <div class="ns-pick-calc" id="nsPickCalc"></div>
         </div>
+        <!-- Receta elegida en la ventana de Recetas: sus ingredientes y las raciones -->
+        <div class="ns-pick ns-rc-sel" id="nsRcSel" hidden></div>
 
         <div class="ns-actions">
           <button type="button" class="ns-photo" id="nsMic" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 11v1a7 7 0 0 1-14 0v-1"/><path d="M12 19v3"/></svg></button>
@@ -1780,9 +1784,11 @@
         <input type="file" id="nsFile" accept="image/*" capture="environment" style="display:none">
         <div class="ns-quota" id="nsQuota" hidden></div>
         <div class="ns-status" id="nsStatus"></div>
-        <!-- Debajo: de qué es (desayuno, comida…) y tus recetas de ese tipo -->
-        <div class="ns-types" id="nsTypes"></div>
-        <div class="ns-recipes" id="nsRecipes" hidden></div>
+        <!-- Recetas: abre la ventana con momentos, lista y buscador -->
+        <button type="button" class="ns-rc-open" id="nsRcOpen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h5"/></svg>
+          Recetas
+        </button>
       </div>
 
       <div class="hsheet nutri-sheet" id="maSheet">
@@ -2024,6 +2030,28 @@
         </button>
       </div>
       <div class="pop-body"><div id="routineList"></div></div>
+    </div>
+  </div>
+
+  <!-- Elegir receta para Registrar comida: momentos, lista y buscador (Adrián, 12-nov) -->
+  <div class="coach-sheet pop-sheet" id="rcPickSheet" aria-hidden="true">
+    <div class="dock-back" data-close></div>
+    <div class="dock-sheet" role="dialog" aria-label="Elegir receta">
+      <div class="dock-head">
+        <span class="label">Recetas</span>
+        <span class="dock-hint"></span>
+        <button type="button" class="btn-icon" data-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pop-body">
+        <label class="rp-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="rpQ" placeholder="Buscar en todas tus recetas" autocomplete="off" enterkeyhint="search">
+        </label>
+        <div class="ns-types" id="rpTypes"></div>
+        <div id="rpList"></div>
+      </div>
     </div>
   </div>
 
@@ -7749,7 +7777,8 @@ function renderTypeChips(containerId, active, onPick) {
 }
 function openNutriSheet() {
   nsType = defaultMealType();
-  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; renderNsRecipes(); });
+  renderTypeChips('nsTypes', nsType, (t) => { nsType = t; });
+  nsRcElegida = null;
   renderNsRecipes();
   nsStatus('');
   const pend = loadNQ().length;
@@ -8417,43 +8446,93 @@ async function logRecipe(rec, raciones) {
   saveMeals(loadMeals().concat(data || []));
 }
 
-// Recetas en la hoja de registrar: botón por receta; al tocarlo, la ración
+// Recetas en Registrar comida (Adrián, 12-nov): botón «Recetas» → ventana con
+// los 4 momentos, la lista de ese momento y un buscador por todas. Al tocar
+// una, se cierra y la receta queda en la hoja con sus ingredientes; «Añadir».
+let nsRcElegida = null;   // receta elegida, a falta de pulsar Añadir
+let rpTipo = 'other';     // momento que se ve en la ventana
 function renderNsRecipes() {
-  const box = $('nsRecipes');
+  const box = $('nsRcSel');
   if (!box) return;
-  // Las del tipo elegido (las que aún no tienen tipo salen en todos)
+  const rec = nsRcElegida;
+  box.hidden = !rec;
+  if (!rec) { box.innerHTML = ''; return; }
+  const sv = Number(rec.servings) || 1;
+  const ings = (rec.ingredients || []).map((x) => `<li>${escHtml(x.description || '')}</li>`).join('');
+  box.innerHTML = `<div class="ns-pick-top"><span class="ns-pick-tag">RECETA${sv !== 1 ? ` · ${racionTxt(sv).toUpperCase()}` : ''}</span>
+      <button type="button" class="ns-pick-x" id="nsRcX" aria-label="Quitar receta">×</button></div>
+    <div class="ns-pick-name">${escHtml(rec.name)}</div>
+    ${ings ? `<ul class="ns-rc-ings">${ings}</ul>` : ''}
+    <div class="ns-pick-row">
+      <label class="ns-pick-qty"><input type="number" id="nsRcQty" inputmode="decimal" min="0.5" step="0.5" value="1"><span id="nsRcUnit">ración</span></label>
+      <button type="button" class="ns-send" id="nsRcAdd">Añadir</button>
+    </div>
+    <div class="ns-pick-calc" id="nsRcCalc"></div>`;
+  const calc = () => {
+    const q = Number(String($('nsRcQty').value).replace(',', '.'));
+    $('nsRcUnit').textContent = q === 1 ? 'ración' : 'raciones';
+    $('nsRcAdd').disabled = !(q > 0);
+    const t = {}; MACRO_KEYS.forEach((k) => { t[k] = (Number(rec[k]) || 0) * (q > 0 ? q : 0) / sv; });
+    $('nsRcCalc').innerHTML = q > 0 ? `<b>${macroLinea(t)}</b>` : '¿Cuántas raciones te has comido?';
+  };
+  $('nsRcQty').addEventListener('input', calc);
+  calc();
+  $('nsRcX').addEventListener('click', () => { nsRcElegida = null; renderNsRecipes(); });
+  $('nsRcAdd').addEventListener('click', async () => {
+    const q = Number(String($('nsRcQty').value).replace(',', '.'));
+    if (!(q > 0)) { $('nsRcQty').focus(); return; }
+    $('nsRcAdd').disabled = true;
+    nsStatus('Apuntando…');
+    try {
+      await logRecipe(rec, q);
+      if (navigator.vibrate) navigator.vibrate(30);
+      nsStatus('');
+      nsRcElegida = null; renderNsRecipes();
+      closeNutriSheet();
+      renderNutrition();
+    } catch (err) {
+      nsStatus(String(err?.message || err), true);
+      $('nsRcAdd').disabled = false;
+    }
+  });
+}
+
+const rcPickSheet = $('rcPickSheet');
+function renderRcPick() {
+  const q = normFood($('rpQ').value || '').trim();
   const todas = loadRecipes();
-  const list = todas.filter((r) => { const c = catsDe(r); return !c.length || c.includes(nsType); });
-  box.hidden = !todas.length;
-  const tipo = (MEAL_TYPES.find((t) => t.k === nsType)?.label || '').toLowerCase();
-  if (!list.length) { box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div><div class="ns-rc-none">No tienes recetas de ${tipo}. Créalas en «Recetas».</div>`; return; }
-  box.innerHTML = `<div class="ns-rc-label label">Tus recetas de ${tipo}</div>
-    <div class="ns-rc-chips">${list.map((r) => `<button type="button" class="ns-rc" data-rc="${r.id}">${escHtml(r.name)}</button>`).join('')}</div>
-    <div class="ns-rc-pick" id="nsRcPick" hidden></div>`;
-  box.querySelectorAll('[data-rc]').forEach((b) => b.addEventListener('click', () => {
-    box.querySelectorAll('[data-rc]').forEach((x) => x.classList.toggle('active', x === b));
-    const rec = list.find((r) => r.id === b.dataset.rc);
-    const porRacion = Math.round((Number(rec.kcal) || 0) / (Number(rec.servings) || 1));
-    const pick = $('nsRcPick');
-    pick.hidden = false;
-    pick.innerHTML = `<span class="ns-rc-kcal">${porRacion} kcal por ración</span>` +
-      [0.5, 1, 2].map((n) => `<button type="button" class="ns-type" data-rac="${n}">${n === 0.5 ? '½' : n}</button>`).join('');
-    pick.querySelectorAll('[data-rac]').forEach((rb) => rb.addEventListener('click', async () => {
-      pick.querySelectorAll('button').forEach((x) => { x.disabled = true; });
-      nsStatus('Apuntando…');
-      try {
-        await logRecipe(rec, Number(rb.dataset.rac));
-        if (navigator.vibrate) navigator.vibrate(30);
-        nsStatus('');
-        closeNutriSheet();
-        renderNutrition();
-      } catch (err) {
-        nsStatus(String(err?.message || err), true);
-        pick.querySelectorAll('button').forEach((x) => { x.disabled = false; });
-      }
-    }));
+  // Con texto se busca en todas; sin texto, las del momento elegido (y las sin momento)
+  const list = q
+    ? todas.filter((r) => { const n = normFood(r.name || '') + ' ' + (r.ingredients || []).map((x) => normFood(x.description || '')).join(' ');
+        return q.split(' ').filter(Boolean).every((t) => n.includes(t)); })
+    : todas.filter((r) => { const c = catsDe(r); return !c.length || c.includes(rpTipo); });
+  $('rpTypes').classList.toggle('is-dim', !!q);
+  const tipo = (MEAL_TYPES.find((t) => t.k === rpTipo)?.label || '').toLowerCase();
+  if (!todas.length) { $('rpList').innerHTML = '<div class="rp-none">Aún no tienes recetas. Créalas con el botón «Recetas» de Nutri.</div>'; return; }
+  if (!list.length) { $('rpList').innerHTML = `<div class="rp-none">${q ? 'Ninguna receta coincide.' : `No tienes recetas de ${tipo}.`}</div>`; return; }
+  $('rpList').innerHTML = list.map((r) => {
+    const sv = Number(r.servings) || 1;
+    return `<button type="button" class="rp-row" data-rp="${r.id}">
+      <span class="rp-n">${escHtml(r.name)}<small>${(r.ingredients || []).length} ingredientes${sv !== 1 ? ` · ${racionTxt(sv)}` : ''}</small></span>
+      <b>${Math.round((Number(r.kcal) || 0) / sv)}<small> kcal/rac.</small></b></button>`;
+  }).join('');
+  $('rpList').querySelectorAll('[data-rp]').forEach((b) => b.addEventListener('click', () => {
+    nsRcElegida = todas.find((r) => r.id === b.dataset.rp) || null;
+    // Elegida desde un momento: Registrar comida pasa a ese momento
+    if (!q && nsType !== rpTipo) { nsType = rpTipo; renderTypeChips('nsTypes', nsType, (t) => { nsType = t; }); }
+    cerrarHoja(rcPickSheet);
+    renderNsRecipes();
   }));
 }
+$('nsRcOpen').addEventListener('click', () => {
+  rpTipo = nsType;
+  $('rpQ').value = '';
+  renderTypeChips('rpTypes', rpTipo, (t) => { rpTipo = t; $('rpQ').value = ''; renderRcPick(); });
+  renderRcPick();
+  abrirHoja(rcPickSheet);
+});
+$('rpQ').addEventListener('input', renderRcPick);
+rcPickSheet.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cerrarHoja(rcPickSheet)));
 
 // ----- Ventana de recetas: lista y editor -----
 const recipesSheet = $('recipesSheet');
@@ -8542,7 +8621,12 @@ function rcPintarItems() {
         <span class="rc-item-n">${escHtml(it.description)}</span>
         <span class="rc-item-m">${g ? `${r1(g)} g · ` : ''}${Math.round(it.kcal || 0)} kcal · P ${r1(it.protein_g)} · H ${r1(it.carbs_g)} · G ${r1(it.fat_g)} · F ${r1(it.fiber_g)}</span>
       </button>
-      <button type="button" class="rc-item-x" data-quitar="${i}" aria-label="Quitar">×</button>
+      <span class="rc-item-btns">
+        <button type="button" class="rc-item-dd" data-abrir="${i}" aria-expanded="${abierto}" aria-label="${abierto ? 'Cerrar edición' : 'Editar ingrediente'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <button type="button" class="rc-item-x" data-quitar="${i}" aria-label="Quitar">×</button>
+      </span>
       ${abierto ? `<div class="rc-ed">
         <input type="text" class="rc-ed-n" data-campo="description" value="${escHtml(it.description)}">
         <div class="rc-ed-grid">${CAMPOS_ING.map(([k, l]) => `<label><span>${l}</span>
@@ -10729,7 +10813,31 @@ boot(false);
   .rc-total small { display: block; margin-top: 4px; font: 600 11.5px/1.3 var(--f-mono); }
   .rc-del { color: var(--danger); font: 500 14px/1 var(--f-ui); padding: 10px 0; }
   .ns-recipes { margin: 14px 0 0; }
-  #nutriSheet .ns-types { margin: 16px 0 0; }
+  /* Registrar comida (12-nov): momentos arriba, texto, fila de acciones y Recetas */
+  #nutriSheet .ns-types { margin: 0 0 12px; }
+  #nutriSheet textarea { display: block; width: 100%; box-sizing: border-box; margin: 0 0 10px; }
+  #nutriSheet .ns-actions { align-items: stretch; }
+  #nutriSheet .ns-actions > button { min-height: 48px; margin: 0; }
+  .ns-rc-open { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 48px; margin-top: 12px;
+    border-radius: 12px; border: 1px solid var(--line); background: var(--bg-elev-2, #151514); color: var(--text); font: 600 15px/1 var(--f-ui); }
+  .ns-rc-open svg { width: 18px; height: 18px; color: var(--hot-text); }
+  .ns-rc-sel[hidden] { display: none; }
+  .ns-rc-ings { margin: -4px 0 12px; padding: 0 0 0 16px; font-size: 13px; line-height: 1.5; color: var(--dim); }
+  #rcPickSheet { z-index: 120; }
+  .rp-search { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; margin-bottom: 14px;
+    border-radius: 12px; border: 1px solid var(--line); background: var(--s2, var(--bg)); }
+  .rp-search svg { width: 17px; height: 17px; color: var(--dim); flex-shrink: 0; }
+  .rp-search input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; color: var(--text); font: 400 16px/1 var(--f-ui); }
+  .rp-search input:focus { outline: none; }
+  #rpTypes { margin-bottom: 12px; }
+  #rpTypes.is-dim { opacity: .4; }
+  .rp-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 4px; border: 0; border-bottom: 1px solid var(--line);
+    background: none; color: var(--text); text-align: left; }
+  .rp-n { flex: 1; min-width: 0; font: 600 15px/1.3 var(--f-ui); }
+  .rp-n small { display: block; margin-top: 3px; font: 500 11.5px/1.3 var(--f-mono); color: var(--dim); }
+  .rp-row b { font: 700 15px/1 var(--f-mono); white-space: nowrap; }
+  .rp-row b small { font-weight: 500; font-size: 10.5px; color: var(--dim); }
+  .rp-none { padding: 20px 4px; font-size: 14px; line-height: 1.5; color: var(--dim); }
   .ns-rc-none { font-size: 13px; color: var(--dim); }
   .rc-group { border-bottom: 1px solid var(--line); }
   .rc-gh { list-style: none; display: flex; align-items: center; gap: 10px; height: 54px; cursor: pointer; font: 600 16px/1 var(--f-ui); }
@@ -10746,6 +10854,13 @@ boot(false);
   .rc-more { align-self: flex-start; padding: 6px 0; color: var(--text); font: 600 14px/1 var(--f-ui); }
   .rc-item { grid-template-columns: 1fr auto; }
   .rc-item .rc-item-x { grid-row: 1; align-self: start; }
+  /* Flecha junto a la X: despliega la edición del ingrediente (12-nov) */
+  .rc-item-btns { grid-row: 1; grid-column: 2; display: flex; align-items: center; gap: 2px; align-self: start; }
+  .rc-item-btns .rc-item-x { grid-row: auto; }
+  .rc-item-dd { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: none; border: 0; color: var(--dim); }
+  .rc-item-dd svg { width: 18px; height: 18px; transition: transform var(--t-base) var(--ease); }
+  .rc-item.open .rc-item-dd { color: var(--text); }
+  .rc-item.open .rc-item-dd svg { transform: rotate(180deg); }
   .rc-item-face { display: grid; gap: 3px; text-align: left; color: var(--text); padding: 0; background: none; border: 0; }
   .rc-item.open .rc-item-face .rc-item-n { color: var(--text); }
   .rc-ed { grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 10px; padding: 12px; border-radius: 12px; background: var(--s3); }
