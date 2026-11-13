@@ -160,10 +160,20 @@
      dejaba un hueco muerto enorme sobre el titular en el 15 Pro Max). */
   .heat { position: absolute; inset: 0; background: var(--hot-field); opacity: .88; }
   .heat-grain {
-    position: absolute; inset: 0; opacity: .18; mix-blend-mode: overlay;
+    position: absolute; inset: 0; opacity: .09; mix-blend-mode: overlay;   /* v63: a la mitad (antes .18) */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23h)'/%3E%3C/svg%3E");
     background-size: 140px 140px;
   }
+  /* v63: el mismo grano en Entreno y Nutri, sobre su resplandor rojo de arriba.
+     El resplandor va aislado (siempre se mezcla con lo mismo: sin parpadeo al
+     cambiar de pestaña) y el grano solo donde hay resplandor. */
+  [data-screen="trainer"] > .glow, [data-screen="nutrition"] > .glow { isolation: isolate; }
+  [data-screen="trainer"] > .glow::after, [data-screen="nutrition"] > .glow::after {
+    content: ''; position: absolute; inset: 0; opacity: .09; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23h)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    -webkit-mask-image: radial-gradient(100% 70% at 92% 0%, #000, rgba(0,0,0,.35) 44%, transparent 74%);
+            mask-image: radial-gradient(100% 70% at 92% 0%, #000, rgba(0,0,0,.35) 44%, transparent 74%); }
   .heat-wash { position: absolute; inset: 0; background: linear-gradient(198deg, rgba(200,35,30,.12), transparent 44%); }
   .heat-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, rgba(11,11,10,0), var(--bg)); }
   .glow { position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none;
@@ -1261,10 +1271,12 @@
   .onix-splash-glow { position: fixed; z-index: 1001; left: 50%; top: 50%; width: 260px; height: 260px; margin: -130px 0 0 -130px;
     border-radius: 50%; background: radial-gradient(circle, rgba(200,35,30,.55), rgba(200,35,30,0) 65%); filter: blur(10px);
     opacity: 0; pointer-events: none; }
-  .onix-splash-logo { position: fixed; z-index: 1002; left: 50%; top: 50%; width: 150px; height: auto;
+  /* Mismo ancho que calcula el JS (min(150, 36 % del ancho)) y las barras ya
+     ocultas, como en el primer fotograma: sin salto al arrancar la animación */
+  .onix-splash-logo { position: fixed; z-index: 1002; left: 50%; top: 50%; width: min(150px, 36vw); height: auto;
     transform: translate(-50%, -50%); transform-origin: 0 0; pointer-events: none; will-change: transform;
     animation: onix-splash-failsafe 1ms linear 4s forwards; }
-  .onix-splash-logo .b1, .onix-splash-logo .b2 { transform-box: fill-box; transform-origin: center; }
+  .onix-splash-logo .b1, .onix-splash-logo .b2 { transform-box: fill-box; transform-origin: center; opacity: 0; }
   @keyframes onix-splash-failsafe { to { opacity: 0; visibility: hidden; } }
   html.splash-hecho .onix-splash, html.splash-hecho .onix-splash-logo, html.splash-hecho .onix-splash-glow { display: none; }
 </style>
@@ -11099,8 +11111,8 @@ boot(false);
 
     /* C1 · Cambio de pestaña: desliza en su dirección con fundido */
     .screen.active { animation: none; }
-    .screen.active.m-in-fwd  { animation: m-in-fwd 330ms var(--spring) both; }
-    .screen.active.m-in-back { animation: m-in-back 330ms var(--spring) both; }
+    .screen.active.m-in-fwd  { animation: m-in-fwd 640ms var(--spring) both; }
+    .screen.active.m-in-back { animation: m-in-back 640ms var(--spring) both; }
     @keyframes m-in-fwd  { from { opacity: 0; transform: translate3d(36px, 0, 0); } to { opacity: 1; transform: none; } }
     @keyframes m-in-back { from { opacity: 0; transform: translate3d(-36px, 0, 0); } to { opacity: 1; transform: none; } }
     @keyframes m-out-fwd  { to { opacity: 0; transform: translate3d(-36px, 0, 0); } }
@@ -11110,16 +11122,17 @@ boot(false);
     ::view-transition-group(onix-nav) { animation: none; }
     ::view-transition-old(onix-nav) { display: none; }
     ::view-transition-new(onix-nav) { animation: none; }
-    html[data-nav-dir="fwd"]::view-transition-old(root)  { animation: m-out-fwd 260ms var(--spring-soft) both; }
-    html[data-nav-dir="fwd"]::view-transition-new(root)  { animation: m-in-fwd 330ms var(--spring) both; }
-    html[data-nav-dir="back"]::view-transition-old(root) { animation: m-out-back 260ms var(--spring-soft) both; }
-    html[data-nav-dir="back"]::view-transition-new(root) { animation: m-in-back 330ms var(--spring) both; }
+    /* v63: el doble de largas (antes 260/330 ms), para que se note el flujo */
+    html[data-nav-dir="fwd"]::view-transition-old(root)  { animation: m-out-fwd 520ms var(--spring-soft) both; }
+    html[data-nav-dir="fwd"]::view-transition-new(root)  { animation: m-in-fwd 640ms var(--spring) both; }
+    html[data-nav-dir="back"]::view-transition-old(root) { animation: m-out-back 520ms var(--spring-soft) both; }
+    html[data-nav-dir="back"]::view-transition-new(root) { animation: m-in-back 640ms var(--spring) both; }
 
     /* C2 · La píldora roja se desliza hasta la pestaña */
     nav.bottom.has-pill button.active { background: transparent; }
     nav.bottom button { position: relative; z-index: 1; }
     .nav-pill { position: absolute; left: 0; top: 0; z-index: 0; border-radius: var(--r-5); background: var(--hot);
-      pointer-events: none; transition: transform 380ms var(--spring); will-change: transform; }
+      pointer-events: none; transition: transform 600ms var(--spring); will-change: transform; }
 
     /* C3 · Botones: se hunden un poco y vuelven con rebote */
     .btn, .tr-tile, .tr-row, .tr-met-edit, .btn-pill, .ns-send, .ns-photo, .ns-rc-open, .ns-type, .seg-btn,
@@ -11382,7 +11395,7 @@ boot(false);
     anim(logo, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay, easing: OUT });
     anim(splash, [{ opacity: 1 }, { opacity: 0 }], { duration: 320, delay, easing: OUT }).finished.then(fin, fin);
   };
-  if (reduce) { fundido(350); return; }
+  if (reduce) { b1.style.opacity = b2.style.opacity = '1'; fundido(350); return; }
 
   // 1 · Barra hueso desde abajo-izquierda · 2 · barra roja desde arriba-derecha
   anim(b1, [{ transform: 'translate(-18%,40%) skewX(-8deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: SPRING, delay: 120 });
