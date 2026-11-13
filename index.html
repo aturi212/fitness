@@ -161,6 +161,10 @@
   .heat { position: absolute; inset: 0; background: var(--hot-field); opacity: .88; }
   .heat-grain {
     position: absolute; inset: 0; opacity: .09; mix-blend-mode: overlay;   /* v63: a la mitad (antes .18) */
+    /* v64: como en Entreno y Nutri, solo sobre el resplandor de arriba y
+       desvaneciéndose; antes cubría todo el bloque y lo dejaba grisáceo */
+    -webkit-mask-image: radial-gradient(100% 70% at 92% 0%, #000, rgba(0,0,0,.35) 44%, transparent 74%);
+            mask-image: radial-gradient(100% 70% at 92% 0%, #000, rgba(0,0,0,.35) 44%, transparent 74%);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23h)'/%3E%3C/svg%3E");
     background-size: 140px 140px;
   }
@@ -4144,6 +4148,17 @@
     closeRoutineView();
     if (rid) startSession(rid);
   });
+  // Bloques de Mis rutinas: abrir y cerrar (se recuerda mientras la app está abierta)
+  window.__rtAbiertos = window.__rtAbiertos || {};
+  document.getElementById('routineList').addEventListener('click', (e) => {
+    const head = e.target.closest('.rt-ghead');
+    if (!head) return;
+    const g = head.closest('.rt-grupo');
+    const abrir = head.getAttribute('aria-expanded') !== 'true';
+    head.setAttribute('aria-expanded', String(abrir));
+    g.querySelector('.rt-gbody').hidden = !abrir;
+    window.__rtAbiertos[g.dataset.g] = abrir;
+  });
   document.getElementById('routineList').addEventListener('click', (e) => {
     const item = e.target.closest('[data-rid]');
     if (item) openRoutineView(item.dataset.rid);
@@ -4262,6 +4277,9 @@
   // Si algún día falla, lo robusto es añadir `place` a la tabla routines.
   const GYM_EQUIP = new Set(['barbell', 'machine', 'cable']);
   function routinePlace(id, r) {
+    // Exterior: la salida al aire libre (id «outdoor», tag OUT…, o el nombre lo dice)
+    if (id === 'outdoor' || /^OUT/i.test(r.tag || '')
+      || /exterior|outdoor|aire libre|hiking|senderismo|trail|carrera|correr|\brun/i.test(`${r.name || ''} ${r.tag || ''}`)) return 'out';
     if (/gym/i.test(r.tag || '') || /gym/i.test(r.name || '')) return 'gym';
     const usaGym = (r.exercises || []).some((ex) => GYM_EQUIP.has(getExercise(ex.exerciseId).equipment));
     return usaGym ? 'gym' : 'home';
@@ -4370,7 +4388,7 @@
     // ── Entrenos agrupados por lugar ──
     const list = document.getElementById('routineList');
     const todayRid = getEffectiveSchedule(getWeekRange().start)[new Date().getDay()];
-    const grupos = { gym: [], home: [] };
+    const grupos = { gym: [], home: [], out: [] };
     Object.entries(window.ROUTINES.routines)
       .filter(([id, r]) => id !== 'rest' && r.exercises && r.exercises.length)
       .forEach(([id, r]) => grupos[routinePlace(id, r)].push([id, r]));
@@ -4388,15 +4406,20 @@
       || String(uso[b]?.last || '').localeCompare(String(uso[a]?.last || ''));
     grupos.gym.sort(porUso);
     grupos.home.sort(porUso);
+    grupos.out.sort(porUso);
 
-    const bloque = (titulo, items) => {
-      if (!items.length) return '';
+    // Bloques desplegables (Adrián, 13-nov): Gimnasio, Casa y Exterior. Se abre
+    // solo el que tiene el entreno de hoy; lo que abras o cierres se recuerda.
+    const bloque = (clave, titulo, items) => {
+      const abierto = (window.__rtAbiertos || {})[clave] ?? items.some(([id]) => id === todayRid);
       return `
-        <div class="sec-head">
-          <span class="label">${titulo}</span>
-          <span class="rule"></span>
-          <span class="data-sm">${String(items.length).padStart(2, '0')}</span>
-        </div>` +
+        <div class="rt-grupo" data-g="${clave}">
+          <button type="button" class="rt-ghead" aria-expanded="${abierto}">
+            <span class="rt-gname">${titulo}</span>
+            <span class="rt-gn">${String(items.length).padStart(2, '0')}</span>
+            <svg class="rt-gchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="rt-gbody"${abierto ? '' : ' hidden'}>${items.length ? '' : '<div class="rt-gempty">Aún no hay entrenos aquí.</div>'}` +
         items.map(([id, r], i) => {
           const esHoy = id === todayRid;
           return `
@@ -4413,11 +4436,12 @@
             </div>
             <svg class="rt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>`;
-        }).join('');
+        }).join('') + `</div></div>`;
     };
-    list.innerHTML = bloque('Gimnasio', grupos.gym) + bloque('Casa y exterior', grupos.home)
-      || `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de Entreno o pídeselos al Coach.</div>`;
-    const nRutinas = grupos.gym.length + grupos.home.length;
+    const nRutinas = grupos.gym.length + grupos.home.length + grupos.out.length;
+    list.innerHTML = nRutinas
+      ? bloque('gym', 'Gimnasio', grupos.gym) + bloque('home', 'Casa', grupos.home) + bloque('out', 'Exterior', grupos.out)
+      : `<div class="nutri-empty">Aún no tienes entrenos. Créalos con el «+» de Entreno o pídeselos al Coach.</div>`;
     const cuenta = document.getElementById('routinesCount');
     if (cuenta) cuenta.textContent = nRutinas ? `${nRutinas} ${nRutinas === 1 ? 'rutina' : 'rutinas'}` : 'Aún ninguna';
 
@@ -11103,6 +11127,18 @@ boot(false);
   .pd-who .prof-ava { width: 58px; height: 58px; }
   .pd-who .prof-name { font: 600 20px/1.15 var(--f-ui); letter-spacing: -.01em; margin-bottom: 6px; }
 
+  /* Mis rutinas en bloques desplegables: Gimnasio, Casa y Exterior (v64) */
+  .rt-grupo + .rt-grupo { margin-top: 10px; }
+  .rt-ghead { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 0 16px;
+    border-radius: 14px; border: 1px solid var(--line); background: var(--s1); color: var(--text); text-align: left; }
+  .rt-gname { flex: 1; font: 600 16px/1.2 var(--f-ui); }
+  .rt-gn { font: 600 11.5px/1 var(--f-mono); color: var(--dim); letter-spacing: .08em; }
+  .rt-gchev { width: 16px; height: 16px; color: var(--dim); transition: transform 300ms var(--ease); }
+  .rt-ghead[aria-expanded="true"] .rt-gchev { transform: rotate(180deg); }
+  .rt-gbody { padding: 4px 0 2px; }
+  .rt-gbody[hidden] { display: none; }
+  .rt-gempty { padding: 14px 4px; font-size: 13.5px; color: var(--dim); }
+
   /* ═══════════════ v62 · Movimiento (tipo iOS) ═══════════════
      Solo transform y opacity (y el trazo de los anillos). Todo dentro de
      prefers-reduced-motion: no-preference; con «reducir movimiento» no hay nada. */
@@ -11232,18 +11268,18 @@ boot(false);
         { duration: 800, easing: 'cubic-bezier(.22,1,.36,1)' });
     });
   }
-  function cascada(scr, paso = 30) {
+  function cascada(scr, paso = 30, base = 0) {
     const items = $$(':scope > :not(.glow):not([hidden]):not(script)', scr).filter((e) => e.offsetParent || e.getClientRects().length);
     items.slice(0, 14).forEach((el, i) => {
       el.classList.remove('m-casc'); void el.offsetWidth;
-      el.style.setProperty('--mi', i * paso / 30);
+      el.style.setProperty('--mi', (base + i * paso) / 30);
       el.classList.add('m-casc');
       el.addEventListener('animationend', () => el.classList.remove('m-casc'), { once: true });
     });
   }
-  function entrar(scr, paso = 30) {
+  function entrar(scr, paso = 30, base = 0) {
     if (!scr) return;
-    cascada(scr, paso);
+    cascada(scr, paso, base);
     $$('#statRacha, #statWeek, #nutriKcal, .nl-val b', scr).forEach((el) => contar(el));
     anillos(scr);
   }
@@ -11353,7 +11389,8 @@ boot(false);
   const hm = document.getElementById('homeMini'); if (hm) document.body.appendChild(hm);
   window.onixMotion = { irA, pill, entrar };
   // Con la animación de arranque, la entrada de Home la lanza ella (al abrirse)
-  const arrancar = () => { pill(); if (!window.__onixSplash) entrar($('.screen.active')); };
+  // (bandera permanente: si la carga va lenta y el arranque ya terminó, no se repite la entrada)
+  const arrancar = () => { pill(); if (!window.__onixSplashUsado) entrar($('.screen.active')); };
   if (document.readyState === 'complete') setTimeout(arrancar, 60);
   else window.addEventListener('load', () => setTimeout(arrancar, 60));
 })();
@@ -11373,6 +11410,7 @@ boot(false);
   const glow = document.getElementById('onixSplashGlow');
   if (!splash || !logo) return;
   window.__onixSplash = true;
+  window.__onixSplashUsado = true;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SPRING = 'cubic-bezier(.34,1.56,.64,1)', OUT = 'cubic-bezier(.22,1,.36,1)', INOUT = 'cubic-bezier(.65,0,.35,1)';
   const b1 = logo.querySelector('.b1'), b2 = logo.querySelector('.b2');
@@ -11421,15 +11459,15 @@ boot(false);
     const s = r.width / W;
     const dst = `translate(${r.left}px,${r.top + (r.height - H * s) / 2}px) scale(${s})`;
     anim(logo, [{ transform: centre }, { transform: dst }], { duration: 720, easing: INOUT, fill: 'forwards' })
-      .finished.then(() => {
-        real.style.visibility = '';
-        anim(logo, [{ opacity: 1 }, { opacity: 0 }], { duration: 140, fill: 'forwards' }).finished.then(fin, fin);
-      }, fin);
+      // Al llegar, cambio en el mismo fotograma (sin fundido: dos logos a la vez parpadeaban)
+      .finished.then(fin, fin);
     anim(splash, [{ opacity: 1 }, { opacity: 0 }], { duration: 520, easing: OUT, delay: 80 });
     const home = document.querySelector('.screen[data-screen="home"]');
-    anim(home, [{ transform: 'scale(1.04)', filter: 'blur(6px)' }, { transform: 'none', filter: 'blur(0)' }], { duration: 800, easing: OUT, delay: 50, fill: 'none' });
-    // Bloques de Home en cascada (45 ms)
-    setTimeout(() => window.onixMotion?.entrar(home, 45), 200);
+    anim(home, [{ transform: 'scale(1.04)', filter: 'blur(6px)' }, { transform: 'none', filter: 'blur(0)' }], { duration: 800, easing: OUT, fill: 'none' });
+    // Bloques de Home en cascada (45 ms). Se lanzan YA, con la capa aún opaca y
+    // un retraso de 200 ms: antes se lanzaban a los 200 ms, con los bloques ya
+    // asomando bajo el fundido, y desaparecían un instante (parpadeo).
+    window.onixMotion?.entrar(home, 45, 200);
   }, 1250);
 })();
 </script>
