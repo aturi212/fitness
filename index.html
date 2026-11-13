@@ -1252,9 +1252,39 @@
   .b-line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
   .b-line span { color: var(--muted); }
   .b-line b { font-weight: 500; text-align: right; }
+
+  /* ═══════ v62 · Arranque ═══════ */
+  .onix-splash { position: fixed; inset: 0; z-index: 1000; background: #0B0B0A; pointer-events: none;
+    animation: onix-splash-failsafe 1ms linear 4s forwards; }
+  .onix-splash-grain { position: absolute; inset: 0; opacity: .08; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .onix-splash-glow { position: fixed; z-index: 1001; left: 50%; top: 50%; width: 260px; height: 260px; margin: -130px 0 0 -130px;
+    border-radius: 50%; background: radial-gradient(circle, rgba(200,35,30,.55), rgba(200,35,30,0) 65%); filter: blur(10px);
+    opacity: 0; pointer-events: none; }
+  .onix-splash-logo { position: fixed; z-index: 1002; left: 50%; top: 50%; width: 150px; height: auto;
+    transform: translate(-50%, -50%); transform-origin: 0 0; pointer-events: none; will-change: transform;
+    animation: onix-splash-failsafe 1ms linear 4s forwards; }
+  .onix-splash-logo .b1, .onix-splash-logo .b2 { transform-box: fill-box; transform-origin: center; }
+  @keyframes onix-splash-failsafe { to { opacity: 0; visibility: hidden; } }
+  html.splash-hecho .onix-splash, html.splash-hecho .onix-splash-logo, html.splash-hecho .onix-splash-glow { display: none; }
 </style>
 </head>
 <body>
+<!-- Arranque (v62): pintado ya en el HTML, fondo #0B0B0A y logo centrado, sin
+     esperar al JS. La animación la lleva el script del final; si no llega a
+     correr, el CSS lo quita solo a los 4 s. -->
+<div class="onix-splash" id="onixSplash" aria-hidden="true"><div class="onix-splash-grain"></div></div>
+<div class="onix-splash-glow" id="onixSplashGlow" aria-hidden="true"></div>
+<svg class="onix-splash-logo" id="onixSplashLogo" viewBox="16 33.8 68 32.4" aria-hidden="true">
+  <defs>
+    <linearGradient id="spBone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6F3EE"/><stop offset="1" stop-color="#D8D3CB"/></linearGradient>
+    <linearGradient id="spRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5332B"/><stop offset="1" stop-color="#A91813"/></linearGradient>
+  </defs>
+  <g stroke-linejoin="round" stroke-width="1.4">
+    <path class="b1" d="M17 65.4 L25.8 34.6 L50 34.6 L41.2 65.4 Z" fill="url(#spBone)" stroke="url(#spBone)"/>
+    <path class="b2" d="M50 65.4 L58.8 34.6 L83 34.6 L74.2 65.4 Z" fill="url(#spRed)" stroke="url(#spRed)"/>
+  </g>
+</svg>
   <div id="app">
 
     <!-- =========== HOME · DESIGN.md §8.1 =========== -->
@@ -11189,18 +11219,18 @@ boot(false);
         { duration: 800, easing: 'cubic-bezier(.22,1,.36,1)' });
     });
   }
-  function cascada(scr) {
+  function cascada(scr, paso = 30) {
     const items = $$(':scope > :not(.glow):not([hidden]):not(script)', scr).filter((e) => e.offsetParent || e.getClientRects().length);
     items.slice(0, 14).forEach((el, i) => {
       el.classList.remove('m-casc'); void el.offsetWidth;
-      el.style.setProperty('--mi', i);
+      el.style.setProperty('--mi', i * paso / 30);
       el.classList.add('m-casc');
       el.addEventListener('animationend', () => el.classList.remove('m-casc'), { once: true });
     });
   }
-  function entrar(scr) {
+  function entrar(scr, paso = 30) {
     if (!scr) return;
-    cascada(scr);
+    cascada(scr, paso);
     $$('#statRacha, #statWeek, #nutriKcal, .nl-val b', scr).forEach((el) => contar(el));
     anillos(scr);
   }
@@ -11309,9 +11339,85 @@ boot(false);
   // se mueva con ella cuando la pantalla se desliza o se encoge
   const hm = document.getElementById('homeMini'); if (hm) document.body.appendChild(hm);
   window.onixMotion = { irA, pill, entrar };
-  const arrancar = () => { pill(); entrar($('.screen.active')); };
+  // Con la animación de arranque, la entrada de Home la lanza ella (al abrirse)
+  const arrancar = () => { pill(); if (!window.__onixSplash) entrar($('.screen.active')); };
   if (document.readyState === 'complete') setTimeout(arrancar, 60);
   else window.addEventListener('load', () => setTimeout(arrancar, 60));
+})();
+</script>
+
+<script>
+/* ═══════ v62 · Animación de arranque ═══════
+   Solo en el arranque en frío (este script corre una vez por carga de página).
+   Barra hueso y barra roja entran, latido y brillo, y el logo vuela a su sitio
+   en la cabecera de Home mientras la capa negra se abre. Si no se arranca en
+   Home (sin sesión, entreno a medias…), fundido simple. Corre en paralelo a la
+   carga de datos: no espera a nada. */
+(() => {
+  const html = document.documentElement;
+  const splash = document.getElementById('onixSplash');
+  const logo = document.getElementById('onixSplashLogo');
+  const glow = document.getElementById('onixSplashGlow');
+  if (!splash || !logo) return;
+  window.__onixSplash = true;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SPRING = 'cubic-bezier(.34,1.56,.64,1)', OUT = 'cubic-bezier(.22,1,.36,1)', INOUT = 'cubic-bezier(.65,0,.35,1)';
+  const b1 = logo.querySelector('.b1'), b2 = logo.querySelector('.b2');
+  const anim = (el, kf, o) => el.animate(kf, { fill: 'both', ...o });
+  const fin = () => {
+    html.classList.add('splash-hecho');
+    window.__onixSplash = false;
+    const real = document.querySelector('.home-head .logo');
+    if (real) real.style.visibility = '';
+  };
+  // Geometría: centro de la pantalla (150 px) y el sitio real del logo de Home
+  const W = Math.min(150, innerWidth * .36), H = W * 32.4 / 68;
+  const cx = (innerWidth - W) / 2, cy = (innerHeight - H) / 2;
+  logo.style.width = W + 'px';
+  logo.style.left = '0px'; logo.style.top = '0px';
+  const centre = `translate(${cx}px,${cy}px) scale(1)`;
+  logo.style.transform = centre;
+  // Fundido simple (otra pantalla, sin sesión o «reducir movimiento»)
+  const fundido = (delay) => {
+    anim(logo, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay, easing: OUT });
+    anim(splash, [{ opacity: 1 }, { opacity: 0 }], { duration: 320, delay, easing: OUT }).finished.then(fin, fin);
+  };
+  if (reduce) { fundido(350); return; }
+
+  // 1 · Barra hueso desde abajo-izquierda · 2 · barra roja desde arriba-derecha
+  anim(b1, [{ transform: 'translate(-18%,40%) skewX(-8deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: SPRING, delay: 120 });
+  anim(b2, [{ transform: 'translate(18%,-40%) skewX(-8deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560, easing: SPRING, delay: 300 });
+  // 3 · Latido al encajar y brillo rojo detrás de la barra roja
+  anim(logo, [{ transform: centre }, { transform: `translate(${cx}px,${cy}px) scale(1.06)` }, { transform: centre }], { duration: 380, easing: OUT, delay: 760, fill: 'none' });
+  if (glow) {
+    glow.style.left = (cx + W * .62) + 'px'; glow.style.top = (cy + W * .24) + 'px';
+    anim(glow, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)', offset: .45 }, { opacity: 0, transform: 'scale(1.25)' }], { duration: 1100, easing: OUT, delay: 700 });
+  }
+
+  // 4-6 · A los 1250 ms: si estamos en Home, el logo vuela a su sitio
+  setTimeout(() => {
+    const homeActiva = document.querySelector('.screen[data-screen="home"].active');
+    const tapada = ['loginOverlay', 'onbOverlay'].some((id) => document.getElementById(id)?.classList.contains('open'))
+      || document.getElementById('tracker')?.classList.contains('open')
+      || document.getElementById('routineView')?.classList.contains('open');
+    const real = document.querySelector('.home-head .logo');
+    if (!homeActiva || tapada || !real || window.scrollY > 4) { fundido(0); return; }
+    const r = real.getBoundingClientRect();
+    if (!r.width) { fundido(0); return; }
+    real.style.visibility = 'hidden';
+    const s = r.width / W;
+    const dst = `translate(${r.left}px,${r.top + (r.height - H * s) / 2}px) scale(${s})`;
+    anim(logo, [{ transform: centre }, { transform: dst }], { duration: 720, easing: INOUT, fill: 'forwards' })
+      .finished.then(() => {
+        real.style.visibility = '';
+        anim(logo, [{ opacity: 1 }, { opacity: 0 }], { duration: 140, fill: 'forwards' }).finished.then(fin, fin);
+      }, fin);
+    anim(splash, [{ opacity: 1 }, { opacity: 0 }], { duration: 520, easing: OUT, delay: 80 });
+    const home = document.querySelector('.screen[data-screen="home"]');
+    anim(home, [{ transform: 'scale(1.04)', filter: 'blur(6px)' }, { transform: 'none', filter: 'blur(0)' }], { duration: 800, easing: OUT, delay: 50, fill: 'none' });
+    // Bloques de Home en cascada (45 ms)
+    setTimeout(() => window.onixMotion?.entrar(home, 45), 200);
+  }, 1250);
 })();
 </script>
 </body>
