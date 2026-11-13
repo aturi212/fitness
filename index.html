@@ -1273,7 +1273,7 @@
           <span class="date-pill" id="todayPill" hidden></span>
           <button type="button" id="homeAdd" hidden></button>
           <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="chat-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6c-4.9 0-8.6 3.2-8.6 7.3 0 2.2 1.1 4.2 2.9 5.5l-.7 3.4 3.8-1.9c.8.2 1.7.3 2.6.3 4.9 0 8.6-3.2 8.6-7.3S16.9 3.6 12 3.6z"/><circle cx="8.4" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="12" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="15.6" cy="10.9" r=".95" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
 
@@ -1372,7 +1372,7 @@
         <span class="status-chip" id="trainerChip" hidden></span>
         <button type="button" id="trainerAdd" hidden></button>
         <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg class="chat-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6c-4.9 0-8.6 3.2-8.6 7.3 0 2.2 1.1 4.2 2.9 5.5l-.7 3.4 3.8-1.9c.8.2 1.7.3 2.6.3 4.9 0 8.6-3.2 8.6-7.3S16.9 3.6 12 3.6z"/><circle cx="8.4" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="12" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="15.6" cy="10.9" r=".95" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
 
@@ -1689,7 +1689,7 @@
       <div class="scr-head">
         <span class="logo" aria-label="ONIX"><i></i><i></i></span>
         <button type="button" class="btn-icon hdr-chat" data-coach aria-label="Abrir el Coach">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg class="chat-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6c-4.9 0-8.6 3.2-8.6 7.3 0 2.2 1.1 4.2 2.9 5.5l-.7 3.4 3.8-1.9c.8.2 1.7.3 2.6.3 4.9 0 8.6-3.2 8.6-7.3S16.9 3.6 12 3.6z"/><circle cx="8.4" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="12" cy="10.9" r=".95" fill="currentColor" stroke="none"/><circle cx="15.6" cy="10.9" r=".95" fill="currentColor" stroke="none"/></svg>
         </button>
       </div>
 
@@ -1778,16 +1778,27 @@
         <div class="ns-review" id="nsReview" hidden></div>
         <!-- Un alimento con sus valores conocidos (etiqueta o despensa): solo falta la cantidad -->
         <div class="ns-pick" id="nsPick" hidden>
+          <!-- v62: una línea con lo que se apunta; el lápiz despliega la edición.
+               Se apunta con el botón principal («Añadir»), sin IA. -->
           <div class="ns-pick-top">
             <span class="ns-pick-tag" id="nsPickTag"></span>
-            <button type="button" class="ns-pick-x" id="nsPickX" aria-label="Descartar">×</button>
+            <span class="ns-pick-btns">
+              <button type="button" class="ns-pick-ed" id="nsPickEd" aria-expanded="false" aria-label="Editar cantidad y macros">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
+              </button>
+              <button type="button" class="ns-pick-x" id="nsPickX" aria-label="Quitar">×</button>
+            </span>
           </div>
-          <div class="ns-pick-name" id="nsPickName"></div>
-          <div class="ns-pick-row">
-            <label class="ns-pick-qty"><input type="number" id="nsPickQty" inputmode="decimal" min="0" step="any" placeholder="—"><span id="nsPickUnit">g</span></label>
-            <button type="button" class="ns-send" id="nsPickAdd">Añadir</button>
-          </div>
+          <div class="ns-pick-name"><span id="nsPickName"></span> <span class="ns-pick-q" id="nsPickQ"></span></div>
           <div class="ns-pick-calc" id="nsPickCalc"></div>
+          <div class="ns-pick-edit" id="nsPickEdit" hidden>
+            <label class="ns-pe-q"><span id="nsPickUnit">Raciones</span><input type="number" id="nsPickQty" inputmode="decimal" min="0" step="any" placeholder="—"></label>
+            <label><span>Kcal</span><input type="number" inputmode="decimal" step="any" data-pm="kcal"></label>
+            <label><span>P</span><input type="number" inputmode="decimal" step="any" data-pm="protein_g"></label>
+            <label><span>H</span><input type="number" inputmode="decimal" step="any" data-pm="carbs_g"></label>
+            <label><span>G</span><input type="number" inputmode="decimal" step="any" data-pm="fat_g"></label>
+            <label><span>F</span><input type="number" inputmode="decimal" step="any" data-pm="fiber_g"></label>
+          </div>
         </div>
         <!-- Receta elegida en la ventana de Recetas: sus ingredientes y las raciones -->
         <div class="ns-pick ns-rc-sel" id="nsRcSel" hidden></div>
@@ -1973,6 +1984,22 @@
         .ns-pick-qty span { color: var(--muted); font-size: 13px; }
         .ns-pick-calc { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--muted); font-variant-numeric: tabular-nums; }
         .ns-pick-calc b { color: var(--text); font-weight: 600; }
+        /* v62: tarjeta compacta; el lápiz despliega cantidad y macros */
+        .ns-pick-btns { display: flex; align-items: center; gap: 2px; }
+        .ns-pick-ed { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; background: none; border: 0; color: var(--muted); }
+        .ns-pick-ed svg { width: 17px; height: 17px; }
+        .ns-pick-ed[aria-expanded="true"] { color: var(--text); }
+        .ns-pick-name { margin: 4px 0 2px; }
+        .ns-pick-q { font-weight: 500; color: var(--muted); }
+        .ns-pick .ns-pick-calc { margin-top: 2px; }
+        .ns-pick-edit { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
+        .ns-pick-edit[hidden] { display: none; }
+        .ns-pick-edit label { display: grid; gap: 4px; min-width: 0; }
+        .ns-pick-edit .ns-pe-q { grid-column: 1 / -1; }
+        .ns-pick-edit span { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+        .ns-pick-edit input { width: 100%; min-width: 0; box-sizing: border-box; height: 40px; padding: 0 8px; border-radius: 10px;
+          border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+        .ns-pick-edit input:focus { outline: none; border-color: var(--line-2); }
         .ns-review { margin: 10px 0 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line-2, var(--line)); background: var(--bg-elev-2, #151514); }
         .ns-rv-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
         .ns-rv-h span { font: 600 10px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ghost); }
@@ -2287,7 +2314,8 @@
     .home-heat > .heat-grain, .home-heat > .heat-fade { pointer-events: none; }
 
     /* Cabecera: logo + píldora de fecha + «+» */
-    .home-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; padding-top: 10px; }
+    /* Misma altura que la cabecera de Entreno y Nutri (safe-area + 28 px) */
+    .home-head { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; padding-top: 28px; }
     .logo { display: inline-flex; gap: 4px; width: 26px; height: 14px; flex-shrink: 0; }
     .logo i { flex: 1; background: var(--metal-bar, linear-gradient(0deg,#F2F4F6,#9CA1A6 55%,#5C6167));
               border-radius: 1px; transform: skewX(-16deg); }
@@ -8225,28 +8253,53 @@ function pickFromPantry(e, qtyTexto) {
 }
 const pickActual = () => nsPicks[0] || null;
 const pickTotal = (pk, q) => { const base = pk.per100 || pk.unit; const f = pk.per100 ? q / 100 : q; const t = {}; MACRO_KEYS.forEach((k) => { t[k] = (Number(base[k]) || 0) * f; }); return t; };
+// Total del alimento: lo calculado por la cantidad, o lo que se haya
+// corregido a mano en la edición (pk.ov), que manda.
+const pickFinal = (pk, q) => ({ ...pickTotal(pk, q), ...(pk.ov || {}) });
+const pickQ = () => Number(String($('nsPickQty').value).replace(',', '.'));
 function renderPick() {
   const pk = pickActual();
   $('nsPick').hidden = !pk;
+  pintarBotonNs();
   if (!pk) return;
   $('nsSuggest').hidden = true;
   $('nsPickTag').textContent = pk.label ? 'ETIQUETA' : 'DE TU DESPENSA';
   $('nsPickName').textContent = pk.name;
-  $('nsPickUnit').textContent = pk.per100 ? 'g' : (Number(pk.qty) === 1 ? 'ración' : 'raciones');
+  $('nsPickUnit').textContent = pk.per100 ? 'Gramos' : 'Raciones';
   $('nsPickQty').step = pk.per100 ? '1' : '0.5';
   // La cantidad se rellena al cambiar de alimento, no mientras se escribe
-  if ($('nsPickQty').dataset.pid !== String(pk.id)) { $('nsPickQty').value = pk.qty ?? ''; $('nsPickQty').dataset.pid = String(pk.id); }
+  if ($('nsPickQty').dataset.pid !== String(pk.id)) {
+    $('nsPickQty').value = pk.qty ?? ''; $('nsPickQty').dataset.pid = String(pk.id);
+    // Sin cantidad: la edición abierta para ponerla
+    abrirEdicionPick(!(Number(pk.qty) > 0));
+  }
   renderPickCalc();
+}
+function abrirEdicionPick(si) {
+  $('nsPickEdit').hidden = !si;
+  $('nsPickEd').setAttribute('aria-expanded', String(si));
 }
 function renderPickCalc() {
   const pk = pickActual();
   if (!pk) return;
-  const q = Number(String($('nsPickQty').value).replace(',', '.'));
-  const base = pk.per100 ? `Por 100 g: ${macroLinea(pk.per100)}` : `Por ración: ${macroLinea(pk.unit)}`;
-  $('nsPickAdd').disabled = !(q > 0);
-  if (!(q > 0)) { $('nsPickCalc').innerHTML = `${base}<br>¿${pk.per100 ? 'Cuántos gramos' : 'Cuántas raciones'} te has comido?`; return; }
-  const qTxt = pk.per100 ? `${fmtN(q)} g` : `${fmtN(q)} ${q === 1 ? 'ración' : 'raciones'}`;
-  $('nsPickCalc').innerHTML = `${base} → <b>${qTxt} = ${macroLinea(pickTotal(pk, q))}</b>`;
+  const q = pickQ();
+  pintarBotonNs();
+  if (!(q > 0)) {
+    $('nsPickQ').textContent = '';
+    $('nsPickCalc').innerHTML = `${pk.per100 ? 'Por 100 g' : 'Por ración'}: ${macroLinea(pk.per100 || pk.unit)} · ¿${pk.per100 ? 'cuántos gramos' : 'cuántas raciones'}?`;
+    $('nsPick').querySelectorAll('[data-pm]').forEach((i) => { if (document.activeElement !== i) i.value = ''; });
+    return;
+  }
+  const t = pickFinal(pk, q);
+  $('nsPickQ').textContent = `· ${pk.per100 ? `${fmtN(q)} g` : `${fmtN(q)} ${q === 1 ? 'ración' : 'raciones'}`}`;
+  $('nsPickCalc').innerHTML = `<b>${macroLinea(t)}</b>`;
+  $('nsPick').querySelectorAll('[data-pm]').forEach((i) => { if (document.activeElement !== i) i.value = r1(t[i.dataset.pm]); });
+}
+// El botón principal dice «Añadir» si solo hay un alimento de la despensa (sin IA)
+function pintarBotonNs() {
+  const soloDespensa = !!pickActual() && !$('nsText').value.trim();
+  $('nsSend').textContent = soloDespensa ? 'Añadir' : 'Analizar y añadir';
+  $('nsSend').disabled = false;
 }
 function pushPicks(list) {
   if (!list?.length) return;
@@ -8256,18 +8309,18 @@ function pushPicks(list) {
   if (!(Number(pickActual()?.qty) > 0)) setTimeout(() => $('nsPickQty').focus(), 50);
 }
 function dropPick() { nsPicks.shift(); saveNsPicks(); renderPick(); }
-async function addPick() {
+async function addPick(seguir = false) {
   const pk = pickActual();
   const q = Number(String($('nsPickQty').value).replace(',', '.'));
-  if (!pk || !(q > 0)) { $('nsPickQty').focus(); return; }
-  const t = pickTotal(pk, q);
+  if (!pk || !(q > 0)) { abrirEdicionPick(true); $('nsPickQty').focus(); return false; }
+  const t = pickFinal(pk, q);
   const qTxt = pk.per100 ? `${fmtN(q)} g` : `${fmtN(q)} ${q === 1 ? 'ración' : 'raciones'}`;
   const row = {
     date: pk.date || nutriDay, meal_type: pk.mealType || nsType, description: `${pk.name} (${qTxt})`,
     kcal: Math.round(t.kcal), protein_g: r1(t.protein_g), carbs_g: r1(t.carbs_g), fat_g: r1(t.fat_g), fiber_g: r1(t.fiber_g),
     source: pk.label ? 'label' : 'pantry',
   };
-  $('nsPickAdd').disabled = true;
+  $('nsSend').disabled = true;
   try {
     await insertMealRows([row]);
     // La etiqueta se guarda exacta (por 100 g sin redondear) para la próxima vez
@@ -8280,16 +8333,28 @@ async function addPick() {
     nsStatus(`Apuntado: ${row.description}`);
   } catch (err) {
     if (err?.offline) { nutriQueuePush({ kind: 'rows', rows: [row] }); nsStatus('Sin conexión: lo apunto en cuanto vuelva la red.'); }
-    else { nsStatus('No se ha podido guardar. Prueba otra vez.', true); $('nsPickAdd').disabled = false; return; }
+    else { nsStatus('No se ha podido guardar. Prueba otra vez.', true); $('nsSend').disabled = false; return; }
   }
   if (navigator.vibrate) navigator.vibrate(30);
   dropPick();
   renderNutrition();
-  if (!pickActual()) setTimeout(() => { if (!pickActual()) { closeNutriSheet(); nsStatus(''); } }, 900);
+  if (!seguir && !pickActual()) setTimeout(() => { if (!pickActual() && !$('nsText').value.trim()) { closeNutriSheet(); nsStatus(''); } }, 900);
+  return true;
 }
-$('nsPickQty').addEventListener('input', renderPickCalc);
+$('nsPickQty').addEventListener('input', () => {
+  const pk = pickActual(); if (pk && pk.ov) { delete pk.ov; saveNsPicks(); }   // nueva cantidad: macros recalculados
+  renderPickCalc();
+});
 $('nsPickQty').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addPick(); } });
-$('nsPickAdd').addEventListener('click', addPick);
+$('nsPickEd').addEventListener('click', () => abrirEdicionPick($('nsPickEdit').hidden));
+$('nsPick').querySelectorAll('[data-pm]').forEach((inp) => inp.addEventListener('input', () => {
+  const pk = pickActual(); if (!pk) return;
+  const v = Number(String(inp.value).replace(',', '.'));
+  if (!Number.isFinite(v) || v < 0) return;
+  pk.ov = { ...(pk.ov || {}), [inp.dataset.pm]: v };
+  saveNsPicks();
+  renderPickCalc();
+}));
 $('nsPickX').addEventListener('click', () => { dropPick(); nsStatus(''); });
 
 // ---------- Sugerencias al escribir ----------
@@ -8359,7 +8424,7 @@ function renderSuggest() {
     $('nsPickQty').select?.();
   }));
 }
-$('nsText').addEventListener('input', renderSuggest);
+$('nsText').addEventListener('input', () => { renderSuggest(); pintarBotonNs(); });
 
 // ---------- Cola sin red ----------
 // Lo escrito (y la foto) se guarda y se analiza al volver la red: nada se
@@ -8794,12 +8859,18 @@ function soloCantidad(t) {
 
 async function nsSubmit(imageB64) {
   const text = $('nsText').value.trim();
+  // Solo un alimento de la despensa: se apunta sin IA (no gasta cupo). Antes
+  // este botón fallaba aquí («Escribe lo que has comido») con la tarjeta puesta.
+  if (!imageB64 && !text && pickActual()) { await addPick(); return; }
   if (!imageB64 && !text) { nsStatus('Escribe (o dicta) lo que has comido, o haz una foto.', true); return; }
   // Los gramos que faltaban, en un mensaje aparte: se juntan con la etiqueta
   const g = !imageB64 ? soloCantidad(text) : null;
   if (g && pickActual()) { $('nsPickQty').value = g; $('nsText').value = ''; renderPickCalc(); await addPick(); return; }
   // Solo la cantidad y sin nada a lo que aplicarla: se guarda para la foto
   if (g) { nsStatus('¿De qué? Haz la foto de la etiqueta (o escribe el alimento) y lo junto con esos gramos.'); return; }
+  // Con texto y un alimento de la despensa: el alimento se apunta ya (sin IA)
+  // y el texto se analiza.
+  if (pickActual() && pickQ() > 0) { if (!(await addPick(true))) return; }
   nsBusy(true);
   nsStatus(imageB64 ? 'Analizando la foto…' : 'Analizando…');
   try {
@@ -10752,7 +10823,12 @@ boot(false);
   /* El chat arriba a la derecha de cada pantalla; fuera el botón flotante */
   .coach-fab { display: none !important; }
   .home-head .hdr-chat, .scr-head .hdr-chat { margin-left: auto; }
-  .home-head .hdr-chat { background: rgba(11,11,10,.35); border-color: rgba(236,232,225,.25); color: var(--text); }
+  .home-head .hdr-chat { background: rgba(11,11,10,.35); border-color: rgba(236,232,225,.25); }
+  /* v62: icono del Coach (burbuja con tres puntos) en rojo de marca */
+  .hdr-chat { color: var(--hot) !important; }
+  .hdr-chat .chat-ico { width: 19px; height: 19px; }
+  /* El grano del bloque de calor se mezcla siempre con lo mismo: sin parpadeo al entrar en Home */
+  .home-heat { isolation: isolate; }
   .home-head #todayPill[hidden] + #homeAdd[hidden] + .hdr-chat { margin-left: auto; }
   [data-screen="nutrition"] .scr-head .hdr-chat { margin-left: auto; }
   /* Progresión: título algo más grande y aire entre el selector y la tarjeta */
@@ -10847,6 +10923,10 @@ boot(false);
     font: 600 13.5px/1 var(--f-ui); }
   .btn-pill svg { width: 16px; height: 16px; }
   .btn-pill.active { background: var(--white); color: var(--white-ink); border-color: transparent; }
+  .n-title-row { align-items: flex-end; }
+  /* centrados con el titular: su margen inferior (4) + la mitad de lo que le sacan (2) */
+  .n-title-row .btn-pill { height: 32px; padding: 0 12px; gap: 6px; font-size: 12.5px; margin-bottom: 6px; }
+  .n-title-row .btn-pill svg { width: 14px; height: 14px; }
   .n-title-row { gap: 8px; }
   #nutriTabs[hidden] { display: none !important; }
   /* iPhone estrecho: los dos botones sin icono para que quepan junto al título */
