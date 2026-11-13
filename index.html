@@ -5357,15 +5357,25 @@
   // ============ Navigation ============
   const screens = document.querySelectorAll('.screen');
   const navBtns = document.querySelectorAll('nav.bottom button');
+  // v62: orden de las pestañas para saber hacia dónde se desliza la pantalla
+  const NAV_ORDEN = { trainer: 0, home: 1, nutrition: 2 };
   navBtns.forEach(btn => btn.addEventListener('click', () => {
     const target = btn.dataset.go;
-    screens.forEach(s => s.classList.toggle('active', s.dataset.screen === target));
-    navBtns.forEach(b => {
-      const on = b === btn;
-      b.classList.toggle('active', on);
-      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-    });
-    window.scrollTo(0, 0);
+    const antes = document.querySelector('.screen.active')?.dataset.screen;
+    const cambiar = () => {
+      screens.forEach(s => s.classList.toggle('active', s.dataset.screen === target));
+      navBtns.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      });
+      window.scrollTo(0, 0);
+    };
+    if (window.onixMotion && antes && antes !== target) {
+      const dir = (NAV_ORDEN[target] ?? 1) > (NAV_ORDEN[antes] ?? 1) ? 'fwd' : 'back';
+      window.onixMotion.irA(cambiar, dir, target);
+    } else cambiar();
+    window.onixMotion?.pill();
     // El slider de ejercicios se construye con la pantalla oculta (anchos 0):
     // re-centrar el chip activo cuando Perfil se hace visible
     if (target === 'trainer') requestAnimationFrame(() => centerActiveChip());
@@ -11050,9 +11060,259 @@ boot(false);
   .pd-who { margin: 6px 0 18px; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
   .pd-who .prof-ava { width: 58px; height: 58px; }
   .pd-who .prof-name { font: 600 20px/1.15 var(--f-ui); letter-spacing: -.01em; margin-bottom: 6px; }
+
+  /* ═══════════════ v62 · Movimiento (tipo iOS) ═══════════════
+     Solo transform y opacity (y el trazo de los anillos). Todo dentro de
+     prefers-reduced-motion: no-preference; con «reducir movimiento» no hay nada. */
+  @media (prefers-reduced-motion: no-preference) {
+    :root { --spring: cubic-bezier(.2, 1.12, .32, 1); --spring-soft: cubic-bezier(.22, 1, .36, 1); }
+
+    /* C1 · Cambio de pestaña: desliza en su dirección con fundido */
+    .screen.active { animation: none; }
+    .screen.active.m-in-fwd  { animation: m-in-fwd 330ms var(--spring) both; }
+    .screen.active.m-in-back { animation: m-in-back 330ms var(--spring) both; }
+    @keyframes m-in-fwd  { from { opacity: 0; transform: translate3d(36px, 0, 0); } to { opacity: 1; transform: none; } }
+    @keyframes m-in-back { from { opacity: 0; transform: translate3d(-36px, 0, 0); } to { opacity: 1; transform: none; } }
+    @keyframes m-out-fwd  { to { opacity: 0; transform: translate3d(-36px, 0, 0); } }
+    @keyframes m-out-back { to { opacity: 0; transform: translate3d(36px, 0, 0); } }
+    /* Con View Transitions (Safari 18+): sale la vieja y entra la nueva; la barra no se mueve */
+    nav.bottom { view-transition-name: onix-nav; }
+    ::view-transition-group(onix-nav) { animation: none; }
+    ::view-transition-old(onix-nav) { display: none; }
+    ::view-transition-new(onix-nav) { animation: none; }
+    html[data-nav-dir="fwd"]::view-transition-old(root)  { animation: m-out-fwd 260ms var(--spring-soft) both; }
+    html[data-nav-dir="fwd"]::view-transition-new(root)  { animation: m-in-fwd 330ms var(--spring) both; }
+    html[data-nav-dir="back"]::view-transition-old(root) { animation: m-out-back 260ms var(--spring-soft) both; }
+    html[data-nav-dir="back"]::view-transition-new(root) { animation: m-in-back 330ms var(--spring) both; }
+
+    /* C2 · La píldora roja se desliza hasta la pestaña */
+    nav.bottom.has-pill button.active { background: transparent; }
+    nav.bottom button { position: relative; z-index: 1; }
+    .nav-pill { position: absolute; left: 0; top: 0; z-index: 0; border-radius: var(--r-5); background: var(--hot);
+      pointer-events: none; transition: transform 380ms var(--spring); will-change: transform; }
+
+    /* C3 · Botones: se hunden un poco y vuelven con rebote */
+    .btn, .tr-tile, .tr-row, .tr-met-edit, .btn-pill, .ns-send, .ns-photo, .ns-rc-open, .ns-type, .seg-btn,
+    .hdr-chat, .rp-row, .rc-row, .sheet-option, .ws-cell, .ns-rc, .ns-chip, nav.bottom button {
+      transition-property: transform, background-color, color, border-color, opacity;
+      transition-duration: 320ms; transition-timing-function: var(--spring); }
+    .btn:active, .tr-tile:active, .tr-row:active, .tr-met-edit:active, .btn-pill:active, .ns-send:active, .ns-photo:active,
+    .ns-rc-open:active, .ns-type:active, .seg-btn:active, .hdr-chat:active, .rp-row:active, .rc-row:active,
+    .sheet-option:active, .ws-cell:active, .ns-rc:active, .ns-chip:active, nav.bottom button:active {
+      transform: scale(.97); transition-duration: 90ms; transition-timing-function: ease-out; }
+
+    /* C4 · Hojas: suben con muelle, fondo oscuro con desenfoque, la página se encoge */
+    .hsheet, .sheet { transition: transform 420ms var(--spring), visibility 0s linear 420ms; }
+    .hsheet.open, .sheet.open { transition: transform 420ms var(--spring), visibility 0s; }
+    .coach-sheet .dock-sheet { transition: transform 420ms var(--spring); }
+    .hs-backdrop, .sheet-backdrop, .dock-back { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .hs-backdrop.open { animation: m-fade 240ms ease-out both; }
+    @keyframes m-fade { from { opacity: 0; } }
+    .screen.active { transition: transform 420ms var(--spring), opacity 300ms ease; }
+    html.sheet-on .screen.active { transform: scale(.96); opacity: .85; }
+    .is-dragging { transition: none !important; }
+
+    /* C6/C7 · Al entrar: tarjetas en cascada */
+    .m-casc { animation: m-casc 420ms var(--spring) both; animation-delay: calc(var(--mi, 0) * 30ms); }
+    @keyframes m-casc { from { opacity: 0; transform: translate3d(0, 14px, 0) scale(.985); } }
+
+    /* C8 · Check de serie: «pop» al marcarla */
+    .tracker table.sets td.done button.checked, .tracker .cardio-done button.checked { animation: m-pop 300ms var(--spring); }
+    @keyframes m-pop { 0% { transform: scale(.82); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+    /* C5 · Cabecera compacta de Entreno y Nutri al bajar */
+    .scr-mini { position: fixed; top: 0; left: 0; right: 0; z-index: 60; pointer-events: none;
+      padding: calc(env(safe-area-inset-top) + 10px) var(--gutter) 10px; max-width: var(--maxw); margin: 0 auto;
+      background: rgba(11,11,10,.82); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+      border-bottom: 1px solid var(--line); font: 900 17px/1 var(--f-display); letter-spacing: -.01em; text-transform: uppercase;
+      opacity: 0; transform: translate3d(0, -8px, 0); transition: opacity 220ms ease, transform 320ms var(--spring); }
+    .scr-mini.show { opacity: 1; transform: none; }
+  }
 </style>
 
 <!-- §1.7A · Grano global: última capa, sobre todo el contenido -->
 <div class="grain" aria-hidden="true"></div>
+
+<script>
+/* ═══════════════ v62 · Movimiento ═══════════════
+   Pestañas que se deslizan, píldora de la barra, hojas con muelle que se
+   cierran arrastrando, paralaje de los titulares, números que cuentan,
+   anillos que se rellenan y tarjetas en cascada. Con «reducir movimiento»
+   no hace nada (el CSS tampoco). */
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce.matches) return;
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+  const nav = $('nav.bottom');
+
+  // ---------- C2 · Píldora ----------
+  const pillEl = document.createElement('span');
+  pillEl.className = 'nav-pill';
+  pillEl.setAttribute('aria-hidden', 'true');
+  let pillPuesta = false;
+  function pill() {
+    if (!nav) return;
+    const b = $('button.active', nav);
+    if (!b) return;
+    if (!pillEl.isConnected) { nav.prepend(pillEl); nav.classList.add('has-pill'); }
+    pillEl.style.width = b.offsetWidth + 'px';
+    pillEl.style.height = b.offsetHeight + 'px';
+    const x = b.offsetLeft, y = b.offsetTop;
+    if (!pillPuesta) { pillEl.style.transition = 'none'; }
+    pillEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    if (!pillPuesta) { void pillEl.offsetWidth; pillEl.style.transition = ''; pillPuesta = true; }
+  }
+  window.addEventListener('resize', () => { pillPuesta = false; pill(); });
+
+  // ---------- C6/C7 · Entrada de pantalla ----------
+  function contar(el, dur = 650) {
+    const txt = el.textContent;
+    const m = /^(\D*)(\d+)(.*)$/s.exec(txt);
+    if (!m) return;
+    const fin = parseInt(m[2], 10);
+    if (!(fin > 0)) return;
+    const t0 = performance.now();
+    const paso = (t) => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = m[1] + Math.round(fin * e) + m[3];
+      if (k < 1 && el.isConnected) requestAnimationFrame(paso); else el.textContent = txt;
+    };
+    requestAnimationFrame(paso);
+  }
+  function anillos(scope) {
+    $$('circle[stroke-dasharray]', scope).forEach((c) => {
+      const da = c.getAttribute('stroke-dasharray'); if (!da) return;
+      const [len, circ] = da.split(/[ ,]+/).map(Number);
+      if (!(len > 0) || !circ) return;
+      c.animate([{ strokeDasharray: `0 ${circ}` }, { strokeDasharray: `${len} ${circ}` }],
+        { duration: 800, easing: 'cubic-bezier(.22,1,.36,1)' });
+    });
+  }
+  function cascada(scr) {
+    const items = $$(':scope > :not(.glow):not([hidden]):not(script)', scr).filter((e) => e.offsetParent || e.getClientRects().length);
+    items.slice(0, 14).forEach((el, i) => {
+      el.classList.remove('m-casc'); void el.offsetWidth;
+      el.style.setProperty('--mi', i);
+      el.classList.add('m-casc');
+      el.addEventListener('animationend', () => el.classList.remove('m-casc'), { once: true });
+    });
+  }
+  function entrar(scr) {
+    if (!scr) return;
+    cascada(scr);
+    $$('#statRacha, #statWeek, #nutriKcal, .nl-val b', scr).forEach((el) => contar(el));
+    anillos(scr);
+  }
+
+  // ---------- C1 · Cambio de pestaña ----------
+  function irA(cambiar, dir, target) {
+    document.documentElement.dataset.navDir = dir;
+    const despues = () => {
+      const scr = document.querySelector(`.screen[data-screen="${target}"]`);
+      pill();
+      entrar(scr);
+      titulos();
+    };
+    if (document.startViewTransition) {
+      const vt = document.startViewTransition(() => { cambiar(); });
+      vt.updateCallbackDone.then(despues).catch(despues);
+      vt.ready.catch(() => {});   // si se salta (otro toque rápido), sin error en consola
+      vt.finished.finally(() => { delete document.documentElement.dataset.navDir; });
+      return;
+    }
+    cambiar();
+    const scr = document.querySelector(`.screen[data-screen="${target}"]`);
+    if (scr) {
+      scr.classList.remove('m-in-fwd', 'm-in-back'); void scr.offsetWidth;
+      scr.classList.add(dir === 'fwd' ? 'm-in-fwd' : 'm-in-back');
+      scr.addEventListener('animationend', () => scr.classList.remove('m-in-fwd', 'm-in-back'), { once: true });
+    }
+    despues();
+  }
+
+  // ---------- C4 · Hojas ----------
+  const HOJAS = '.hsheet, .sheet, .coach-sheet';
+  const algunaAbierta = () => $$(HOJAS).some((h) => h.classList.contains('open'));
+  function marcarFondo() {
+    const on = algunaAbierta();
+    if (on && !document.documentElement.classList.contains('sheet-on')) {
+      const scr = $('.screen.active');
+      if (scr) scr.style.transformOrigin = `50% ${window.scrollY + window.innerHeight / 2 - scr.offsetTop}px`;
+    }
+    document.documentElement.classList.toggle('sheet-on', on);
+  }
+  const mo = new MutationObserver(marcarFondo);
+  $$(HOJAS).forEach((h) => mo.observe(h, { attributes: true, attributeFilter: ['class'] }));
+
+  // Cerrar arrastrando hacia abajo, siguiendo el dedo (desde la parte de arriba)
+  function cerrar(panel) {
+    if (panel.classList.contains('hsheet')) { $('#nsBackdrop')?.click(); return; }
+    if (panel.classList.contains('sheet')) { $('#sheetBackdrop')?.click(); return; }
+    const pop = panel.closest('.coach-sheet');
+    $('[data-close]', pop)?.click();
+  }
+  function arrastrable(panel) {
+    let y0 = null, dy = 0, t0 = 0;
+    panel.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      const r = panel.getBoundingClientRect();
+      if (e.clientY - r.top > 64) return;                    // solo desde la cabecera
+      if (e.target.closest('input, textarea, select')) return;
+      y0 = e.clientY; dy = 0; t0 = performance.now();
+    });
+    panel.addEventListener('pointermove', (e) => {
+      if (y0 == null) return;
+      dy = Math.max(0, e.clientY - y0);
+      if (dy > 4) { panel.classList.add('is-dragging'); panel.style.transform = `translate3d(0, ${dy}px, 0)`; }
+    });
+    const soltar = () => {
+      if (y0 == null) return;
+      const v = dy / Math.max(1, performance.now() - t0);
+      y0 = null;
+      panel.classList.remove('is-dragging');
+      panel.style.transform = '';
+      if (dy > 110 || (dy > 40 && v > .6)) cerrar(panel);
+    };
+    panel.addEventListener('pointerup', soltar);
+    panel.addEventListener('pointercancel', soltar);
+  }
+  $$('.hsheet, .sheet, .coach-sheet .dock-sheet').forEach(arrastrable);
+
+  // ---------- C5 · Paralaje del titular y cabecera compacta ----------
+  const mini = document.createElement('div');
+  mini.className = 'scr-mini';
+  mini.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(mini);
+  const tituloDe = (scr) => scr && (scr.dataset.screen === 'home' ? $('#homeTitle', scr) : $('.scr-title', scr));
+  let base = new WeakMap();
+  function titulos() {
+    const scr = $('.screen.active');
+    const t = tituloDe(scr);
+    $$('.screen:not(.active) .scr-title, .screen:not(.active) #homeTitle').forEach((x) => { x.style.transform = ''; x.style.opacity = ''; });
+    if (!t) return;
+    if (!base.has(t)) { t.style.transform = ''; base.set(t, getComputedStyle(t).transform); }
+    const b = base.get(t);
+    const y = Math.max(0, window.scrollY);
+    const k = Math.min(1, y / 150);
+    t.style.transform = `translate3d(0, ${(y * 0.35).toFixed(1)}px, 0) scale(${(1 - 0.16 * k).toFixed(3)}) ${b === 'none' ? '' : b}`;
+    t.style.opacity = String(1 - 0.85 * k);
+    // Home ya tiene su cabecera compacta; Entreno y Nutri usan esta
+    const usarMini = scr.dataset.screen !== 'home' && y > 110;
+    if (usarMini) mini.textContent = t.textContent.trim();
+    mini.classList.toggle('show', usarMini);
+  }
+  let rafT = 0;
+  window.addEventListener('scroll', () => { if (!rafT) rafT = requestAnimationFrame(() => { rafT = 0; titulos(); }); }, { passive: true });
+
+  // La cabecera compacta de Home es fija: fuera de la pantalla, para que no
+  // se mueva con ella cuando la pantalla se desliza o se encoge
+  const hm = document.getElementById('homeMini'); if (hm) document.body.appendChild(hm);
+  window.onixMotion = { irA, pill, entrar };
+  const arrancar = () => { pill(); entrar($('.screen.active')); };
+  if (document.readyState === 'complete') setTimeout(arrancar, 60);
+  else window.addEventListener('load', () => setTimeout(arrancar, 60));
+})();
+</script>
 </body>
 </html>
