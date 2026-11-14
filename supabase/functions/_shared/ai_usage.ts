@@ -18,8 +18,12 @@ export const LIMITS = {
 // (onix-hq/negocio/OXIA_tope_plan_gratis.md). La despensa, las etiquetas,
 // lo apuntado a mano y las periódicas no llaman a la IA y no cuentan.
 export const MEALS_PER_DAY: Record<string, number> = { free: 3, basic: 8, premium: 40 };
-// Sin topes (Adrián). Sus llamadas se registran y cuentan en el global igual.
-export const EXEMPT_USERS = new Set(['a032afc2-2aea-45ce-af23-1318af374ebd']);
+// Sin topes: Adrián y Julia (su hermana y la tester que más la usa; 14-nov-2026).
+// Sus llamadas se registran y cuentan en el global igual.
+export const EXEMPT_USERS = new Set([
+  'a032afc2-2aea-45ce-af23-1318af374ebd',   // Adrián
+  'ff00a48f-ec31-44d1-a0c4-d5879d7973e5',   // Julia
+]);
 
 // El texto solo lo ven las versiones viejas de la app (sin la ventana del
 // tope): las nuevas pintan su modal a partir de `reason` y `feature`.
