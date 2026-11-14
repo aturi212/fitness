@@ -161,11 +161,11 @@ const REGISTER_TOOL_V3 = {
 };
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MOMENTOS: Record<string, string> = { breakfast: 'desayuno', lunch: 'comida', dinner: 'cena', other: 'otros' };
-const analyzeSystemV3 = (pesoKg: number | null, hoy: string, hora: string, momento: string, nFotos: number) => {
+const analyzeSystemV3 = (pesoKg: number | null, hoy: string, hora: string, momento: string, nFotos: number, abierto = 0) => {
   const d = new Date(hoy + 'T12:00:00Z');
   return `Eres un nutricionista experto en composición de alimentos. Registras lo que ha comido el usuario llamando SIEMPRE a la herramienta register_items (nunca respondas con texto suelto).
 
-CONTEXTO: hoy es ${DIAS[d.getUTCDay()]} ${hoy}, son las ${hora}. El usuario tiene abierto el momento «${MOMENTOS[momento] ?? 'otros'}». ${nFotos ? `Te manda ${nFotos} foto${nFotos > 1 ? 's' : ''}, numeradas 1..${nFotos} en el orden recibido.` : 'No hay fotos.'}${pesoKg ? ` Pesa ${pesoKg} kg (solo para estimar raciones que no diga).` : ''}
+CONTEXTO: hoy es ${DIAS[d.getUTCDay()]} ${hoy}, son las ${hora}. En la app tiene abierto ${abierto === 0 ? 'el día de hoy' : abierto === -1 ? 'el día de ayer' : `el día de hace ${-abierto} días`} y el momento «${MOMENTOS[momento] ?? 'otros'}». ${nFotos ? `Te manda ${nFotos} foto${nFotos > 1 ? 's' : ''}, numeradas 1..${nFotos} en el orden recibido.` : 'No hay fotos.'}${pesoKg ? ` Pesa ${pesoKg} kg (solo para estimar raciones que no diga).` : ''}
 
 NO CALCULES TOTALES. Por cada elemento das sus valores de REFERENCIA y la cantidad que ha comido; la app hace la cuenta.
 - Etiqueta en la foto: source label. Copia los números de la tabla tal cual. Usa la columna por 100 g / 100 ml (basis per_100g) siempre que exista; per_unit solo si únicamente viene por ración (y pon unit_g si dice su peso). Pon package_g si se ve el peso neto.
@@ -174,7 +174,7 @@ NO CALCULES TOTALES. Por cada elemento das sus valores de REFERENCIA y la cantid
 - Cantidad: la que DICE el usuario («de la 2, 20 g», «una galleta», «la mitad», «un vaso» ≈ 200 ml, «una cucharada» ≈ 15 g). Rellena solo un campo de amount. En etiquetas sin cantidad dicha, todo null.
 - Un elemento por PLATO: lo que va junto en el plato es un solo elemento («Ensalada de garbanzos con feta y aceitunas», valores por 100 g del conjunto y su peso total). Separa solo lo que se come aparte: bebida, postre, pan, y cada producto de foto distinto.
 - Cada elemento lleva photo (número de foto) o null si sale del texto.
-- meal_type y day_offset: deduce de lo que diga («ayer cené…» → dinner, -1; «esta mañana» → breakfast, 0; encabezados «desayuno: … comida: …» reparten). Si no dice nada, el momento abierto y 0.
+- meal_type y day_offset (respecto a HOY): deduce de lo que diga («ayer cené…» → dinner, -1; «esta mañana» → breakfast, 0; encabezados «desayuno: … comida: …» reparten). Si no dice nada, el momento abierto y day_offset ${abierto}.
 - Nombre limpio: sin cantidades ni frases del usuario.
 - Si no hay comida, items: [].`;
 };
@@ -373,7 +373,8 @@ Deno.serve(async (req) => {
       const t0 = Date.now();
       const data = await callAnthropic({
         max_tokens: 4000,
-        system: analyzeSystemV3(perfil?.weight_kg ?? null, hoy, hora, String(body.meal_type || 'other'), imgs.length),
+        system: analyzeSystemV3(perfil?.weight_kg ?? null, hoy, hora, String(body.meal_type || 'other'), imgs.length,
+          Math.max(-7, Math.min(0, Math.round(Number(body.open_offset) || 0)))),
         tools: [REGISTER_TOOL_V3],
         ...ajustesModelo(model, 'register_items'),
         messages: [{ role: 'user', content }],
