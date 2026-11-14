@@ -12,12 +12,16 @@ export const LIMITS = {
   nutritionistPerDay: 20, // mensajes al nutricionista por usuario y día
   globalPerDay: 500,   // llamadas a la API por día entre TODOS (cortafuegos)
 };
-// Comidas con IA al día según el plan: UN solo contador para foto y texto
-// (y los reanálisis al editar, que van como 'text'). Premium no se anuncia
+// Comidas con IA al día según el plan. Desde la app v3 cuenta lo que se
+// GUARDA ('meal'), no cada llamada: reintentos, varias fotos de una misma
+// comida y correcciones son 'draft' y no gastan (migración
+// 20261114_cupo_por_comida.sql). Las apps viejas siguen contando por llamada
+// ('photo'/'text'). Cortafuegos de 'draft': DRAFTS_X × el cupo. Premium no se anuncia
 // como tope: es el cortafuegos técnico. Decisión de Adrián, 10-nov-2026
 // (onix-hq/negocio/OXIA_tope_plan_gratis.md). La despensa, las etiquetas,
 // lo apuntado a mano y las periódicas no llaman a la IA y no cuentan.
 export const MEALS_PER_DAY: Record<string, number> = { free: 3, basic: 8, premium: 40 };
+export const DRAFTS_X = 5;
 // Sin topes: Adrián y Julia (su hermana y la tester que más la usa; 14-nov-2026).
 // Sus llamadas se registran y cuentan en el global igual.
 export const EXEMPT_USERS = new Set([
@@ -31,7 +35,9 @@ export const LIMIT_MSG = 'Has llegado al límite de hoy, mañana seguimos 💪';
 export const RATE_MSG = 'Vas muy rápido: espera un minuto y seguimos 💪';
 
 export type Fn = 'chat' | 'nutrition';
-export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist' | 'coach_search';
+// draft = análisis de comida con IA que aún no se ha guardado (no gasta cupo);
+// meal  = marca sin tokens al GUARDAR una comida analizada (gasta cupo).
+export type Kind = 'coach' | 'coach_round' | 'photo' | 'text' | 'nutritionist' | 'coach_search' | 'draft' | 'meal';
 // day = tope del día (del usuario o el global); minute = demasiadas seguidas
 export type Tope = { reason: 'day' | 'minute'; feature: Kind; msg: string; limit?: number; plan?: string };
 // Cupo de comidas con IA de hoy (null = sin cupo: exento o no se pudo contar)
@@ -69,7 +75,7 @@ export async function mealQuota(userId: string): Promise<Cupo | null> {
     const [plan, cuenta] = await Promise.all([
       planDe(userId),
       admin.from('ai_usage').select('id', { count: 'exact', head: true })
-        .eq('user_id', userId).in('kind', ['photo', 'text']).gte('created_at', inicioDiaMadrid()),
+        .eq('user_id', userId).in('kind', ['photo', 'text', 'meal']).gte('created_at', inicioDiaMadrid()),
     ]);
     if (cuenta.error) { console.error('mealQuota', cuenta.error.message); return null; }
     const limit = MEALS_PER_DAY[plan];
@@ -95,9 +101,11 @@ export async function checkLimits(userId: string, kind: Kind): Promise<Tope | nu
   if (c.global >= LIMITS.globalPerDay) return dia;
   if (c.minute >= LIMITS.perMinute) return { reason: 'minute', feature: kind, msg: RATE_MSG };
   if (kind === 'coach' && c.coach >= LIMITS.coachPerDay) return dia;
-  if (kind === 'photo' || kind === 'text') {
+  if (kind === 'photo' || kind === 'text' || kind === 'draft') {
     const q = await mealQuota(userId);
     if (q && q.used >= q.limit) return { ...dia, limit: q.limit, plan: q.plan };
+    // Análisis sin guardar: cortafuegos para que no sea barra libre
+    if (kind === 'draft' && q && (c.draft ?? 0) >= q.limit * DRAFTS_X) return { ...dia, limit: q.limit, plan: q.plan };
   }
   if (kind === 'nutritionist' && c.nutritionist >= LIMITS.nutritionistPerDay) return dia;
   return null;

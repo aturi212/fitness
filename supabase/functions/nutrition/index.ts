@@ -22,7 +22,7 @@
 // (las versiones viejas enseñan `error` tal cual).
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { checkLimits, logUsage, mealQuota, type Kind } from '../_shared/ai_usage.ts';
+import { checkLimits, logUsage, mealQuota, EXEMPT_USERS, type Kind } from '../_shared/ai_usage.ts';
 
 const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // MODELO PROPIO, separado del Coach (que usa CHAT_MODEL). Contar macros de un
@@ -30,6 +30,18 @@ const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 // pequeño y cuesta una fracción. Cada plato que se apunta pasa por aquí, así
 // que es donde más se nota; y cambiar el modelo del Coach ya no lo encarece.
 const MODEL = Deno.env.get('NUTRITION_MODEL') ?? 'claude-haiku-4-5';
+// A/B de modelos (solo usuarios exentos: Adrián y Julia) con body.model
+const MODELOS_AB = new Set(['claude-haiku-4-5', 'claude-haiku-5-5', 'claude-sonnet-5-5']);
+// Cómo pedir la herramienta según el modelo (Sonnet 5.5 no admite forzarla)
+function ajustesModelo(model: string, tool: string): Record<string, unknown> {
+  if (model.startsWith('claude-sonnet-5')) {
+    return { tool_choice: { type: 'auto' }, thinking: { type: 'between_tools' }, output_config: { effort: 'low' } };
+  }
+  if (model.startsWith('claude-haiku-5')) {
+    return { tool_choice: { type: 'tool', name: tool }, thinking: { type: 'disabled' }, output_config: { effort: 'low' } };
+  }
+  return { tool_choice: { type: 'tool', name: tool } };
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -98,6 +110,97 @@ ETIQUETAS NUTRICIONALES (foto de la tabla de un envase, o valores que te dicta):
 - La cantidad la dice el usuario («me he comido 30 g», «2 galletas», «medio paquete de 200 g»). Ponla en «grams» (o en «servings» si solo hay valores por ración sin peso). Si no la dice, déjala en null: la app se la preguntará. No inventes la ración ni uses la de la etiqueta por tu cuenta.
 - Las cuentas las hace la app con label y grams: los macros del item puedes dejarlos en 0.
 - Un item por producto.`;
+
+// ============ v3 · La IA LEE y ESTIMA; la APP CALCULA ============
+// Por producto devuelve sus valores de REFERENCIA (por 100 g, por unidad o el
+// total que dice el usuario) y la cantidad que ha entendido. Ninguna
+// multiplicación aquí ni en el modelo: la app hace kcal = ref × g / 100.
+const REF_PROPS = {
+  kcal: { type: 'number' }, protein_g: { type: 'number' }, carbs_g: { type: 'number' },
+  fat_g: { type: 'number' }, fiber_g: { type: 'number', description: '0 si no consta' },
+};
+const REGISTER_TOOL_V3 = {
+  name: 'register_items',
+  description: 'Registra lo que ha comido el usuario: un elemento por plato o producto, con sus valores de referencia y la cantidad consumida. NO calcules totales.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Nombre corto y limpio del plato o producto, con marca si se sabe, SIN cantidad ni comentarios del usuario. Ej: "Chocolate con leche Mercadona", "Ensalada de garbanzos con feta"' },
+            photo: { type: ['integer', 'null'], description: 'Número de la foto de la que sale (1, 2, 3… en el orden recibido). null si sale del texto' },
+            source: { type: 'string', enum: ['label', 'user', 'estimate'], description: 'label: tabla nutricional de la foto; user: valores que da el usuario; estimate: estimación tuya' },
+            basis: { type: 'string', enum: ['per_100g', 'per_unit', 'total'], description: 'per_100g: valores por 100 g (o 100 ml); per_unit: por unidad/ración; total: totales que da el usuario para lo que se ha comido' },
+            ref: { type: 'object', properties: REF_PROPS, required: ['kcal', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g'], description: 'Valores para la base indicada. De la etiqueta: copiados tal cual. Estimados: valores típicos de tablas de composición (BEDCA/USDA), por 100 g del plato tal como se come' },
+            unit_g: { type: ['number', 'null'], description: 'Gramos de una unidad/ración si se sabe (etiqueta o típico: 1 galleta María ≈ 6 g, 1 huevo ≈ 55 g). Si no, null' },
+            package_g: { type: ['number', 'null'], description: 'Peso neto del envase si aparece. Si no, null' },
+            amount: {
+              type: 'object',
+              description: 'Cantidad consumida que DICE el usuario. Rellena solo UNO. Si no lo dice: en etiquetas todo null (la app lo preguntará); en platos estimados, grams con una ración normal y estimated=true',
+              properties: {
+                grams: { type: ['number', 'null'] },
+                ml: { type: ['number', 'null'] },
+                units: { type: ['number', 'null'], description: 'unidades o raciones (1 galleta, 2 lonchas, media ración = 0.5)' },
+                percent: { type: ['number', 'null'], description: 'porcentaje del envase, 0-100 («la mitad» = 50)' },
+                estimated: { type: 'boolean', description: 'true si la cantidad la has estimado tú' },
+              },
+              required: ['grams', 'ml', 'units', 'percent', 'estimated'],
+            },
+            meal_type: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'other'] },
+            day_offset: { type: 'integer', description: '0 = hoy, -1 = ayer, -2 = anteayer…' },
+          },
+          required: ['name', 'photo', 'source', 'basis', 'ref', 'unit_g', 'package_g', 'amount', 'meal_type', 'day_offset'],
+        },
+      },
+    },
+    required: ['items'],
+  },
+};
+const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MOMENTOS: Record<string, string> = { breakfast: 'desayuno', lunch: 'comida', dinner: 'cena', other: 'otros' };
+const analyzeSystemV3 = (pesoKg: number | null, hoy: string, hora: string, momento: string, nFotos: number) => {
+  const d = new Date(hoy + 'T12:00:00Z');
+  return `Eres un nutricionista experto en composición de alimentos. Registras lo que ha comido el usuario llamando SIEMPRE a la herramienta register_items (nunca respondas con texto suelto).
+
+CONTEXTO: hoy es ${DIAS[d.getUTCDay()]} ${hoy}, son las ${hora}. El usuario tiene abierto el momento «${MOMENTOS[momento] ?? 'otros'}». ${nFotos ? `Te manda ${nFotos} foto${nFotos > 1 ? 's' : ''}, numeradas 1..${nFotos} en el orden recibido.` : 'No hay fotos.'}${pesoKg ? ` Pesa ${pesoKg} kg (solo para estimar raciones que no diga).` : ''}
+
+NO CALCULES TOTALES. Por cada elemento das sus valores de REFERENCIA y la cantidad que ha comido; la app hace la cuenta.
+- Etiqueta en la foto: source label. Copia los números de la tabla tal cual. Usa la columna por 100 g / 100 ml (basis per_100g) siempre que exista; per_unit solo si únicamente viene por ración (y pon unit_g si dice su peso). Pon package_g si se ve el peso neto.
+- El usuario da valores («100 g son 12 de proteína…», una tabla pegada de ChatGPT, «esto son 450 kcal y 30 g de proteína»): source user. Si son por 100 g, basis per_100g; si son totales de lo que se ha comido, basis total con amount.units = 1. Respeta sus números exactos: no los cambies.
+- Sin etiqueta ni valores: source estimate, basis per_100g con valores típicos del plato tal como se come, y amount.grams con lo que diga o una ración normal (estimated true).
+- Cantidad: la que DICE el usuario («de la 2, 20 g», «una galleta», «la mitad», «un vaso» ≈ 200 ml, «una cucharada» ≈ 15 g). Rellena solo un campo de amount. En etiquetas sin cantidad dicha, todo null.
+- Un elemento por PLATO: lo que va junto en el plato es un solo elemento («Ensalada de garbanzos con feta y aceitunas», valores por 100 g del conjunto y su peso total). Separa solo lo que se come aparte: bebida, postre, pan, y cada producto de foto distinto.
+- Cada elemento lleva photo (número de foto) o null si sale del texto.
+- meal_type y day_offset: deduce de lo que diga («ayer cené…» → dinner, -1; «esta mañana» → breakfast, 0; encabezados «desayuno: … comida: …» reparten). Si no dice nada, el momento abierto y 0.
+- Nombre limpio: sin cantidades ni frases del usuario.
+- Si no hay comida, items: [].`;
+};
+// Limpia lo que devuelve el modelo (números válidos, límites razonables)
+function limpiaV3(it: any) {
+  const num = (v: unknown) => (v === null || v === undefined || v === '' || !isFinite(Number(v)) ? null : Number(v));
+  const ref: Record<string, number> = Object.fromEntries(MAC.map((k) => [k, Math.max(0, Number(it?.ref?.[k]) || 0)]));
+  const a = it?.amount || {};
+  const pos0 = (v: unknown) => { const n = num(v); return n !== null && n > 0 ? n : null; };
+  const basis = ['per_100g', 'per_unit', 'total'].includes(it?.basis) ? it.basis : 'per_100g';
+  const day = Math.max(-7, Math.min(0, Math.round(Number(it?.day_offset) || 0)));
+  return {
+    name: String(it?.name || 'Comida').replace(/\s*\(.*?\)\s*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100) || 'Comida',
+    photo: pos0(it?.photo) ? Math.round(Number(it.photo)) : null,
+    source: ['label', 'user', 'estimate'].includes(it?.source) ? it.source : 'estimate',
+    basis, ref,
+    unit_g: pos0(it?.unit_g), package_g: pos0(it?.package_g),
+    amount: {
+      grams: pos0(a.grams), ml: pos0(a.ml), units: pos0(a.units),
+      percent: pos0(a.percent) !== null ? Math.min(100, Number(a.percent)) : null,
+      estimated: !!a.estimated,
+    },
+    meal_type: ['breakfast', 'lunch', 'dinner', 'other'].includes(it?.meal_type) ? it.meal_type : null,
+    day_offset: day,
+  };
+}
 
 // ---------- Etiquetas: la cuenta la hace el código, no el modelo ----------
 // El modelo copia la tabla (por 100 g o por ración) y la cantidad que dice el
@@ -169,10 +272,22 @@ Deno.serve(async (req) => {
     // Cupo de comidas con IA de hoy, sin llamar a la IA (para el contador)
     if (body.mode === 'quota') return json({ quota: await mealQuota(user.id) });
 
-    // Topes ANTES de llamar a la API
-    const kind: Kind | null = body.mode === 'analyze' ? (body.image?.data ? 'photo' : 'text')
-      : body.mode === 'recalc' ? 'text'
+    // Guardar una comida analizada (app v3): es lo que gasta cupo, sin llamar a la IA
+    if (body.mode === 'commit') {
+      const q0 = await mealQuota(user.id);
+      if (q0 && q0.used >= q0.limit) return json({ quota: q0 });   // ya analizada: se guarda igual
+      await logUsage(user.id, 'nutrition', 'meal', {}, 'commit');
+      return json({ quota: await mealQuota(user.id) });
+    }
+
+    // Topes ANTES de llamar a la API. La app v3 (y las correcciones) no gasta
+    // por llamada: 'draft' (cupo al guardar). Las apps viejas, por llamada.
+    const v3 = body.mode === 'analyze' && Number(body.v) >= 3;
+    const kind: Kind | null = body.mode === 'analyze' ? (v3 ? 'draft' : (body.image?.data ? 'photo' : 'text'))
+      : body.mode === 'recalc' ? 'draft'
       : body.mode === 'chat' ? 'nutritionist' : null;
+    // Modelo: el del secret; los exentos pueden pedir otro para el A/B
+    const model = (typeof body.model === 'string' && MODELOS_AB.has(body.model) && EXEMPT_USERS.has(user.id)) ? body.model : MODEL;
     if (kind) {
       const tope = await checkLimits(user.id, kind);
       if (tope) return json({ error: tope.msg, limit: { reason: tope.reason, feature: tope.feature, max: tope.limit ?? null, plan: tope.plan ?? null } });
@@ -230,16 +345,44 @@ Deno.serve(async (req) => {
           'anthropic-version': '2023-06-01',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: MODEL, ...payload }),
+        body: JSON.stringify({ model, ...payload }),
       });
       if (!resp.ok) {
         const errTxt = await resp.text();
         throw new Error(`Anthropic ${resp.status}: ${errTxt.slice(0, 300)}`);
       }
       const data = await resp.json();
-      await logUsage(user.id, 'nutrition', kind, data.usage, MODEL);
+      await logUsage(user.id, 'nutrition', kind, data.usage, model);
+      if (data.stop_reason === 'refusal') throw new Error('No he podido analizar eso. Prueba a describirlo de otra forma.');
       return data;
     };
+
+    if (v3) {
+      // Varias fotos (máx. 6) y un texto, en UNA llamada
+      const imgs = (Array.isArray(body.images) ? body.images : []).filter((x: any) => x?.data).slice(0, 6);
+      const text = String(body.text ?? '').trim();
+      if (!imgs.length && !text) return json({ error: 'Falta texto o foto' }, 400);
+      const content: any[] = [];
+      imgs.forEach((im: any, i: number) => {
+        content.push({ type: 'text', text: `Foto ${i + 1}:` });
+        content.push({ type: 'image', source: { type: 'base64', media_type: im.media_type || 'image/jpeg', data: im.data } });
+      });
+      content.push({ type: 'text', text: text || (imgs.length > 1 ? 'Registra lo de las fotos.' : 'Registra lo de la foto.') });
+      const hoy = /^\d{4}-\d{2}-\d{2}$/.test(String(body.today)) ? String(body.today) : new Date().toISOString().slice(0, 10);
+      const hora = /^\d{1,2}:\d{2}$/.test(String(body.time)) ? String(body.time) : '12:00';
+      const t0 = Date.now();
+      const data = await callAnthropic({
+        max_tokens: 4000,
+        system: analyzeSystemV3(perfil?.weight_kg ?? null, hoy, hora, String(body.meal_type || 'other'), imgs.length),
+        tools: [REGISTER_TOOL_V3],
+        ...ajustesModelo(model, 'register_items'),
+        messages: [{ role: 'user', content }],
+      });
+      const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
+      if (!toolUse) return json({ error: 'No he podido leerlo. Prueba otra vez o descríbelo con palabras.' });
+      const items = (toolUse.input?.items ?? []).filter((it: any) => it && it.name).map(limpiaV3);
+      return json({ items, model, ms: Date.now() - t0, usage: data.usage, quota: await mealQuota(user.id) });
+    }
 
     if (body.mode === 'analyze') {
       const content: any[] = [];
@@ -259,7 +402,7 @@ Deno.serve(async (req) => {
         max_tokens: 1500,
         system: analyzeSystem(perfil?.weight_kg ?? null),
         tools: [REGISTER_TOOL],
-        tool_choice: { type: 'tool', name: 'register_meals' },
+        ...ajustesModelo(model, 'register_meals'),
         messages: [{ role: 'user', content }],
       });
       const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
@@ -289,7 +432,7 @@ Deno.serve(async (req) => {
         system: analyzeSystem(perfil?.weight_kg ?? null)
           + `\n- MODO CORRECCIÓN: es UNA comida ya apuntada cuya descripción se ha corregido. Devuelve UN SOLO item con el total del plato corregido y la descripción tal como la ha escrito el usuario.`,
         tools: [REGISTER_TOOL],
-        tool_choice: { type: 'tool', name: 'register_meals' },
+        ...ajustesModelo(model, 'register_meals'),
         messages: [{ role: 'user', content: `Descripción corregida: ${text}${referencia}` }],
       });
       const toolUse = (data.content ?? []).find((b: any) => b.type === 'tool_use');
