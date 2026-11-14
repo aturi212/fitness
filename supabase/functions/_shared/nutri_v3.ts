@@ -80,6 +80,8 @@ NO CALCULES TOTALES. Por cada elemento das sus valores de REFERENCIA y la cantid
 - El usuario da valores («100 g son 12 de proteína…», una tabla pegada de ChatGPT, «esto son 450 kcal y 30 g de proteína»): source user. Si son por 100 g, basis per_100g; si son totales de lo que se ha comido, basis total con amount.units = 1. Respeta sus números exactos: no los cambies.
 - Sin etiqueta ni valores: source estimate, basis per_100g con valores típicos del plato tal como se come, y amount.grams con lo que diga o una ración normal (estimated true).
 - Cantidad: la que DICE el usuario («de la 2, 20 g», «una galleta», «la mitad», «un vaso» ≈ 200 ml, «una cucharada» ≈ 15 g). Rellena solo un campo de amount. En etiquetas sin cantidad dicha, todo null.
+- Si la base es per_100g y la cantidad va en unidades (cucharadas, rebanadas, piezas, raciones, «un plato»), pon SIEMPRE unit_g con el peso de una unidad (1 cucharada de aceite ≈ 13,5 g; 1 rebanada de pan ≈ 30 g; 1 huevo ≈ 55 g); sin unit_g la app no puede calcular. Si no hay unidad clara, da amount.grams.
+- Si la etiqueta trae columna por 100 g y por unidad, usa la de 100 g (basis per_100g) y pon unit_g con el peso de la unidad.
 - Un elemento por PLATO: lo que va junto en el plato es un solo elemento («Ensalada de garbanzos con feta y aceitunas», valores por 100 g del conjunto y su peso total). Separa solo lo que se come aparte: bebida, postre, pan, y cada producto de foto distinto.
 - Cada elemento lleva photo (número de foto) o null si sale del texto.
 - meal_type y day_offset (respecto a HOY): deduce de lo que diga («ayer cené…» → dinner, -1; «esta mañana» → breakfast, 0; encabezados «desayuno: … comida: …» reparten). Si no dice nada, el momento abierto y day_offset ${abierto}.
